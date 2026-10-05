@@ -1,0 +1,30 @@
+"""Root URL configuration.
+
+All API endpoints live under /api/v1/ so a future /api/v2/ will not break
+app versions already installed on students' phones.
+"""
+
+from django.conf import settings
+from django.urls import include, path, re_path
+
+from apps.core.views import not_found
+
+urlpatterns = [
+    path("api/v1/", include("config.api_v1")),
+]
+
+if settings.API_DOCS_ENABLED:
+    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+    urlpatterns += [
+        path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+        path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
+    ]
+
+# Any other /api/... path → JSON 404, in development too (clients always expect JSON).
+# Only paths ending in "/" match, so Django can still redirect "/api/v1/health" → "/api/v1/health/".
+urlpatterns += [re_path(r"^api/.*/$", not_found)]
+
+# JSON error responses instead of HTML pages (used when DEBUG is off).
+handler404 = "apps.core.views.not_found"
+handler500 = "apps.core.views.server_error"

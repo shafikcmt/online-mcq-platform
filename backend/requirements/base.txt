@@ -1,0 +1,7 @@
+# Runtime dependencies (pinned). Install with: pip install -r requirements/base.txt
+Django==5.2.17              # web framework (5.2 = LTS)
+djangorestframework==3.18.1 # REST API toolkit
+drf-spectacular==0.30.0     # OpenAPI schema + API docs page
+psycopg[binary]==3.3.6      # PostgreSQL driver
+redis==6.4.0                # Redis client (cache + Celery broker); 6.x is the range Celery/kombu supports
+celery[redis]==5.6.3        # background jobs (no tasks yet)

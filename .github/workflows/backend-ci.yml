@@ -1,0 +1,77 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "backend/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "backend/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".github/workflows/backend-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Lint, checks and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements/*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/dev.txt
+
+      - name: Formatting (ruff format)
+        run: ruff format --check .
+
+      - name: Lint and import order (ruff check)
+        run: ruff check .
+
+      - name: Django system check (development settings)
+        run: python manage.py check
+
+      - name: Django deployment check (production settings)
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.prod
+          DJANGO_ALLOWED_HOSTS: api.example.com
+          POSTGRES_PASSWORD: ci-only-not-a-real-password
+        run: |
+          DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+            python manage.py check --deploy --fail-level WARNING
+
+      - name: No missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Tests (pytest)
+        run: pytest
+
+  compose:
+    name: Docker Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose.yml
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
