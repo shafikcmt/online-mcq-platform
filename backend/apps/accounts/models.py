@@ -59,6 +59,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=True,
         help_text=_("Inactive users cannot log in. Deactivate instead of deleting."),
     )
+    is_mobile_verified = models.BooleanField(
+        _("mobile verified"),
+        default=False,
+        help_text=_("Set only by the registration / account flow after OTP verification."),
+    )
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,

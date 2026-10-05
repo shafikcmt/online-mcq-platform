@@ -55,7 +55,7 @@ Full localization rules: `LOCALIZATION.md`.
 | Module | Tables |
 |---|---|
 | accounts | `users`, `student_profiles` |
-| verification | `otp_codes` |
+| verification | `otp_codes`, `verification_tokens` |
 | catalog | `categories`, `subjects` |
 | questions | `questions`, `question_options` |
 | exams | `exams`, `exam_questions` |
@@ -75,7 +75,7 @@ Full localization rules: `LOCALIZATION.md`.
 
 ```
 users 1──1 student_profiles
-users 1──* otp_codes (nullable user: OTP can exist before user is created)
+otp_codes 1──0..1 verification_tokens   (no FK to users: an OTP exists before the user does)
 
 categories 1──* subjects 1──* questions 1──* question_options
    (academic structure: Category → Subjects → Questions; a subject belongs to exactly one category)
@@ -164,22 +164,34 @@ Constraints: `UNIQUE(mobile_number)`; partial `UNIQUE(lower(email)) WHERE email 
 
 ### 4.2 verification
 
-#### `otp_codes`
+#### `otp_codes` (model `OtpCode`)
 | Field | Type | Notes |
 |---|---|---|
 | id | bigint PK | |
-| user_id | FK? → users | null during registration |
-| channel | varchar | `sms` (email later) |
-| destination | varchar IDX | phone number |
-| purpose | varchar | `register` \| `password_reset` (`phone_change` reserved for later) |
+| mobile_number | varchar(20) | normalized `+8801XXXXXXXXX` (no FK to users — the module never reveals whether an account exists) |
+| purpose | varchar | `registration` \| `password_reset` |
+| otp_hash | varchar(64) | keyed HMAC-SHA256 of `mobile|purpose|code`, written by the SMS worker that generates the code (empty until then) — the code itself is never stored |
 | language | varchar(5) | language the SMS was sent in (`bn` SMS = Unicode, 70 chars/segment) |
-| code_hash | varchar | **hashed** OTP, never plain |
-| expires_at | timestamptz | e.g. now + 5 min (configurable) |
-| attempt_count | smallint | wrong tries; lock after N (configurable) |
-| consumed_at | timestamptz? | set once used — single use |
+| expires_at | timestamptz | now + `OTP_TTL_SECONDS` |
+| used_at | timestamptz? | set once verified — single use |
+| invalidated_at | timestamptz? | set when a newer code is issued for the same number + purpose |
+| failed_attempts | smallint | wrong tries; locked at `OTP_MAX_ATTEMPTS` |
 | request_ip | inet? | for abuse tracking |
+| created_at / updated_at | timestamptz | `created_at` = request time |
 
-Index: `(destination, purpose, created_at DESC)` for "latest OTP" lookups and resend cooldowns.
+Index: `(mobile_number, purpose, created_at DESC)` for "latest OTP" lookups and resend cooldowns.
+
+#### `verification_tokens` (model `VerificationToken`)
+Issued once after a correct OTP; consumed by registration / password reset (Milestone 2C).
+
+| Field | Type | Notes |
+|---|---|---|
+| token_hash | varchar(64) U | SHA-256 of a 256-bit random token — the token itself is never stored |
+| mobile_number | varchar(20) | the verified number |
+| purpose | varchar | same values as `otp_codes.purpose` |
+| otp_id | FK → otp_codes, U | the code that produced it |
+| expires_at | timestamptz | now + `VERIFICATION_TOKEN_TTL_SECONDS` |
+| used_at | timestamptz? | single use |
 
 ### 4.3 catalog
 

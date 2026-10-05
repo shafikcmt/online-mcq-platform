@@ -1,7 +1,7 @@
 """Production settings. Refuses to start with placeholder secrets or DEBUG on."""
 
 from .base import *  # noqa: F403
-from .base import ALLOWED_HOSTS, DATABASES, DEBUG, SECRET_KEY
+from .base import ALLOWED_HOSTS, DATABASES, DEBUG, SECRET_KEY, SMS_PROVIDER
 from .checks import validate_production_settings
 from .env import env_bool, env_int
 
@@ -10,7 +10,12 @@ validate_production_settings(
     debug=DEBUG,
     allowed_hosts=ALLOWED_HOSTS,
     db_password=DATABASES["default"]["PASSWORD"],
+    sms_provider=SMS_PROVIDER,
+    allow_mock_sms=env_bool("SMS_ALLOW_MOCK_IN_PRODUCTION", False),
 )
+
+# OTP/SMS text is never written to logs in production.
+SMS_MOCK_LOG_CONTENT = False
 
 API_DOCS_ENABLED = env_bool("API_DOCS_ENABLED", False)
 

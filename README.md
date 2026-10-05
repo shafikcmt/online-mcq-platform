@@ -11,9 +11,10 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 2A — Accounts Foundation.** Backend skeleton, Docker setup, tests, CI and the
-custom User model (mobile number login) + student profile exist. No registration/login API,
-OTP, exams or payments yet. See `docs/ROADMAP.md`.
+**Milestone 2B — OTP Verification Foundation.** Backend skeleton, Docker setup, tests, CI, the
+custom User model (mobile number login) + student profile, and the OTP verification services
+(codes, rate limits, verification tokens, mock SMS via Celery) exist. No public
+registration/login/OTP API, exams or payments yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -107,6 +108,10 @@ docker compose exec backend python manage.py createsuperuser  # internal admin a
 
 `createsuperuser` asks for a **mobile number** (e.g. `01712345678` — Bangla digits also work),
 full name and password. Never put real credentials in code or committed files.
+
+OTP codes in development: no real SMS is sent (`SMS_PROVIDER=mock`). To see codes in the
+logs while developing, set `SMS_MOCK_LOG_CONTENT=true` in `.env` (works only with
+`DJANGO_DEBUG=true`; never enable it on a real server).
 
 Internal Django admin (operations only, not the product Admin Panel):
 http://localhost:8000/django-admin/

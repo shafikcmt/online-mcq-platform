@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 10:42+0000\n"
+"POT-Creation-Date: 2026-10-05 11:15+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -78,6 +78,12 @@ msgstr "সক্রিয়"
 msgid "Inactive users cannot log in. Deactivate instead of deleting."
 msgstr "নিষ্ক্রিয় ব্যবহারকারী লগইন করতে পারেন না। মুছে না ফেলে নিষ্ক্রিয় করুন।"
 
+msgid "mobile verified"
+msgstr "মোবাইল যাচাইকৃত"
+
+msgid "Set only by the registration / account flow after OTP verification."
+msgstr "শুধু OTP যাচাইয়ের পর নিবন্ধন / অ্যাকাউন্ট প্রক্রিয়ায় নির্ধারিত হয়।"
+
 msgid "staff status"
 msgstr "স্টাফ স্ট্যাটাস"
 
@@ -122,6 +128,84 @@ msgstr "অনুরোধ করা তথ্যটি পাওয়া য�
 
 msgid "Something went wrong on our side. Please try again."
 msgstr "আমাদের দিক থেকে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "Verification"
+msgstr "যাচাইকরণ"
+
+msgid "Verification failed."
+msgstr "যাচাই ব্যর্থ হয়েছে।"
+
+msgid "Too many code requests. Please try again later."
+msgstr "অনেকবার কোড চাওয়া হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+
+msgid "Codes cannot be sent right now. Please try again shortly."
+msgstr "এই মুহূর্তে কোড পাঠানো যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
+
+msgid "Please wait before requesting a new code."
+msgstr "নতুন কোড চাওয়ার আগে একটু অপেক্ষা করুন।"
+
+msgid "The code is incorrect."
+msgstr "কোডটি সঠিক নয়।"
+
+msgid "The code has expired. Please request a new one."
+msgstr "কোডের মেয়াদ শেষ। নতুন কোড চান।"
+
+msgid "Too many wrong attempts. Please request a new code."
+msgstr "অনেকবার ভুল কোড দেওয়া হয়েছে। নতুন কোড চান।"
+
+msgid "Your verification has expired or is invalid. Please verify again."
+msgstr "আপনার যাচাইয়ের মেয়াদ শেষ বা এটি অবৈধ। আবার যাচাই করুন।"
+
+msgid "Registration"
+msgstr "নিবন্ধন"
+
+msgid "Password reset"
+msgstr "পাসওয়ার্ড রিসেট"
+
+msgid "purpose"
+msgstr "উদ্দেশ্য"
+
+msgid "OTP hash"
+msgstr "OTP হ্যাশ"
+
+msgid "language"
+msgstr "ভাষা"
+
+msgid "expires at"
+msgstr "মেয়াদ শেষের সময়"
+
+msgid "used at"
+msgstr "ব্যবহারের সময়"
+
+msgid "invalidated at"
+msgstr "বাতিলের সময়"
+
+msgid "failed attempts"
+msgstr "ব্যর্থ চেষ্টা"
+
+msgid "request IP"
+msgstr "অনুরোধের IP"
+
+msgid "OTP code"
+msgstr "OTP কোড"
+
+msgid "OTP codes"
+msgstr "OTP কোডসমূহ"
+
+msgid "token hash"
+msgstr "টোকেন হ্যাশ"
+
+msgid "verification token"
+msgstr "যাচাই টোকেন"
+
+msgid "verification tokens"
+msgstr "যাচাই টোকেনসমূহ"
+
+#, python-format
+msgid ""
+"Your verification code is %(code)s. Valid for %(minutes)s min. Don't share "
+"it."
+msgstr "আপনার যাচাই কোড %(code)s। %(minutes)s মিনিট বৈধ। কাউকে জানাবেন না।"
 
 msgid "Bangla"
 msgstr "বাংলা"

@@ -52,3 +52,11 @@ def try_normalize_bd_mobile(value):
         return normalize_bd_mobile(value)
     except ValidationError:
         return value
+
+
+def mask_mobile(value: str) -> str:
+    """Mask a mobile number for logs: ``+8801712345678`` → ``+88017*****678``."""
+    value = str(value or "")
+    if len(value) <= 8:
+        return "*" * len(value)
+    return f"{value[:6]}{'*' * (len(value) - 9)}{value[-3:]}"

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # Project modules (see docs/MODULES.md for the planned list and order)
     "apps.core",
+    "apps.verification",
     "apps.accounts",
 ]
 
@@ -95,6 +96,29 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+# --------------------------------------------------------------------------------------
+# OTP verification (docs/SECURITY_PLAN.md §3.2) — all values configurable
+# --------------------------------------------------------------------------------------
+OTP_LENGTH = env_int("OTP_LENGTH", 6)
+OTP_TTL_SECONDS = env_int("OTP_TTL_SECONDS", 300)
+OTP_RESEND_COOLDOWN_SECONDS = env_int("OTP_RESEND_COOLDOWN_SECONDS", 60)
+OTP_MAX_ATTEMPTS = env_int("OTP_MAX_ATTEMPTS", 5)
+# Codes per mobile number (all purposes) within the window.
+OTP_REQUEST_LIMIT = env_int("OTP_REQUEST_LIMIT", 5)
+OTP_REQUEST_WINDOW_SECONDS = env_int("OTP_REQUEST_WINDOW_SECONDS", 3600)
+# Code requests per client IP within the window.
+OTP_IP_REQUEST_LIMIT = env_int("OTP_IP_REQUEST_LIMIT", 20)
+OTP_IP_REQUEST_WINDOW_SECONDS = env_int("OTP_IP_REQUEST_WINDOW_SECONDS", 3600)
+VERIFICATION_TOKEN_TTL_SECONDS = env_int("VERIFICATION_TOKEN_TTL_SECONDS", 600)
+
+# SMS delivery. Real Bangladesh gateways are added to SMS_PROVIDERS later.
+SMS_PROVIDER = env_str("SMS_PROVIDER", "mock")
+SMS_PROVIDERS = {
+    "mock": "apps.verification.sms.mock.MockSmsProvider",
+}
+# Development only: print mock SMS text (incl. the code) to the console. Ignored unless DEBUG.
+SMS_MOCK_LOG_CONTENT = env_bool("SMS_MOCK_LOG_CONTENT", False)
 
 # --------------------------------------------------------------------------------------
 # Database — PostgreSQL is the single source of truth
