@@ -29,7 +29,7 @@
     "code": "exam_not_available",
     "message": "This exam is not open yet.",
     "details": { "start_at": "2026-10-06T04:00:00Z" },
-    "field_errors": { "phone": ["Enter a valid Bangladeshi mobile number."] }
+    "field_errors": { "mobile_number": ["Enter a valid Bangladeshi mobile number."] }
   }
 }
 ```
@@ -65,17 +65,17 @@
 
 ```
 Registration (mobile number + SMS OTP are mandatory; email is optional):
- 1. POST /auth/otp/request      {phone, purpose:"register"}   → 202 (SMS sent via Celery, in the request language)
- 2. POST /auth/otp/verify       {phone, code, purpose}        → {verification_token} (short-lived, single-use)
+ 1. POST /auth/otp/request      {mobile_number, purpose:"register"}   → 202 (SMS sent via Celery, in the request language)
+ 2. POST /auth/otp/verify       {mobile_number, code, purpose}        → {verification_token} (short-lived, single-use)
  3. POST /auth/register         {verification_token, full_name, password, email?} → {user, access, refresh}
 
 Login:
-    POST /auth/login            {phone, password} → {access, refresh, user}
+    POST /auth/login            {mobile_number, password} → {access, refresh, user}
     POST /auth/token/refresh    {refresh} → {access, refresh}  (refresh rotation + blacklist old)
     POST /auth/logout           {refresh} → 204 (refresh token blacklisted)
 
 Forgot password (SMS OTP only):
-    POST /auth/otp/request      {phone, purpose:"password_reset"} → 202 (same response whether or not the phone exists)
+    POST /auth/otp/request      {mobile_number, purpose:"password_reset"} → 202 (same response whether or not the mobile number exists)
     POST /auth/otp/verify       → {verification_token}
     POST /auth/password/reset   {verification_token, new_password} → 204 (all refresh tokens revoked)
 ```

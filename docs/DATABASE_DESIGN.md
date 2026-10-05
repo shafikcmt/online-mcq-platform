@@ -134,22 +134,22 @@ Legend: **PK** primary key, **FK** foreign key, **U** unique, **IDX** indexed, `
 | Field | Type | Notes |
 |---|---|---|
 | id | bigint PK | |
-| phone | varchar(20) U **NOT NULL** | **mandatory**; E.164 normalized, e.g. `+8801XXXXXXXXX`; the login identifier |
+| mobile_number | varchar(20) U **NOT NULL** | **mandatory**; E.164 normalized, e.g. `+8801XXXXXXXXX`; the login identifier |
 | email | varchar(254)? U | **optional**; lower-cased; unique when present |
 | full_name | varchar(150) | |
 | password | varchar(128) | Django hash (Argon2/PBKDF2) — never plain text |
 | role | varchar(20) | `student` \| `admin` (room for `staff`/`moderator` later) |
 | preferred_language | varchar(5) | `bn` \| `en` — UI language (students & admins); default from site settings |
 | is_active | bool | admin can deactivate |
-| is_phone_verified | bool | always true for students (account is only created after SMS OTP succeeds); kept for admin accounts / future phone change |
+| is_mobile_verified | bool | *(added in Milestone 2B with OTP verification)* always true for students (account is only created after SMS OTP succeeds); kept for admin accounts / future mobile number change |
 | is_email_verified | bool | |
 | is_staff / is_superuser | bool | Django internals; superuser only for ops |
 | last_login, date_joined | timestamptz | |
 
-Constraints: `UNIQUE(phone)`; partial `UNIQUE(lower(email)) WHERE email IS NOT NULL`.
+Constraints: `UNIQUE(mobile_number)`; partial `UNIQUE(lower(email)) WHERE email IS NOT NULL`.
 
 > Why a custom user model? Django's default uses `username`. We log in by **mobile number**
-> (`USERNAME_FIELD = "phone"`).
+> (`USERNAME_FIELD = "mobile_number"`).
 > Changing the user model after the first migration is very painful, so it is decided now.
 
 #### `student_profiles`

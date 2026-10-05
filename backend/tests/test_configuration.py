@@ -59,14 +59,32 @@ def test_production_settings_reject_unsafe_values(override):
         validate_production_settings(**{**GOOD, **override})
 
 
-def test_custom_user_model_not_created_yet():
-    # Milestone 2 switches this to the custom model before the first migration.
-    assert settings.AUTH_USER_MODEL == "auth.User"
+def test_custom_user_model_is_active():
+    from django.contrib.auth import get_user_model
+
+    from apps.accounts.models import User
+
+    assert settings.AUTH_USER_MODEL == "accounts.User"
+    assert get_user_model() is User
 
 
-def test_migrate_is_blocked_until_custom_user_model_exists():
+def test_migrate_guard_still_blocks_the_default_user_model(settings):
+    # Protects against anyone switching back to Django's default user model.
+    settings.AUTH_USER_MODEL = "auth.User"
     with pytest.raises(CommandError, match="custom User model"):
         call_command("migrate", verbosity=0)
+
+
+@pytest.mark.django_db
+def test_migrate_runs_normally_with_the_custom_user_model():
+    # The test database was created by this same command; running it again is a no-op.
+    out = StringIO()
+    call_command("migrate", "--check", stdout=out)  # exits non-zero if anything is unapplied
+
+
+@pytest.mark.django_db
+def test_no_missing_migrations():
+    call_command("makemigrations", "--check", "--dry-run", verbosity=0)
 
 
 def test_migrate_guard_is_a_thin_wrapper_around_django_migrate():

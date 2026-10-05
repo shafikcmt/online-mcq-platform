@@ -1,9 +1,8 @@
 """Settings for the automated test suite (pytest).
 
-Tests must not need running PostgreSQL or Redis services in Milestone 1:
+- PostgreSQL is required (pytest-django creates and migrates a throw-away test database)
 - cache uses local memory instead of Redis
 - Celery runs tasks inline
-- no test touches the database yet (no models / migrations exist)
 """
 
 from .base import *  # noqa: F403
@@ -15,4 +14,5 @@ API_DOCS_ENABLED = True
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_BROKER_URL = "memory://"
-PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # fast, tests only
+# Fast hasher for most tests; tests that check real hashing override this explicitly.
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

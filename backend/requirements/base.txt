@@ -5,3 +5,4 @@ drf-spectacular==0.30.0     # OpenAPI schema + API docs page
 psycopg[binary]==3.3.6      # PostgreSQL driver
 redis==6.4.0                # Redis client (cache + Celery broker); 6.x is the range Celery/kombu supports
 celery[redis]==5.6.3        # background jobs (no tasks yet)
+argon2-cffi==25.1.0         # Argon2 password hashing (docs/SECURITY_PLAN.md §3.1)

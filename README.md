@@ -11,8 +11,9 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 1 — Project Foundation.** The backend skeleton, Docker setup, tests and CI exist.
-No business features yet (no users, exams, payments…). See `docs/ROADMAP.md`.
+**Milestone 2A — Accounts Foundation.** Backend skeleton, Docker setup, tests, CI and the
+custom User model (mobile number login) + student profile exist. No registration/login API,
+OTP, exams or payments yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -29,8 +30,9 @@ online-mcq-platform/
 │   │   ├── api_v1.py         all version-1 API routes
 │   │   └── celery.py         Celery (background jobs) app
 │   ├── apps/
-│   │   └── core/             shared code: health endpoint, error format, pagination,
-│   │                         language middleware, Bangla/English helpers
+│   │   ├── core/             shared code: health endpoint, error format, pagination,
+│   │   │                     language middleware, Bangla/English + mobile number helpers
+│   │   └── accounts/         custom User (mobile number login), StudentProfile, roles
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -96,9 +98,18 @@ docker compose down        # stop containers, keep database data
 docker compose down -v     # stop AND delete database data (fresh start)
 ```
 
-> ⚠️ **Do not run `python manage.py migrate` yet.** The custom User model is created in
-> Milestone 2 before the first migration. Running migrations now is blocked on purpose and
-> prints an explanation.
+### Database setup (first run)
+
+```bash
+docker compose exec backend python manage.py migrate          # create tables
+docker compose exec backend python manage.py createsuperuser  # internal admin account
+```
+
+`createsuperuser` asks for a **mobile number** (e.g. `01712345678` — Bangla digits also work),
+full name and password. Never put real credentials in code or committed files.
+
+Internal Django admin (operations only, not the product Admin Panel):
+http://localhost:8000/django-admin/
 
 ---
 
@@ -144,7 +155,12 @@ pip install -r requirements/dev.txt
 pytest
 ```
 
-Tests do not need PostgreSQL or Redis running (they use in-memory replacements).
+Without Docker, compile the translations once before running tests (needs GNU gettext):
+`python manage.py compilemessages`. In Docker this happens automatically at startup.
+
+Tests need **PostgreSQL** (pytest creates and deletes its own `test_…` database).
+With Docker this is already running; without Docker, point the `POSTGRES_*` variables at
+a local PostgreSQL user that is allowed to create databases. Redis is not needed for tests.
 
 ---
 
@@ -160,6 +176,20 @@ ruff check . --fix           # auto-fix what can be fixed
 python manage.py check       # Django system check
 python manage.py makemigrations --check --dry-run   # no forgotten migrations
 ```
+
+### Translations (Bangla + English)
+
+User-facing backend text is written in English inside `_("…")` and translated in
+`backend/locale/bn/LC_MESSAGES/django.po`. After adding or changing such text:
+
+```bash
+python manage.py makemessages -l bn -l en --no-location --no-obsolete   # update .po files
+# edit backend/locale/bn/LC_MESSAGES/django.po (fill in msgstr)
+python manage.py compilemessages                                       # build .mo files
+```
+
+These need GNU gettext (already installed in the Docker image). Only the `.po` files are
+committed; `.mo` files are generated (Docker build/startup and CI run `compilemessages`).
 
 The same checks run automatically on GitHub (`.github/workflows/backend-ci.yml`) for pushes
 and pull requests to `develop` and `main`.

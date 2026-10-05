@@ -30,6 +30,26 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: online_mcq
+          POSTGRES_USER: online_mcq
+          POSTGRES_PASSWORD: ci-only-not-a-real-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U online_mcq -d online_mcq"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: online_mcq
+      POSTGRES_USER: online_mcq
+      POSTGRES_PASSWORD: ci-only-not-a-real-password
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +60,9 @@ jobs:
           cache-dependency-path: backend/requirements/*.txt
 
       - name: Install dependencies
-        run: pip install -r requirements/dev.txt
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q gettext
+          pip install -r requirements/dev.txt
 
       - name: Formatting (ruff format)
         run: ruff format --check .
@@ -55,13 +77,20 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings.prod
           DJANGO_ALLOWED_HOSTS: api.example.com
-          POSTGRES_PASSWORD: ci-only-not-a-real-password
         run: |
           DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
             python manage.py check --deploy --fail-level WARNING
 
       - name: No missing migrations
         run: python manage.py makemigrations --check --dry-run
+
+      - name: Migrations apply to an empty PostgreSQL database
+        run: |
+          python manage.py migrate --noinput
+          python manage.py migrate --check
+
+      - name: Compile translations (Bangla + English)
+        run: python manage.py compilemessages
 
       - name: Tests (pytest)
         run: pytest

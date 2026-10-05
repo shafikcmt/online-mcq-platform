@@ -9,6 +9,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# gettext: compiles Bangla/English translation files (makemessages / compilemessages).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
+
 # Run as a non-root user.
 RUN useradd --create-home --uid 1000 app
 
@@ -23,7 +28,10 @@ RUN pip install -r ${REQUIREMENTS}
 COPY --chown=app:app . .
 USER app
 
+# Compile Bangla/English translations (.po → .mo). The .mo files are generated, not committed.
+RUN python manage.py compilemessages --verbosity 0
+
 EXPOSE 8000
 
-# NOTE: no `migrate` here on purpose — migrations start in Milestone 2 (custom User model).
+# Migrations are run explicitly (see README: `docker compose exec backend python manage.py migrate`).
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
