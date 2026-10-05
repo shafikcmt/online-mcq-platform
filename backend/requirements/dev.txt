@@ -1,0 +1,5 @@
+# Development + CI dependencies. Install with: pip install -r requirements/dev.txt
+-r base.txt
+pytest==9.1.1
+pytest-django==4.14.0
+ruff==0.16.10               # linter + formatter + import sorter (one tool)
