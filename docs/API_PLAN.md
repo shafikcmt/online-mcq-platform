@@ -65,7 +65,7 @@
 
 ```
 Registration (mobile number + SMS OTP are mandatory; email is optional):
- 1. POST /auth/otp/request      {mobile_number, purpose:"register"}   → 202 (SMS sent via Celery, in the request language)
+ 1. POST /auth/otp/request      {mobile_number, purpose:"registration"}   → 202 (SMS sent via Celery, in the request language)
  2. POST /auth/otp/verify       {mobile_number, code, purpose}        → {verification_token} (short-lived, single-use)
  3. POST /auth/register         {verification_token, full_name, password, email?} → {user, access, refresh}
 

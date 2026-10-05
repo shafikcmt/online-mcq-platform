@@ -15,6 +15,7 @@ GOOD = {
     "debug": False,
     "allowed_hosts": ["api.example.com"],
     "db_password": "a-real-password",
+    "sms_provider": "real-sms-gateway",  # production must not use the mock provider
 }
 
 

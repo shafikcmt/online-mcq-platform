@@ -41,13 +41,21 @@ class UserAdmin(BaseUserAdmin):
     inlines = (StudentProfileInline,)
 
     list_display = ("mobile_number", "full_name", "role", "is_active", "is_staff", "date_joined")
-    list_filter = ("role", "is_active", "is_staff", "is_superuser", "preferred_language")
+    list_filter = (
+        "role",
+        "is_active",
+        "is_mobile_verified",
+        "is_staff",
+        "is_superuser",
+        "preferred_language",
+    )
     search_fields = ("mobile_number", "full_name", "email")
     ordering = ("-date_joined",)
-    readonly_fields = ("last_login", "date_joined", "updated_at")
+    # Verification status is set only by the OTP-backed account flow, never by hand.
+    readonly_fields = ("is_mobile_verified", "last_login", "date_joined", "updated_at")
 
     fieldsets = (
-        (None, {"fields": ("mobile_number", "password")}),
+        (None, {"fields": ("mobile_number", "is_mobile_verified", "password")}),
         (_("Personal info"), {"fields": ("full_name", "email", "preferred_language")}),
         (
             _("Role and permissions"),

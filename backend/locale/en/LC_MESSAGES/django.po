@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 10:42+0000\n"
+"POT-Creation-Date: 2026-10-05 11:15+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -78,6 +78,12 @@ msgstr ""
 msgid "Inactive users cannot log in. Deactivate instead of deleting."
 msgstr ""
 
+msgid "mobile verified"
+msgstr ""
+
+msgid "Set only by the registration / account flow after OTP verification."
+msgstr ""
+
 msgid "staff status"
 msgstr ""
 
@@ -121,6 +127,84 @@ msgid "The requested resource was not found."
 msgstr ""
 
 msgid "Something went wrong on our side. Please try again."
+msgstr ""
+
+msgid "Verification"
+msgstr ""
+
+msgid "Verification failed."
+msgstr ""
+
+msgid "Too many code requests. Please try again later."
+msgstr ""
+
+msgid "Codes cannot be sent right now. Please try again shortly."
+msgstr ""
+
+msgid "Please wait before requesting a new code."
+msgstr ""
+
+msgid "The code is incorrect."
+msgstr ""
+
+msgid "The code has expired. Please request a new one."
+msgstr ""
+
+msgid "Too many wrong attempts. Please request a new code."
+msgstr ""
+
+msgid "Your verification has expired or is invalid. Please verify again."
+msgstr ""
+
+msgid "Registration"
+msgstr ""
+
+msgid "Password reset"
+msgstr ""
+
+msgid "purpose"
+msgstr ""
+
+msgid "OTP hash"
+msgstr ""
+
+msgid "language"
+msgstr ""
+
+msgid "expires at"
+msgstr ""
+
+msgid "used at"
+msgstr ""
+
+msgid "invalidated at"
+msgstr ""
+
+msgid "failed attempts"
+msgstr ""
+
+msgid "request IP"
+msgstr ""
+
+msgid "OTP code"
+msgstr ""
+
+msgid "OTP codes"
+msgstr ""
+
+msgid "token hash"
+msgstr ""
+
+msgid "verification token"
+msgstr ""
+
+msgid "verification tokens"
+msgstr ""
+
+#, python-format
+msgid ""
+"Your verification code is %(code)s. Valid for %(minutes)s min. Don't share "
+"it."
 msgstr ""
 
 msgid "Bangla"
