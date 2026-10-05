@@ -13,6 +13,25 @@ Main components:
 The approved project scope is stored under `docs/requirements/`.
 Always review the requirement files before planning or implementing a feature.
 
+## Product & UI Reference
+Reference website for product flow and interaction ideas:
+- https://web.livemcq.com/
+
+Use the reference only as inspiration for flow, layout patterns, and usability. Do not copy proprietary code, branding, text, assets, or exact visual identity.
+
+The UI/UX for the Mobile App, Public Website, and Admin Panel should be modern, smart, clean, fast, responsive, and easy to use.
+Prefer:
+- clear information hierarchy
+- uncluttered screens
+- modern cards, tables, forms, filters, and dashboards
+- consistent spacing and typography
+- mobile-first responsive behavior
+- accessible color contrast and readable states
+- smooth but restrained interactions
+- polished loading, empty, success, warning, and error states
+
+Avoid outdated, crowded, or overly decorative UI. Keep the experience suitable for a serious exam platform used by students and administrators.
+
 ## Preferred Technology Stack
 Backend:
 - Python
