@@ -45,13 +45,14 @@ services:
 
   backend:
     <<: *backend
-    command: python manage.py runserver 0.0.0.0:8000
+    # The source folder is mounted over /app, so translations are compiled at startup.
+    command: sh -c "python manage.py compilemessages --verbosity 0 && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "127.0.0.1:8000:8000" # reachable only from this computer
 
   celery:
     <<: *backend
-    command: celery -A config worker --loglevel=info
+    command: sh -c "python manage.py compilemessages --verbosity 0 && celery -A config worker --loglevel=info"
     # No tasks exist yet; the worker proves the Celery ↔ Redis wiring works.
 
 volumes:

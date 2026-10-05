@@ -5,12 +5,19 @@ app versions already installed on students' phones.
 """
 
 from django.conf import settings
+from django.contrib import admin
 from django.urls import include, path, re_path
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.views import not_found
 
+admin.site.site_header = _("Online MCQ — internal administration")
+admin.site.site_title = _("Online MCQ administration")
+
 urlpatterns = [
     path("api/v1/", include("config.api_v1")),
+    # Internal operations only; the product Admin Panel is a separate app.
+    path(settings.DJANGO_ADMIN_URL, admin.site.urls),
 ]
 
 if settings.API_DOCS_ENABLED:

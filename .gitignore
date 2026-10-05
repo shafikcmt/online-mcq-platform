@@ -20,6 +20,8 @@ celerybeat-schedule*
 # Django
 staticfiles/
 media/
+# Compiled translations — generated from .po files by `manage.py compilemessages`
+*.mo
 
 # Node / Next.js
 node_modules/

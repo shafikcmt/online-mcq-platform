@@ -20,27 +20,34 @@ DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 INSTALLED_APPS = [
-    # Django. `auth` + `contenttypes` are required by DRF. `admin`/`sessions` are not
-    # installed: the Admin Panel is a separate Next.js app.
+    # Django. The Django admin is for internal operations only — the product Admin
+    # Panel is a separate Next.js app (Milestone 7).
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third party
     "rest_framework",
     "drf_spectacular",
     # Project modules (see docs/MODULES.md for the planned list and order)
     "apps.core",
+    "apps.accounts",
 ]
 
-# IMPORTANT: AUTH_USER_MODEL is intentionally NOT set yet.
-# The custom User model (mobile number as login) is created in Milestone 2 *before*
-# the first migration. Until then `migrate` is blocked by apps/core/management/commands/migrate.py.
+# Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
+# Set before the project's first migration — never change it afterwards.
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.core.middleware.LanguageMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -50,16 +57,43 @@ ASGI_APPLICATION = "config.asgi.application"
 
 TEMPLATES = [
     {
-        # Needed only for the API docs page (Swagger UI) — no server-rendered UI here.
+        # Used only by the API docs page and the internal Django admin.
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
+]
+
+# Internal Django admin URL (keep it non-obvious in production).
+DJANGO_ADMIN_URL = env_str("DJANGO_ADMIN_URL", "django-admin/")
+
+# --------------------------------------------------------------------------------------
+# Passwords — hashed with Argon2 (PBKDF2 kept so older hashes still verify)
+# --------------------------------------------------------------------------------------
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "OPTIONS": {"user_attributes": ("mobile_number", "full_name", "email")},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": env_int("PASSWORD_MIN_LENGTH", 8)},
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # --------------------------------------------------------------------------------------

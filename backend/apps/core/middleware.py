@@ -4,8 +4,9 @@ Order (docs/LOCALIZATION.md §3.2):
 1. ``?lang=bn|en`` query parameter
 2. ``Accept-Language`` header
 3. (Milestone 2) the logged-in user's ``preferred_language``
-4. Default: ``ADMIN_DEFAULT_LANGUAGE`` (English) for Admin Panel API paths,
-   otherwise ``LANGUAGE_CODE`` (Bangla — Mobile App and Public Website default).
+4. Default: ``ADMIN_DEFAULT_LANGUAGE`` (English) for Admin Panel API paths and the
+   internal Django admin, otherwise ``LANGUAGE_CODE`` (Bangla — Mobile App and
+   Public Website default).
 """
 
 from django.conf import settings
@@ -39,6 +40,7 @@ class LanguageMiddleware:
         from_header = parse_accept_language(request.headers.get("Accept-Language"))
         if from_header:
             return from_header[0]
-        if request.path.startswith(settings.ADMIN_API_PATH_PREFIX):
+        admin_prefixes = (settings.ADMIN_API_PATH_PREFIX, "/" + settings.DJANGO_ADMIN_URL)
+        if request.path.startswith(admin_prefixes):
             return settings.ADMIN_DEFAULT_LANGUAGE
         return settings.LANGUAGE_CODE
