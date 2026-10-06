@@ -68,6 +68,7 @@ Branches: `feature/accounts`, `feature/otp-verification`
 - **Completion criteria:** a student can register, verify OTP, log in, refresh, log out and reset password via the API in both languages; admin user can be created by management command.
 - **Tests/checks:** registration/login/OTP/reset flows; OTP expiry, single use, wrong-attempt lock, resend cooldown; throttling; password reset revokes refresh tokens; deactivated user rejected; Bangla-digit phone input accepted; no OTP/password in logs.
 - **Risks:** custom user model must be right **before the first migration**; SMS provider not chosen yet (mitigated by mock adapter); SMS abuse/cost (throttles).
+- **Note (Milestone 2C):** the "audit module basics" item is **intentionally deferred to Milestone 3**, where the first admin actions (catalog, questions, exams) exist to be audited. Milestone 2 logs security events (logins, OTP, password changes) to the application log with masked mobile numbers.
 
 ## Milestone 3 — Catalog, Question bank, Exams
 Branches: `feature/catalog`, `feature/questions`, `feature/exams`

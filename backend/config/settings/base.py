@@ -4,6 +4,7 @@ Environment-specific files (dev.py, test.py, prod.py) import everything from her
 and override only what differs. All secrets come from environment variables.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from django.utils.translation import gettext_lazy as _
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     # Project modules (see docs/MODULES.md for the planned list and order)
     "apps.core",
@@ -190,9 +192,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Django REST Framework
 # --------------------------------------------------------------------------------------
 REST_FRAMEWORK = {
-    # Authentication (JWT) arrives in Milestone 2. Until then nothing can authenticate,
-    # and the default permission denies everything except views that explicitly allow it.
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    # Student JWT authentication; every view is closed unless it explicitly allows access.
+    "DEFAULT_AUTHENTICATION_CLASSES": ["apps.accounts.authentication.StudentJWTAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
@@ -200,7 +201,52 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "EXCEPTION_HANDLER": "apps.core.exceptions.api_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "UNAUTHENTICATED_USER": None,
+    # DRF would otherwise trust X-Forwarded-For blindly; see apps/core/net.py.
+    "NUM_PROXIES": env_int("TRUSTED_PROXY_COUNT", 0),
+}
+
+# --------------------------------------------------------------------------------------
+# Client IP / reverse proxies (apps/core/net.py)
+# --------------------------------------------------------------------------------------
+# Number of reverse proxies YOU run in front of Django (Nginx = 1, Cloudflare + Nginx = 2).
+# 0 = ignore X-Forwarded-For entirely and use the connection address.
+TRUSTED_PROXY_COUNT = env_int("TRUSTED_PROXY_COUNT", 0)
+
+# --------------------------------------------------------------------------------------
+# JWT (djangorestframework-simplejwt) — student API authentication
+# --------------------------------------------------------------------------------------
+# Separate from SECRET_KEY so either can be rotated independently. dev.py/test.py
+# provide throw-away keys; production refuses to start without a strong one.
+JWT_SIGNING_KEY = env_str("JWT_SIGNING_KEY", "")
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=env_int("JWT_ACCESS_TOKEN_LIFETIME_SECONDS", 900)),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        seconds=env_int("JWT_REFRESH_TOKEN_LIFETIME_SECONDS", 30 * 24 * 3600)
+    ),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,  # the login view updates it explicitly
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": JWT_SIGNING_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "CHECK_USER_IS_ACTIVE": True,
+    "CHECK_REVOKE_TOKEN": False,  # replaced by our auth_version claim
+    "LEEWAY": 0,
+}
+
+# --------------------------------------------------------------------------------------
+# HTTP security throttles (Redis; fail closed) — format: "<count>/<second|minute|hour|day>"
+# --------------------------------------------------------------------------------------
+AUTH_THROTTLE_RATES = {
+    "login": env_str("THROTTLE_LOGIN", "10/hour"),  # per client IP + mobile number
+    "login_ip": env_str("THROTTLE_LOGIN_IP", "60/hour"),
+    "otp_verify": env_str("THROTTLE_OTP_VERIFY", "30/hour"),
+    "register": env_str("THROTTLE_REGISTER", "10/hour"),
+    "password_reset": env_str("THROTTLE_PASSWORD_RESET", "10/hour"),
+    "password_change": env_str("THROTTLE_PASSWORD_CHANGE", "10/hour"),  # per user
+    "token_refresh": env_str("THROTTLE_TOKEN_REFRESH", "120/hour"),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -209,6 +255,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
+    "ENUM_NAME_OVERRIDES": {"LanguageEnum": "apps.accounts.api.serializers.LANGUAGE_CHOICES"},
 }
 # API docs (/api/schema/, /api/docs/) are exposed only when enabled (on in dev, off in prod).
 API_DOCS_ENABLED = env_bool("API_DOCS_ENABLED", False)

@@ -52,7 +52,13 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ("mobile_number", "full_name", "email")
     ordering = ("-date_joined",)
     # Verification status is set only by the OTP-backed account flow, never by hand.
-    readonly_fields = ("is_mobile_verified", "last_login", "date_joined", "updated_at")
+    readonly_fields = (
+        "is_mobile_verified",
+        "auth_version",
+        "last_login",
+        "date_joined",
+        "updated_at",
+    )
 
     fieldsets = (
         (None, {"fields": ("mobile_number", "is_mobile_verified", "password")}),
@@ -70,7 +76,10 @@ class UserAdmin(BaseUserAdmin):
                 )
             },
         ),
-        (_("Important dates"), {"fields": ("last_login", "date_joined", "updated_at")}),
+        (
+            _("Important dates"),
+            {"fields": ("auth_version", "last_login", "date_joined", "updated_at")},
+        ),
     )
     add_fieldsets = (
         (

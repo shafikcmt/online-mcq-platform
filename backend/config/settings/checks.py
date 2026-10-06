@@ -8,6 +8,7 @@ PLACEHOLDER_VALUES = {
     "changeme",
     "secret",
     "dev-only-insecure-key-do-not-use-in-production",
+    "dev-only-insecure-jwt-key-do-not-use-in-production",
 }
 MIN_SECRET_KEY_LENGTH = 50
 
@@ -20,6 +21,7 @@ def validate_production_settings(
     db_password: str,
     sms_provider: str = "mock",
     allow_mock_sms: bool = False,
+    jwt_signing_key: str = "",
 ) -> None:
     problems = []
     if secret_key.strip().lower() in PLACEHOLDER_VALUES or len(secret_key) < MIN_SECRET_KEY_LENGTH:
@@ -33,6 +35,16 @@ def validate_production_settings(
         problems.append("DJANGO_ALLOWED_HOSTS must list the real host names (no '*').")
     if db_password.strip().lower() in PLACEHOLDER_VALUES:
         problems.append("POSTGRES_PASSWORD must be set to a real password.")
+    if (
+        jwt_signing_key.strip().lower() in PLACEHOLDER_VALUES
+        or len(jwt_signing_key) < MIN_SECRET_KEY_LENGTH
+    ):
+        problems.append(
+            "JWT_SIGNING_KEY must be a random value of at least "
+            f"{MIN_SECRET_KEY_LENGTH} characters."
+        )
+    elif jwt_signing_key == secret_key:
+        problems.append("JWT_SIGNING_KEY must be different from DJANGO_SECRET_KEY.")
     if sms_provider == "mock" and not allow_mock_sms:
         problems.append(
             "SMS_PROVIDER=mock never delivers SMS. Configure a real provider, or set "

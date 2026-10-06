@@ -11,10 +11,10 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 2B — OTP Verification Foundation.** Backend skeleton, Docker setup, tests, CI, the
-custom User model (mobile number login) + student profile, and the OTP verification services
-(codes, rate limits, verification tokens, mock SMS via Celery) exist. No public
-registration/login/OTP API, exams or payments yet. See `docs/ROADMAP.md`.
+**Milestone 2C — Authentication API.** Backend skeleton, Docker setup, tests, CI, the custom
+User model (mobile number login) + student profile, OTP verification, and the student
+authentication API (register, login, JWT refresh/logout, password reset/change, profile)
+exist. No exams or payments yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -108,6 +108,18 @@ docker compose exec backend python manage.py createsuperuser  # internal admin a
 
 `createsuperuser` asks for a **mobile number** (e.g. `01712345678` — Bangla digits also work),
 full name and password. Never put real credentials in code or committed files.
+
+### Authentication API (students)
+
+`/api/v1/auth/…` — OTP request/verify, register, login, token refresh, logout, password
+reset/change — and `/api/v1/me/` (profile). See `docs/API_PLAN.md` §2 for the flow and the
+interactive docs at `/api/docs/`. Send the access token as `Authorization: Bearer <token>`.
+
+Behind reverse proxies set `TRUSTED_PROXY_COUNT` (Nginx only = 1; Cloudflare → Nginx = 2).
+With the default `0`, `X-Forwarded-For` is ignored, so clients cannot fake their IP to dodge
+rate limits. Never set it higher than the number of proxies you actually run, and when it is
+above `0` make sure the backend is **not reachable directly from the internet** — only through
+those proxies — otherwise anyone could send a forged `X-Forwarded-For` header.
 
 OTP codes in development: no real SMS is sent (`SMS_PROVIDER=mock`). To see codes in the
 logs while developing, set `SMS_MOCK_LOG_CONTENT=true` in `.env` (works only with

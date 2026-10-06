@@ -36,6 +36,8 @@
 - Passwords hashed with Django's hashers (**Argon2** preferred, PBKDF2 fallback). Never stored or logged in plain text.
 - Django password validators: min length (8+), not too common, not all-numeric, not similar to phone/email.
 - JWT: short-lived access token (~15 min), refresh token rotation + blacklist on logout and password reset.
+  Tokens carry the user's `auth_version`; password reset/change increments it, so already-issued
+  access tokens fail immediately (no waiting for expiry). Separate `JWT_SIGNING_KEY`, minimal claims (no PII).
 - Mobile stores refresh token in `expo-secure-store` (Android Keystore), access token in memory only. Never in AsyncStorage.
 - Admin web: tokens in `httpOnly`, `Secure`, `SameSite=Strict` cookies → not readable by JavaScript (XSS can't steal them); CSRF token required for mutations.
 - Deactivated users: login refused and existing tokens rejected (check `is_active` on each request).
@@ -47,6 +49,8 @@
 - Resend cooldown (60 s) + per-phone hourly/daily caps + per-IP caps (protects SMS balance).
 - Bangladeshi number format validation before sending (Bangla digits ০-৯ normalized first); optional allow-list of country codes.
 - Password reset is **SMS OTP only**. The reset OTP request returns the same response whether or not the account exists (no user enumeration).
+  The web request does identical work for every number (abuse checks + one queued task); the Celery
+  worker checks the account and issues the code, so response timing does not reveal accounts either.
 - OTP verification returns a short-lived, single-use `verification_token` bound to phone + purpose.
 - `SMS_PROVIDER=mock` in dev logs the code to the console — **never enabled in production** (startup check).
 
@@ -110,6 +114,11 @@
 ### 3.8 Rate limiting & abuse
 - DRF throttles (Redis) per scope: OTP, login, submit, payment, general (see `API_PLAN.md` §5).
 - Nginx `limit_req` as an outer layer for very high request rates.
+- Client IP for throttles comes from `REMOTE_ADDR` unless `TRUSTED_PROXY_COUNT` > 0; then the N-th
+  `X-Forwarded-For` entry from the right is used and anything further left (client-supplied) is
+  ignored. **When `TRUSTED_PROXY_COUNT` > 0 the app server must not be reachable directly from the
+  internet** — only through that proxy chain (firewall / Docker network) — otherwise clients could
+  forge the header. Proxy IP ranges (e.g. Cloudflare) are not hard-coded; the count is configuration.
 - Optional CAPTCHA on OTP request if SMS abuse is observed (not in Phase-1 by default).
 
 ### 3.9 Secrets & configuration
@@ -169,3 +178,8 @@
 - Rooted devices can bypass `FLAG_SECURE`.
 - No formal penetration test (Phase-2 item).
 - Single server = single point of failure; mitigated only by backups.
+- Password-reset enumeration via side channels outside the HTTP response: an attacker who owns the
+  target number would of course see the SMS; queue/worker load is not observable to clients.
+- `TRUSTED_PROXY_COUNT` misconfiguration (too high, or app reachable directly) lets clients pick
+  their throttle IP — deployment checklist item.
+- JTI-only refresh-token storage depends on simplejwt 5.5.1 internals (pinned; re-test on upgrade).

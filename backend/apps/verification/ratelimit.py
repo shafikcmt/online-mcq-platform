@@ -8,6 +8,8 @@ Fail closed: if the cache backend is unreachable these helpers raise
 """
 
 import logging
+import math
+import time
 from dataclasses import dataclass
 
 from django.core.cache import cache
@@ -43,10 +45,28 @@ def hit(scope: str, identifier: str, *, limit: int, window: int, now: float) -> 
     return LimitResult(allowed=count <= limit, retry_after=retry_after)
 
 
-def acquire_cooldown(scope: str, identifier: str, *, seconds: int) -> bool:
-    """Atomically claim a cooldown slot; False if one is already active."""
+def acquire_cooldown(
+    scope: str, identifier: str, *, seconds: int, now: float | None = None
+) -> bool:
+    """Atomically claim a cooldown slot; False if one is already active.
+
+    The claim time is stored so ``cooldown_retry_after`` can report the real remaining
+    time (identical whether or not a database record exists for the request).
+    """
+    started = now if now is not None else time.time()
     try:
-        return cache.add(f"cooldown:{scope}:{identifier}", 1, timeout=seconds)
+        return cache.add(f"cooldown:{scope}:{identifier}", started, timeout=seconds)
     except Exception as exc:  # noqa: BLE001 — any backend failure must fail closed
         logger.error("Rate limiter unavailable scope=%s error=%s", scope, exc.__class__.__name__)
         raise RateLimiterUnavailable from exc
+
+
+def cooldown_retry_after(scope: str, identifier: str, *, seconds: int, now: float) -> int:
+    """Seconds left on an active cooldown claim."""
+    try:
+        started = cache.get(f"cooldown:{scope}:{identifier}")
+    except Exception as exc:  # noqa: BLE001
+        raise RateLimiterUnavailable from exc
+    if not isinstance(started, int | float):
+        return seconds
+    return max(1, math.ceil(started + seconds - now))
