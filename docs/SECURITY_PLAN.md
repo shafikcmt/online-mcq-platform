@@ -131,7 +131,10 @@
 ### 3.10 Logging, monitoring & audit
 - Log: login success/failure, OTP requests, password resets, attempt start/submit, auto-submits, payment events, admin changes, permission denials, 5xx errors.
 - **Never log**: passwords, OTP codes (except mock mode in dev), tokens, provider secrets.
-- `audit_logs` table for admin actions (who, what, when, from which IP).
+- `audit_logs` table for admin actions (who, what, when, from which IP). *(Milestone 3A)* Append-only
+  (PostgreSQL trigger + model + read-only admin/API); metadata limited to allow-listed field names and
+  short identity values — never request bodies, passwords, tokens, cookies or keys. Users with audit
+  history are **deactivated, never hard-deleted** (the actor reference is `PROTECT`).
 - Production errors: generic message to the client, stack trace in server logs only.
   (Optional: Sentry — external cost, client decision.)
 

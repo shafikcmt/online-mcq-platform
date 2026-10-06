@@ -220,8 +220,8 @@ call the provider's verify/query API and compare amount + currency + status.
 |---|---|
 | Dashboard (basic reports) | `GET /admin/dashboard` — basic operational statistics only: student count, exam count, attempts today, payments/revenue summary, recent activity. Advanced analytics & exports are Phase-2 |
 | Users | `GET /admin/users` (search by name/phone/email, filter active/role), `GET /admin/users/{id}` (profile, subscriptions, attempts, payments), `POST /admin/users/{id}/activate`, `POST /admin/users/{id}/deactivate` |
-| Categories | `GET/POST /admin/categories`, `GET/PATCH/DELETE /admin/categories/{id}` |
-| Subjects | `GET/POST /admin/subjects`, `GET/PATCH/DELETE /admin/subjects/{id}` (filter by category) |
+| Categories | `GET/POST /admin/categories`, `GET/PATCH/DELETE /admin/categories/{id}` — filters `is_active`, `search` (Bangla/English name, slug), `ordering` (`sort_order`, `name_bn`, `name_en`, `created_at`, `updated_at`, `id`; `-` = descending). `DELETE` of a category that still has subjects → `409 in_use` |
+| Subjects | `GET/POST /admin/subjects`, `GET/PATCH/DELETE /admin/subjects/{id}` — same filters plus `category` |
 | Questions | `GET/POST /admin/questions` (filters: category, subject, difficulty, search, active), `GET/PATCH/DELETE /admin/questions/{id}` — options are nested in the question payload and saved atomically |
 | Exams | Fields include `content_language`, `allow_retake`, `max_attempts`, `merit_enabled`, `merit_strategy` (live exams forced to 1 attempt / `first_attempt`). `GET/POST /admin/exams`, `GET/PATCH/DELETE /admin/exams/{id}`, `POST /admin/exams/{id}/publish`, `POST /admin/exams/{id}/unpublish`, `POST /admin/exams/{id}/duplicate` |
 | Exam questions | `GET /admin/exams/{id}/questions`, `POST /admin/exams/{id}/questions` (add list of question IDs), `PATCH /admin/exams/{id}/questions/reorder`, `PATCH /admin/exams/{id}/questions/{qid}` (marks override), `DELETE /admin/exams/{id}/questions/{qid}` |
@@ -232,9 +232,18 @@ call the provider's verify/query API and compare amount + currency + status.
 | Contact messages | `GET /admin/contact-messages`, `PATCH /admin/contact-messages/{id}` (status) |
 | Content | `GET/PATCH /admin/settings` (incl. default language, leaderboard name modes, app links), CRUD `/admin/announcements`, CRUD `/admin/faqs`, CRUD `/admin/pages` |
 | Uploads | `POST /admin/uploads/image` (type/size validated) |
-| Audit | `GET /admin/audit-logs` (read-only) |
+| Audit | `GET /admin/audit-logs` (read-only; filters `action`, `entity_type`, `entity_id`, `actor`) |
 
 Admin `DELETE` behaviour: soft delete or `409 in_use` when the object is referenced by attempts/results/payments.
+
+**Admin API authentication — temporary Milestone 3 backend-only behaviour (not the final design):** `/admin/*` views accept only a
+Django **session cookie** with a mandatory **CSRF token** (`X-CSRFToken`) on unsafe methods, plus the
+`admin` role (checked on every request; inactive users rejected). Student JWTs are never accepted there,
+and admin sessions are not accepted on student endpoints. No session → `401`; logged in but not an
+admin → `403`. `is_staff`/`is_superuser` alone do not grant access. For now the workflow is
+*internal Django admin login → Django session → admin API*; the real Admin Panel login (its own endpoint,
+httpOnly cookies + CSRF) is designed and built in **Milestone 7** and replaces this workflow.
+Every admin write is recorded in `audit_logs` in the same transaction.
 
 ---
 

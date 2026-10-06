@@ -11,10 +11,11 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 2C — Authentication API.** Backend skeleton, Docker setup, tests, CI, the custom
-User model (mobile number login) + student profile, OTP verification, and the student
-authentication API (register, login, JWT refresh/logout, password reset/change, profile)
-exist. No exams or payments yet. See `docs/ROADMAP.md`.
+**Milestone 3A — Catalog + audit basics.** Backend skeleton, Docker setup, tests, CI, the custom
+User model (mobile number login) + student profile, OTP verification, the student
+authentication API (register, login, JWT refresh/logout, password reset/change, profile),
+the Category → Subject catalog with an admin API, and an append-only audit log exist.
+No questions, exams or payments yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -33,7 +34,10 @@ online-mcq-platform/
 │   ├── apps/
 │   │   ├── core/             shared code: health endpoint, error format, pagination,
 │   │   │                     language middleware, Bangla/English + mobile number helpers
-│   │   └── accounts/         custom User (mobile number login), StudentProfile, roles
+│   │   ├── accounts/         custom User (mobile number login), StudentProfile, roles, auth API
+│   │   ├── verification/     SMS OTP codes and verification tokens
+│   │   ├── audit/            append-only audit log of admin actions
+│   │   └── catalog/          Category → Subject (bilingual), admin API
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -124,6 +128,15 @@ those proxies — otherwise anyone could send a forged `X-Forwarded-For` header.
 OTP codes in development: no real SMS is sent (`SMS_PROVIDER=mock`). To see codes in the
 logs while developing, set `SMS_MOCK_LOG_CONTENT=true` in `.env` (works only with
 `DJANGO_DEBUG=true`; never enable it on a real server).
+
+### Admin API (catalog, audit log)
+
+`/api/v1/admin/categories/`, `/api/v1/admin/subjects/` and `/api/v1/admin/audit-logs/` need an
+**admin session** (cookie) and the `admin` role — student tokens are not accepted.
+**Temporary (Milestone 3, backend only):** sign in at the internal Django admin with an admin
+account, then call the API from the same browser session. Write requests also need the CSRF
+token in an `X-CSRFToken` header. This is not the final Admin Panel login — that is built in
+Milestone 7. Every create/update/delete is written to the append-only audit log.
 
 Internal Django admin (operations only, not the product Admin Panel):
 http://localhost:8000/django-admin/

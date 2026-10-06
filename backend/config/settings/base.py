@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.verification",
     "apps.accounts",
+    "apps.audit",
+    "apps.catalog",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).

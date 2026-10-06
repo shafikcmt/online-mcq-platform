@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 09:59+0000\n"
+"POT-Creation-Date: 2026-10-06 10:24+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -144,6 +144,125 @@ msgid "student profile"
 msgstr ""
 
 msgid "student profiles"
+msgstr ""
+
+msgid "Audit log"
+msgstr ""
+
+msgid "actor"
+msgstr ""
+
+msgid "action"
+msgstr ""
+
+msgid "entity type"
+msgstr ""
+
+msgid "entity ID"
+msgstr ""
+
+msgid "summary"
+msgstr ""
+
+msgid "metadata"
+msgstr ""
+
+msgid "IP address"
+msgstr ""
+
+msgid "user agent"
+msgstr ""
+
+msgid "created at"
+msgstr ""
+
+msgid "audit log entry"
+msgstr ""
+
+msgid "audit log"
+msgstr ""
+
+msgid "subjects"
+msgstr ""
+
+msgid "Catalog"
+msgstr ""
+
+msgid ""
+"This category still has subjects. Move or delete them first, or deactivate "
+"the category."
+msgstr ""
+
+msgid "This subject is still in use. Deactivate it instead of deleting it."
+msgstr ""
+
+msgid "Enter a name in Bangla or English (at least one is required)."
+msgstr ""
+
+msgid ""
+"Use only lowercase English letters, digits and single hyphens (for example: "
+"physics-1)."
+msgstr ""
+
+msgid "A category with this slug already exists."
+msgstr ""
+
+msgid "This category already has a subject with this slug."
+msgstr ""
+
+msgid "name (Bangla)"
+msgstr ""
+
+msgid "name (English)"
+msgstr ""
+
+msgid "description (Bangla)"
+msgstr ""
+
+msgid "description (English)"
+msgstr ""
+
+msgid "sort order"
+msgstr ""
+
+msgid "slug"
+msgstr ""
+
+msgid "Used in web addresses. Generated from the English name if left empty."
+msgstr ""
+
+msgid "category"
+msgstr ""
+
+msgid "categories"
+msgstr ""
+
+msgid ""
+"Used in web addresses; unique within the category. Generated from the "
+"English name if left empty."
+msgstr ""
+
+msgid "subject"
+msgstr ""
+
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English name to "
+"generate it."
+msgstr ""
+
+msgid "This category no longer exists."
+msgstr ""
+
+msgid "Use true or false."
+msgstr ""
+
+msgid "Enter a valid ID."
+msgstr ""
+
+msgid "Unknown ordering field."
+msgstr ""
+
+msgid "The search text is too long."
 msgstr ""
 
 msgid "Please correct the highlighted fields."
