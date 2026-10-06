@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 11:15+0000\n"
+"POT-Creation-Date: 2026-10-06 09:59+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -24,8 +24,39 @@ msgstr "ভূমিকা ও অনুমতি"
 msgid "Important dates"
 msgstr "গুরুত্বপূর্ণ তারিখ"
 
+msgid "The code is incorrect or has expired. Request a new code if needed."
+msgstr "কোডটি সঠিক নয় অথবা মেয়াদ শেষ। প্রয়োজনে নতুন কোড চান।"
+
+msgid "This field cannot be set."
+msgstr "এই ঘরটি নির্ধারণ করা যাবে না।"
+
+msgid "If the details are valid, a verification code will be sent by SMS."
+msgstr "তথ্য সঠিক হলে SMS-এ একটি যাচাই কোড পাঠানো হবে।"
+
+msgid "Token is invalid or expired"
+msgstr "টোকেনটি অবৈধ বা মেয়াদোত্তীর্ণ"
+
 msgid "Accounts"
 msgstr "অ্যাকাউন্ট"
+
+msgid "The request could not be completed."
+msgstr "অনুরোধটি সম্পন্ন করা যায়নি।"
+
+msgid ""
+"An account already exists for this mobile number. Log in or reset your "
+"password."
+msgstr ""
+"এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।এই "
+"মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।"
+
+msgid "A user with this email address already exists."
+msgstr "এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
+
+msgid "The mobile number or password is incorrect."
+msgstr "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়।"
+
+msgid "Your current password is incorrect."
+msgstr "আপনার বর্তমান পাসওয়ার্ড সঠিক নয়।"
 
 msgid "Bangladeshi mobile number"
 msgstr "বাংলাদেশি মোবাইল নম্বর"
@@ -84,6 +115,9 @@ msgstr "মোবাইল যাচাইকৃত"
 msgid "Set only by the registration / account flow after OTP verification."
 msgstr "শুধু OTP যাচাইয়ের পর নিবন্ধন / অ্যাকাউন্ট প্রক্রিয়ায় নির্ধারিত হয়।"
 
+msgid "authentication version"
+msgstr "প্রমাণীকরণ সংস্করণ"
+
 msgid "staff status"
 msgstr "স্টাফ স্ট্যাটাস"
 
@@ -102,9 +136,6 @@ msgstr "ব্যবহারকারী"
 msgid "users"
 msgstr "ব্যবহারকারীরা"
 
-msgid "A user with this email address already exists."
-msgstr "এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
-
 msgid "display name"
 msgstr "প্রদর্শিত নাম"
 
@@ -122,6 +153,9 @@ msgstr "চিহ্নিত ঘরগুলো সংশোধন করুন
 
 msgid "Enter a valid Bangladeshi mobile number, for example 01712345678."
 msgstr "সঠিক বাংলাদেশি মোবাইল নম্বর লিখুন, যেমন ০১৭১২৩৪৫৬৭৮।"
+
+msgid "This service is temporarily unavailable. Please try again shortly."
+msgstr "সেবাটি সাময়িকভাবে বন্ধ আছে। একটু পরে আবার চেষ্টা করুন।"
 
 msgid "The requested resource was not found."
 msgstr "অনুরোধ করা তথ্যটি পাওয়া যায়নি।"

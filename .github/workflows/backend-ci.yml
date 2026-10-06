@@ -81,6 +81,7 @@ jobs:
           SMS_ALLOW_MOCK_IN_PRODUCTION: "true"
         run: |
           DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+          JWT_SIGNING_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
             python manage.py check --deploy --fail-level WARNING
 
       - name: No missing migrations

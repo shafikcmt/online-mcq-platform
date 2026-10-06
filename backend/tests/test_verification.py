@@ -644,13 +644,11 @@ class TestSecurity:
         source = "\n".join(path.read_text() for path in Path("apps/verification").rglob("*.py"))
         assert "apps.accounts" not in source and "get_user_model" not in source
 
-    def test_no_public_otp_or_auth_endpoints_exist_yet(self, client):
-        for path in (
-            "/api/v1/auth/otp/request/",
-            "/api/v1/auth/otp/verify/",
-            "/api/v1/auth/login/",
-        ):
-            assert client.post(path, {}, content_type="application/json").status_code == 404
+    def test_verification_module_exposes_no_http_views(self):
+        # HTTP endpoints live in apps.accounts.api (Milestone 2C); this module stays
+        # a reusable service layer.
+        assert not Path("apps/verification/views.py").exists()
+        assert not Path("apps/verification/urls.py").exists()
 
 
 class TestUserVerificationFlag:
@@ -722,6 +720,7 @@ class TestProductionSafety:
         "debug": False,
         "allowed_hosts": ["api.example.com"],
         "db_password": "a-real-password",
+        "jwt_signing_key": "j" * 64,
     }
 
     def test_mock_sms_is_refused_in_production(self):
@@ -750,9 +749,8 @@ class TestMigrations:
     def test_accounts_history_stays_linear(self):
         migration = self.loader.disk_migrations[("accounts", "0002_user_is_mobile_verified")]
         assert migration.dependencies == [("accounts", "0001_initial")]
-        assert self.loader.graph.leaf_nodes("accounts") == [
-            ("accounts", "0002_user_is_mobile_verified")
-        ]
+        # Milestone 2C added auth_version on top of 0002.
+        assert self.loader.graph.leaf_nodes("accounts") == [("accounts", "0003_user_auth_version")]
 
     def test_tables_exist_and_auth_user_does_not(self):
         tables = connection.introspection.table_names()

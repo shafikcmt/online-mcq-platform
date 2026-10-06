@@ -12,6 +12,8 @@ SECRET_KEY = "test-only-insecure-key"  # noqa: S105
 API_DOCS_ENABLED = True
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+JWT_SIGNING_KEY = "test-only-insecure-jwt-signing-key"  # noqa: S105
+SIMPLE_JWT = {**SIMPLE_JWT, "SIGNING_KEY": JWT_SIGNING_KEY}  # noqa: F405
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_BROKER_URL = "memory://"
 # Fast hasher for most tests; tests that check real hashing override this explicitly.

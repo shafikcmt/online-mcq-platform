@@ -64,6 +64,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_("Set only by the registration / account flow after OTP verification."),
     )
+    # Incremented on password reset/change: every JWT carries the value it was issued
+    # with, so all existing access AND refresh tokens stop working immediately.
+    auth_version = models.PositiveIntegerField(_("authentication version"), default=1)
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,

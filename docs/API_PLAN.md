@@ -65,21 +65,34 @@
 
 ```
 Registration (mobile number + SMS OTP are mandatory; email is optional):
- 1. POST /auth/otp/request      {mobile_number, purpose:"registration"}   → 202 (SMS sent via Celery, in the request language)
- 2. POST /auth/otp/verify       {mobile_number, code, purpose}        → {verification_token} (short-lived, single-use)
- 3. POST /auth/register         {verification_token, full_name, password, email?} → {user, access, refresh}
+ 1. POST /auth/otp/request      {mobile_number, purpose:"registration", language?} → 202 {detail} (generic, same for every number)
+ 2. POST /auth/otp/verify       {mobile_number, purpose, code}        → {verification_token, expires_at} (short-lived, single-use)
+ 3. POST /auth/register         {verification_token, mobile_number, full_name, password, email?, preferred_language?}
+                                → 201 {user, access, refresh}   (409 account_exists if the number is already registered)
 
-Login:
-    POST /auth/login            {mobile_number, password} → {access, refresh, user}
-    POST /auth/token/refresh    {refresh} → {access, refresh}  (refresh rotation + blacklist old)
-    POST /auth/logout           {refresh} → 204 (refresh token blacklisted)
+Login (student accounts only — Admin Panel auth is designed in Milestone 7):
+    POST /auth/login            {mobile_number, password} → {user, access, refresh}   (401 invalid_credentials for every failure)
+    POST /auth/token/refresh    {refresh} → {access, refresh}  (rotation; the old refresh token is blacklisted)
+    POST /auth/logout           {refresh} (authenticated; must be the caller's own token) → 204
 
 Forgot password (SMS OTP only):
-    POST /auth/otp/request      {mobile_number, purpose:"password_reset"} → 202 (same response whether or not the mobile number exists)
-    POST /auth/otp/verify       → {verification_token}
-    POST /auth/password/reset   {verification_token, new_password} → 204 (all refresh tokens revoked)
+    POST /auth/otp/request      {mobile_number, purpose:"password_reset"} → 202 {detail}
+                                (identical status/body/errors whether or not an active student account exists;
+                                 an SMS is only sent for real accounts). The request only runs the
+                                 abuse checks and queues one task; the Celery worker checks the
+                                 account and issues the code, so response time does not reveal it either
+    POST /auth/otp/verify       → {verification_token, expires_at}  (errors collapsed to one generic otp_invalid)
+    POST /auth/password/reset   {verification_token, mobile_number, new_password} → 204
+
+Password change (authenticated): POST /auth/password/change {current_password, new_password} → 204
 ```
-Token lifetimes (configurable): access ≈ 15 min, refresh ≈ 30 days (mobile) / 1 day (admin).
+Token lifetimes (configurable): access 15 min, refresh 30 days. Every token carries the user's
+`auth_version`; a password reset or change increments it, so **all** existing access and refresh
+tokens (every device, including the current one) stop working immediately.
+
+Protected fields: `role`, `is_staff`, `is_superuser`, `is_mobile_verified` and `auth_version`
+(plus `mobile_number` and `password` on `PATCH /me`) are rejected with 400 `validation_error`
+and a `field_errors` entry; nothing is saved. Other unknown fields are ignored.
 
 ---
 
@@ -93,9 +106,9 @@ Token lifetimes (configurable): access ≈ 15 min, refresh ≈ 30 days (mobile) 
 | POST | `/auth/register` | anyone | Create student account |
 | POST | `/auth/login` | anyone | Login with mobile number + password (students & admins; the admin panel rejects non-admin roles) |
 | POST | `/auth/token/refresh` | holder of refresh | New access token |
-| POST | `/auth/logout` | logged-in | Revoke refresh token |
+| POST | `/auth/logout` | logged-in | Revoke the caller's own refresh token |
 | POST | `/auth/password/reset` | verified | Set new password via SMS OTP verification token |
-| POST | `/auth/password/change` | logged-in | Change password (needs current password) |
+| POST | `/auth/password/change` | logged-in | Change password (needs current password); logs out every device |
 
 ### 3.2 Public (`/public/`) — website & app, no login, cacheable
 | Method | Path | Purpose |
@@ -117,7 +130,7 @@ The website has **no login** in Phase-1; all website endpoints are under `/publi
 ### 3.3 Student — profile & dashboard
 | Method | Path | Purpose |
 |---|---|---|
-| GET / PATCH | `/me` | View/update basic profile & settings (name, optional email, optional `display_name`, `preferred_language`) |
+| GET / PATCH | `/me` | View/update basic profile & settings (name, optional email, optional `display_name`, `preferred_language`); other fields are ignored |
 | GET | `/me/dashboard` | One call for home screen: available/upcoming/practice exams (short lists), active subscription, recent results, unread notification count |
 | GET | `/me/subscriptions` | Active and past subscriptions |
 | GET | `/me/notifications` | Paginated **in-app** notifications, rendered in the user's language |

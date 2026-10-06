@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 11:15+0000\n"
+"POT-Creation-Date: 2026-10-06 09:59+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -24,7 +24,36 @@ msgstr ""
 msgid "Important dates"
 msgstr ""
 
+msgid "The code is incorrect or has expired. Request a new code if needed."
+msgstr ""
+
+msgid "This field cannot be set."
+msgstr ""
+
+msgid "If the details are valid, a verification code will be sent by SMS."
+msgstr ""
+
+msgid "Token is invalid or expired"
+msgstr ""
+
 msgid "Accounts"
+msgstr ""
+
+msgid "The request could not be completed."
+msgstr ""
+
+msgid ""
+"An account already exists for this mobile number. Log in or reset your "
+"password."
+msgstr ""
+
+msgid "A user with this email address already exists."
+msgstr ""
+
+msgid "The mobile number or password is incorrect."
+msgstr ""
+
+msgid "Your current password is incorrect."
 msgstr ""
 
 msgid "Bangladeshi mobile number"
@@ -84,6 +113,9 @@ msgstr ""
 msgid "Set only by the registration / account flow after OTP verification."
 msgstr ""
 
+msgid "authentication version"
+msgstr ""
+
 msgid "staff status"
 msgstr ""
 
@@ -102,9 +134,6 @@ msgstr ""
 msgid "users"
 msgstr ""
 
-msgid "A user with this email address already exists."
-msgstr ""
-
 msgid "display name"
 msgstr ""
 
@@ -121,6 +150,9 @@ msgid "Please correct the highlighted fields."
 msgstr ""
 
 msgid "Enter a valid Bangladeshi mobile number, for example 01712345678."
+msgstr ""
+
+msgid "This service is temporarily unavailable. Please try again shortly."
 msgstr ""
 
 msgid "The requested resource was not found."

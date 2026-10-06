@@ -143,6 +143,7 @@ Legend: **PK** primary key, **FK** foreign key, **U** unique, **IDX** indexed, `
 | is_active | bool | admin can deactivate |
 | is_mobile_verified | bool | *(added in Milestone 2B with OTP verification)* always true for students (account is only created after SMS OTP succeeds); kept for admin accounts / future mobile number change |
 | is_email_verified | bool | |
+| auth_version | int | default 1; incremented on password reset/change — JWTs carry it, so old tokens stop working immediately |
 | is_staff / is_superuser | bool | Django internals; superuser only for ops |
 | last_login, date_joined | timestamptz | |
 
