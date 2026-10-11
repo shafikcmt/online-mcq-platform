@@ -196,26 +196,32 @@ Issued once after a correct OTP; consumed by registration / password reset (Mile
 
 ### 4.3 catalog
 
-#### `categories`
+#### `categories` *(implemented in Milestone 3A — model `catalog.Category`)*
 | Field | Type | Notes |
 |---|---|---|
-| name🌐 | varchar(120) | `name_bn`, `name_en` |
-| slug | varchar U | ASCII, for URLs |
-| description🌐 | text? | |
-| parent_id | FK? → categories | optional nesting for future; Phase-1 UI uses flat list |
-| sort_order | int | |
-| is_active | bool | |
+| name🌐 | varchar(120) | `name_bn`, `name_en` — NFC-normalized, trimmed, inner whitespace collapsed; `CHECK` at least one non-empty |
+| slug | varchar(140) U | ASCII `^[a-z0-9]+(-[a-z0-9]+)*$` (`CHECK`); generated from `name_en` when left empty (numeric suffix on collision) |
+| description🌐 | text | optional plain text (no HTML), max 2000 chars (validation); empty string when absent |
+| parent_id | FK? → categories | *not implemented in Phase-1 (flat list); can be added later as a nullable column without breaking anything* |
+| sort_order | int | `CHECK >= 0` |
+| is_active | bool | default true |
+| created_at / updated_at | timestamptz | |
 
-#### `subjects`
+Index `(is_active, sort_order)`.
+
+#### `subjects` *(implemented in Milestone 3A — model `catalog.Subject`)*
 | Field | Type | Notes |
 |---|---|---|
-| category_id | FK → categories **NOT NULL** | Phase-1 decision: one subject belongs to exactly one category |
-| name🌐 | varchar(120) | `name_bn`, `name_en` |
-| slug | varchar | ASCII; `UNIQUE(category_id, slug)` |
-| sort_order, is_active | | |
+| category_id | FK → categories **NOT NULL**, PROTECT | Phase-1 decision: one subject belongs to exactly one category |
+| name🌐, description🌐 | | same rules as categories |
+| slug | varchar(140) | same format; `UNIQUE(category_id, slug)` |
+| sort_order, is_active, created_at, updated_at | | same as categories |
+
+Index `(category_id, is_active, sort_order)`.
 
 Delete rule: `PROTECT` — cannot delete a category that still has subjects/exams, or a subject that still has questions/exams;
-admin must deactivate or move them first.
+admin must deactivate or move them first. The admin API answers `409 in_use`; the category row is locked
+(`SELECT … FOR UPDATE`) during delete and subject create/move, so a concurrent subject cannot be orphaned.
 
 ### 4.4 questions
 
@@ -502,10 +508,21 @@ extra channels that read the same `notifications` rows — no schema redesign.
 
 ### 4.12 audit
 
-#### `audit_logs` (append-only)
-actor_id (FK? users), action (`exam.publish`, `result.publish`, `user.deactivate`,
-`question.update`, `payment.manual_update`…), object_type, object_id, changes (jsonb),
-ip_address, user_agent, created_at. Index `(object_type, object_id)`, `(actor_id, created_at)`.
+#### `audit_logs` (append-only) *(implemented in Milestone 3A — model `audit.AuditLog`)*
+| Field | Type | Notes |
+|---|---|---|
+| actor_id | FK? → users, PROTECT | who did it; users with audit history cannot be hard-deleted (deactivate instead) |
+| action | varchar(64) | e.g. `category.create`, `subject.delete`; later `exam.publish`, `question.update`, `payment.manual_update`… |
+| entity_type / entity_id | varchar(64) | e.g. `catalog.category` / `12` (string, so UUID ids fit later) |
+| summary | varchar(255) | identity of the object at that moment (survives deletes) |
+| metadata | jsonb | safe details only: changed field names, before/after of short identity fields, delete snapshot. Never request payloads; keys like password/token/secret/otp are redacted |
+| ip_address | inet? | from the trusted-proxy-aware client IP helper |
+| user_agent | varchar(255) | |
+| created_at | timestamptz | |
+
+Indexes `(entity_type, entity_id)`, `(actor_id, created_at)`, `(action)`, `(created_at)`.
+Append-only: a PostgreSQL trigger rejects `UPDATE`/`DELETE`; the model/queryset refuse them; no API or
+Django-admin path can change a row. Entries are written in the same transaction as the change.
 
 ---
 

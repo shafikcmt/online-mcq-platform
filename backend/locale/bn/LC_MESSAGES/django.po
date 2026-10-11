@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 09:59+0000\n"
+"POT-Creation-Date: 2026-10-06 10:24+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -147,6 +147,132 @@ msgstr "শিক্ষার্থী প্রোফাইল"
 
 msgid "student profiles"
 msgstr "শিক্ষার্থী প্রোফাইলসমূহ"
+
+msgid "Audit log"
+msgstr "অডিট লগ"
+
+msgid "actor"
+msgstr "কার্যকারী"
+
+msgid "action"
+msgstr "কার্য"
+
+msgid "entity type"
+msgstr "বস্তুর ধরন"
+
+msgid "entity ID"
+msgstr "বস্তুর আইডি"
+
+msgid "summary"
+msgstr "সারসংক্ষেপ"
+
+msgid "metadata"
+msgstr "মেটাডেটা"
+
+msgid "IP address"
+msgstr "আইপি ঠিকানা"
+
+msgid "user agent"
+msgstr "ইউজার এজেন্ট"
+
+msgid "created at"
+msgstr "তৈরির সময়"
+
+msgid "audit log entry"
+msgstr "অডিট লগ এন্ট্রি"
+
+msgid "audit log"
+msgstr "অডিট লগ"
+
+msgid "subjects"
+msgstr "বিষয়সমূহ"
+
+msgid "Catalog"
+msgstr "ক্যাটালগ"
+
+msgid ""
+"This category still has subjects. Move or delete them first, or deactivate "
+"the category."
+msgstr ""
+"এই ক্যাটাগরিতে এখনও বিষয় আছে। আগে বিষয়গুলো সরান বা মুছুন, অথবা ক্যাটাগরিটি "
+"নিষ্ক্রিয় করুন।"
+
+msgid "This subject is still in use. Deactivate it instead of deleting it."
+msgstr "এই বিষয়টি এখনও ব্যবহৃত হচ্ছে। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+
+msgid "Enter a name in Bangla or English (at least one is required)."
+msgstr "বাংলা বা ইংরেজিতে একটি নাম লিখুন (অন্তত একটি আবশ্যক)।"
+
+msgid ""
+"Use only lowercase English letters, digits and single hyphens (for example: "
+"physics-1)."
+msgstr ""
+"শুধু ইংরেজি ছোট হাতের অক্ষর, অঙ্ক ও একক হাইফেন ব্যবহার করুন (যেমন: physics-1)।"
+
+msgid "A category with this slug already exists."
+msgstr "এই স্লাগ দিয়ে ইতিমধ্যে একটি ক্যাটাগরি আছে।"
+
+msgid "This category already has a subject with this slug."
+msgstr "এই ক্যাটাগরিতে এই স্লাগ দিয়ে ইতিমধ্যে একটি বিষয় আছে।"
+
+msgid "name (Bangla)"
+msgstr "নাম (বাংলা)"
+
+msgid "name (English)"
+msgstr "নাম (ইংরেজি)"
+
+msgid "description (Bangla)"
+msgstr "বিবরণ (বাংলা)"
+
+msgid "description (English)"
+msgstr "বিবরণ (ইংরেজি)"
+
+msgid "sort order"
+msgstr "ক্রম"
+
+msgid "slug"
+msgstr "স্লাগ"
+
+msgid "Used in web addresses. Generated from the English name if left empty."
+msgstr "ওয়েব ঠিকানায় ব্যবহৃত হয়। ফাঁকা রাখলে ইংরেজি নাম থেকে তৈরি হবে।"
+
+msgid "category"
+msgstr "ক্যাটাগরি"
+
+msgid "categories"
+msgstr "ক্যাটাগরিসমূহ"
+
+msgid ""
+"Used in web addresses; unique within the category. Generated from the "
+"English name if left empty."
+msgstr ""
+"ওয়েব ঠিকানায় ব্যবহৃত হয়; ক্যাটাগরির মধ্যে অনন্য। ফাঁকা রাখলে ইংরেজি নাম থেকে তৈরি "
+"হবে।"
+
+msgid "subject"
+msgstr "বিষয়"
+
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English name to "
+"generate it."
+msgstr ""
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি নাম "
+"দিন।"
+
+msgid "This category no longer exists."
+msgstr "এই ক্যাটাগরিটি আর নেই।"
+
+msgid "Use true or false."
+msgstr "true অথবা false ব্যবহার করুন।"
+
+msgid "Enter a valid ID."
+msgstr "একটি সঠিক আইডি লিখুন।"
+
+msgid "Unknown ordering field."
+msgstr "অজানা ক্রমবিন্যাস ক্ষেত্র।"
+
+msgid "The search text is too long."
+msgstr "অনুসন্ধানের লেখা খুব দীর্ঘ।"
 
 msgid "Please correct the highlighted fields."
 msgstr "চিহ্নিত ঘরগুলো সংশোধন করুন।"
