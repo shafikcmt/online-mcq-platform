@@ -33,6 +33,7 @@ from apps.questions.models import Question
 
 from .exceptions import (
     ALREADY_PUBLISHED_MESSAGE,
+    EXAM_HAS_ATTEMPTS_MESSAGE,
     EXAM_IN_USE_MESSAGE,
     EXAM_LOCKED_MESSAGE,
     EXAM_NOT_DELETABLE_MESSAGE,
@@ -40,6 +41,7 @@ from .exceptions import (
     NOT_PUBLISHED_MESSAGE,
     ExamStateError,
 )
+from .locks import has_history
 from .models import (
     EDITABLE_STATUSES,
     EXAM_SLUG_TAKEN_MESSAGE,
@@ -296,10 +298,14 @@ def _lock_exam(exam_id) -> Exam:
 
 
 def _ensure_editable(exam: Exam) -> None:
-    """Only draft and unpublished exams change. (Milestone 4: also refuse once the exam
-    has attempts — admins then duplicate the exam.)"""
+    """Only draft and unpublished exams change, and only while no student has taken
+    them (``exams.locks``; registered by the attempts app) — admins then duplicate the
+    exam. The exam row is locked by the caller, and attempts can only start on a
+    published exam, so no attempt can appear while an edit is running."""
     if exam.status not in EDITABLE_STATUSES:
         raise ExamStateError("exam_locked", EXAM_LOCKED_MESSAGE)
+    if has_history(exam.pk):
+        raise ExamStateError("exam_has_attempts", EXAM_HAS_ATTEMPTS_MESSAGE)
 
 
 # --------------------------------------------------------------------------------------

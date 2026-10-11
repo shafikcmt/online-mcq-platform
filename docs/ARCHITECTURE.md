@@ -186,13 +186,13 @@ App: shows timer = deadline_at − server_time (corrected for device clock drift
 ```
 App: keeps a local temporary answer state (in memory + small local cache for crash recovery)
 App ──PUT /api/v1/attempts/{id}/answers/{question_id}/──► Django   (autosave per answer)
-  - rejects if attempt not in_progress or now > deadline_at + grace
+  - rejects if attempt not in_progress or now ≥ deadline_at (grace never extends answer editing)
   - stores selected_option and mark_for_review
 On temporary connection loss: unsent changes go into a pending queue → retried with backoff →
   PUT /attempts/{id}/answers (batch sync) when the connection returns.
 ```
 - The exam must be **started online**; Phase-1 has **no full offline exam system**.
-- The **server is the source of truth**: only answers it receives before `deadline_at + grace` count.
+- The **server is the source of truth**: only answers it receives before `deadline_at` count.
 - Autosave means an app crash or short network drop does not lose saved answers, and the student can resume.
 
 ### 6.3 Final submission (manual or automatic)
@@ -200,7 +200,8 @@ On temporary connection loss: unsent changes go into a pending queue → retried
 App ──POST /api/v1/attempts/{id}/submit/ (Idempotency-Key)──► Django
   1. SELECT … FOR UPDATE on the attempt row (prevents double submit race)
   2. If already submitted → return existing result (idempotent, no duplicate)
-  3. Accept final answer batch only if now ≤ deadline_at + grace_seconds
+  3. Accept the submit only if now ≤ deadline_at + grace_seconds; apply its final answer batch
+     only if now < deadline_at (after deadline + grace the server finalizes instead)
   4. Mark submitted, compute result server-side (correct/wrong/unanswered/negative/percentage/pass)
   5. Commit transaction
   (Merit is computed later by the merit service using the exam's merit_strategy:
@@ -251,8 +252,9 @@ Important rule: **jobs must be idempotent** (safe to run twice) because Celery m
   student who joins a live exam late only gets the time left until the global end.
 - Every attempt response includes `server_time`; clients compute an offset so a wrong phone
   clock cannot extend the exam.
-- A small **grace period** (configurable, e.g. 15–30 s) absorbs network latency for the final
-  auto-submit request. Answers arriving after `deadline_at + grace` are rejected.
+- A small **grace period** (`ATTEMPT_SUBMIT_GRACE_SECONDS`, default 30 s) absorbs network latency of
+  the final **submit request** only: it is accepted until `deadline_at + grace`. Answers (saves, or
+  answers inside the submit) count only when received before `deadline_at`.
 
 ---
 

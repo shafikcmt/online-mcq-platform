@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 09:58+0000\n"
+"POT-Creation-Date: 2026-10-11 10:49+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -144,6 +144,153 @@ msgid "student profile"
 msgstr ""
 
 msgid "student profiles"
+msgstr ""
+
+msgid "Send client info as a few short text values."
+msgstr ""
+
+msgid "Idempotency-Key must be 1–64 letters, digits or the characters . _ : -"
+msgstr ""
+
+msgid "Exam attempts"
+msgstr ""
+
+msgid "This exam has not started yet."
+msgstr ""
+
+msgid "This exam has ended."
+msgstr ""
+
+msgid "You need an active subscription that includes this exam."
+msgstr ""
+
+msgid "This exam can be taken only once."
+msgstr ""
+
+msgid "You have used all your attempts for this exam."
+msgstr ""
+
+msgid "This attempt has already been submitted."
+msgstr ""
+
+msgid "The time for this attempt is over."
+msgstr ""
+
+msgid "In progress"
+msgstr ""
+
+msgid "Submitted"
+msgstr ""
+
+msgid "Submitted automatically"
+msgstr ""
+
+msgid "Submitted by the student"
+msgstr ""
+
+msgid "Device timer ran out"
+msgstr ""
+
+msgid "Finalized by the server"
+msgstr ""
+
+msgid "Bangla"
+msgstr ""
+
+msgid "English"
+msgstr ""
+
+msgid "public ID"
+msgstr ""
+
+msgid "exam"
+msgstr ""
+
+msgid "attempt number"
+msgstr ""
+
+msgid "status"
+msgstr ""
+
+msgid "started at"
+msgstr ""
+
+msgid "deadline"
+msgstr ""
+
+msgid "submitted at"
+msgstr ""
+
+msgid "submitted by"
+msgstr ""
+
+msgid "client info"
+msgstr ""
+
+msgid "content language"
+msgstr ""
+
+msgid "idempotency key"
+msgstr ""
+
+msgid "exam attempt"
+msgstr ""
+
+msgid "exam attempts"
+msgstr ""
+
+msgid "attempt"
+msgstr ""
+
+msgid "question"
+msgstr ""
+
+msgid "display order"
+msgstr ""
+
+msgid "option order"
+msgstr ""
+
+msgid "marks"
+msgstr ""
+
+msgid "negative marks"
+msgstr ""
+
+msgid "selected option"
+msgstr ""
+
+msgid "marked for review"
+msgstr ""
+
+msgid "answered at"
+msgstr ""
+
+msgid "saved on device at"
+msgstr ""
+
+msgid "correct"
+msgstr ""
+
+msgid "awarded marks"
+msgstr ""
+
+msgid "attempt answer"
+msgstr ""
+
+msgid "attempt answers"
+msgstr ""
+
+#, python-format
+msgid "Question #%(id)s is not part of this attempt."
+msgstr ""
+
+#, python-format
+msgid "This option does not belong to question #%(id)s."
+msgstr ""
+
+#, python-format
+msgid "Question #%(id)s is listed more than once."
 msgstr ""
 
 msgid "Audit log"
@@ -304,8 +451,8 @@ msgid "Exams"
 msgstr ""
 
 msgid ""
-"Published and archived exams cannot be changed. Unpublish the exam first, or "
-"duplicate it."
+"Published and archived exams cannot be changed. Unpublish the exam first, or"
+" duplicate it."
 msgstr ""
 
 msgid ""
@@ -319,6 +466,11 @@ msgid "Only a published exam can be unpublished."
 msgstr ""
 
 msgid "Only draft or unpublished exams can be archived."
+msgstr ""
+
+msgid ""
+"Students have already taken this exam, so it cannot be changed. Duplicate it"
+" instead."
 msgstr ""
 
 msgid ""
@@ -345,12 +497,6 @@ msgid "Free"
 msgstr ""
 
 msgid "Paid"
-msgstr ""
-
-msgid "Bangla"
-msgstr ""
-
-msgid "English"
 msgstr ""
 
 msgid "Bangla and English"
@@ -386,9 +532,6 @@ msgstr ""
 msgid "When an admin publishes results"
 msgstr ""
 
-msgid "public ID"
-msgstr ""
-
 msgid "title (Bangla)"
 msgstr ""
 
@@ -401,16 +544,10 @@ msgstr ""
 msgid "instructions (English)"
 msgstr ""
 
-msgid "content language"
-msgstr ""
-
 msgid "exam type"
 msgstr ""
 
 msgid "access"
-msgstr ""
-
-msgid "status"
 msgstr ""
 
 msgid "duration (minutes)"
@@ -464,16 +601,7 @@ msgstr ""
 msgid "created by"
 msgstr ""
 
-msgid "exam"
-msgstr ""
-
 msgid "exams"
-msgstr ""
-
-msgid "question"
-msgstr ""
-
-msgid "marks"
 msgstr ""
 
 msgid "exam question"
@@ -539,10 +667,6 @@ msgid "The category is inactive."
 msgstr ""
 
 msgid "The subject is inactive."
-msgstr ""
-
-#, python-format
-msgid "Question #%(id)s is listed more than once."
 msgstr ""
 
 msgid "Each question needs a different sort order."
@@ -624,9 +748,6 @@ msgid "option (Bangla)"
 msgstr ""
 
 msgid "option (English)"
-msgstr ""
-
-msgid "correct"
 msgstr ""
 
 msgid "option"

@@ -11,14 +11,15 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 4A — Subscriptions core.** Backend skeleton, Docker setup, tests, CI, the custom
+**Milestone 4B — Exam engine.** Backend skeleton, Docker setup, tests, CI, the custom
 User model (mobile number login) + student profile, OTP verification, the student
 authentication API (register, login, JWT refresh/logout, password reset/change, profile),
 the Category → Subject catalog, the question bank (questions with options and optional
 images), the exam builder (question lists, publish rules, duplicate) with an admin API, public
 exam/category listing, packages with access rules, manually granted subscriptions with the
-server-side `user_can_access_exam` check, and an append-only audit log exist. No exam attempts
-or payments yet. See `docs/ROADMAP.md`.
+server-side `user_can_access_exam` check, the exam engine (start/resume, autosave, batch sync,
+submit, automatic finalization) and an append-only audit log exist. No scoring/results or payments
+yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -43,7 +44,8 @@ online-mcq-platform/
 │   │   ├── catalog/          Category → Subject (bilingual), admin API
 │   │   ├── questions/        question bank: questions + options (exactly one correct), images
 │   │   ├── exams/            exam builder: exams, question lists, publish rules, public listing
-│   │   └── subscriptions/    packages, access rules, subscriptions, exam access check
+│   │   ├── subscriptions/    packages, access rules, subscriptions, exam access check
+│   │   └── attempts/         exam engine: start/resume, answers, submit, auto-finalize
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -151,6 +153,11 @@ Public endpoints (no login): `/api/v1/public/categories/`, `/api/v1/public/exams
 `/api/v1/public/packages/` (active packages and prices). Students see their own subscriptions
 at `/api/v1/me/subscriptions/` (student token). Until payments exist (Milestone 5),
 subscriptions are granted manually with `POST /api/v1/admin/subscriptions/grant/`.
+
+Exam engine (student token): `POST /api/v1/exams/{slug}/attempts/` starts or resumes an attempt;
+answers are saved with `PUT /api/v1/attempts/{id}/answers/{question_id}/` (or the batch
+`PUT …/answers/`) and the attempt is submitted with `POST /api/v1/attempts/{id}/submit/`. The
+`celery-beat` service finalizes abandoned attempts every minute.
 
 Question images are uploaded with `POST /api/v1/admin/questions/{id}/image/` (multipart field
 `image`, JPEG/PNG/WebP, max 2 MB). They are stored under `MEDIA_ROOT` (default `backend/media/`,
