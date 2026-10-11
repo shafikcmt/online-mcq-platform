@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 10:24+0000\n"
+"POT-Creation-Date: 2026-10-11 03:55+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -265,6 +265,9 @@ msgstr ""
 msgid "The search text is too long."
 msgstr ""
 
+msgid "Unknown value."
+msgstr ""
+
 msgid "Please correct the highlighted fields."
 msgstr ""
 
@@ -278,6 +281,128 @@ msgid "The requested resource was not found."
 msgstr ""
 
 msgid "Something went wrong on our side. Please try again."
+msgstr ""
+
+msgid "question"
+msgstr ""
+
+msgid "Activate selected questions"
+msgstr ""
+
+msgid "Deactivate selected questions"
+msgstr ""
+
+msgid "Choose an image file to upload."
+msgstr ""
+
+msgid "Question bank"
+msgstr ""
+
+msgid "This question is used in exams. Deactivate it instead of deleting it."
+msgstr ""
+
+msgid "Enter the question in Bangla or English (at least one is required)."
+msgstr ""
+
+msgid "Enter the option in Bangla or English."
+msgstr ""
+
+msgid "Easy"
+msgstr ""
+
+msgid "Medium"
+msgstr ""
+
+msgid "Hard"
+msgstr ""
+
+msgid "Bangla"
+msgstr ""
+
+msgid "English"
+msgstr ""
+
+msgid "Bangla and English"
+msgstr ""
+
+msgid "question (Bangla)"
+msgstr ""
+
+msgid "question (English)"
+msgstr ""
+
+msgid "explanation (Bangla)"
+msgstr ""
+
+msgid "explanation (English)"
+msgstr ""
+
+msgid "difficulty"
+msgstr ""
+
+msgid "image"
+msgstr ""
+
+msgid "available languages"
+msgstr ""
+
+msgid "created by"
+msgstr ""
+
+msgid "questions"
+msgstr ""
+
+msgid "option (Bangla)"
+msgstr ""
+
+msgid "option (English)"
+msgstr ""
+
+msgid "correct"
+msgstr ""
+
+msgid "option"
+msgstr ""
+
+msgid "options"
+msgstr ""
+
+msgid "This subject no longer exists."
+msgstr ""
+
+#, python-format
+msgid "Add between %(min)s and %(max)s options."
+msgstr ""
+
+msgid "Mark exactly one option as correct."
+msgstr ""
+
+#, python-format
+msgid "Option %(number)s needs text in %(language)s, like the question."
+msgstr ""
+
+#, python-format
+msgid "Option %(number)s: %(detail)s"
+msgstr ""
+
+#, python-format
+msgid "Option %(number)s is too long (maximum %(max)s characters)."
+msgstr ""
+
+msgid "Each option needs a different sort order."
+msgstr ""
+
+msgid "Two options have the same text."
+msgstr ""
+
+#, python-format
+msgid "The image is too large (maximum %(max)s MB)."
+msgstr ""
+
+msgid "Upload a valid JPEG, PNG or WebP image."
+msgstr ""
+
+msgid "The image dimensions are too large."
 msgstr ""
 
 msgid "Verification"
@@ -356,12 +481,6 @@ msgstr ""
 msgid ""
 "Your verification code is %(code)s. Valid for %(minutes)s min. Don't share "
 "it."
-msgstr ""
-
-msgid "Bangla"
-msgstr ""
-
-msgid "English"
 msgstr ""
 
 msgid "Online MCQ — internal administration"

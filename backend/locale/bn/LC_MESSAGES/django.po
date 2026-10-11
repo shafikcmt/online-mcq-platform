@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 10:24+0000\n"
+"POT-Creation-Date: 2026-10-11 03:55+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -274,6 +274,9 @@ msgstr "অজানা ক্রমবিন্যাস ক্ষেত্র�
 msgid "The search text is too long."
 msgstr "অনুসন্ধানের লেখা খুব দীর্ঘ।"
 
+msgid "Unknown value."
+msgstr "অজানা মান।"
+
 msgid "Please correct the highlighted fields."
 msgstr "চিহ্নিত ঘরগুলো সংশোধন করুন।"
 
@@ -288,6 +291,128 @@ msgstr "অনুরোধ করা তথ্যটি পাওয়া য�
 
 msgid "Something went wrong on our side. Please try again."
 msgstr "আমাদের দিক থেকে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+msgid "question"
+msgstr "প্রশ্ন"
+
+msgid "Activate selected questions"
+msgstr "নির্বাচিত প্রশ্নগুলো সক্রিয় করুন"
+
+msgid "Deactivate selected questions"
+msgstr "নির্বাচিত প্রশ্নগুলো নিষ্ক্রিয় করুন"
+
+msgid "Choose an image file to upload."
+msgstr "আপলোডের জন্য একটি ছবি নির্বাচন করুন।"
+
+msgid "Question bank"
+msgstr "প্রশ্নব্যাংক"
+
+msgid "This question is used in exams. Deactivate it instead of deleting it."
+msgstr "এই প্রশ্নটি পরীক্ষায় ব্যবহৃত হচ্ছে। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+
+msgid "Enter the question in Bangla or English (at least one is required)."
+msgstr "বাংলা বা ইংরেজিতে প্রশ্নটি লিখুন (অন্তত একটি আবশ্যক)।"
+
+msgid "Enter the option in Bangla or English."
+msgstr "বাংলা বা ইংরেজিতে অপশনটি লিখুন।"
+
+msgid "Easy"
+msgstr "সহজ"
+
+msgid "Medium"
+msgstr "মাঝারি"
+
+msgid "Hard"
+msgstr "কঠিন"
+
+msgid "Bangla"
+msgstr "বাংলা"
+
+msgid "English"
+msgstr "ইংরেজি"
+
+msgid "Bangla and English"
+msgstr "বাংলা ও ইংরেজি"
+
+msgid "question (Bangla)"
+msgstr "প্রশ্ন (বাংলা)"
+
+msgid "question (English)"
+msgstr "প্রশ্ন (ইংরেজি)"
+
+msgid "explanation (Bangla)"
+msgstr "ব্যাখ্যা (বাংলা)"
+
+msgid "explanation (English)"
+msgstr "ব্যাখ্যা (ইংরেজি)"
+
+msgid "difficulty"
+msgstr "কাঠিন্য"
+
+msgid "image"
+msgstr "ছবি"
+
+msgid "available languages"
+msgstr "উপলব্ধ ভাষা"
+
+msgid "created by"
+msgstr "তৈরি করেছেন"
+
+msgid "questions"
+msgstr "প্রশ্নসমূহ"
+
+msgid "option (Bangla)"
+msgstr "অপশন (বাংলা)"
+
+msgid "option (English)"
+msgstr "অপশন (ইংরেজি)"
+
+msgid "correct"
+msgstr "সঠিক"
+
+msgid "option"
+msgstr "অপশন"
+
+msgid "options"
+msgstr "অপশনসমূহ"
+
+msgid "This subject no longer exists."
+msgstr "এই বিষয়টি আর নেই।"
+
+#, python-format
+msgid "Add between %(min)s and %(max)s options."
+msgstr "%(min)s থেকে %(max)s টি অপশন যোগ করুন।"
+
+msgid "Mark exactly one option as correct."
+msgstr "ঠিক একটি অপশনকে সঠিক হিসেবে চিহ্নিত করুন।"
+
+#, python-format
+msgid "Option %(number)s needs text in %(language)s, like the question."
+msgstr "প্রশ্নের মতো %(number)s নম্বর অপশনেও %(language)s লেখা প্রয়োজন।"
+
+#, python-format
+msgid "Option %(number)s: %(detail)s"
+msgstr "অপশন %(number)s: %(detail)s"
+
+#, python-format
+msgid "Option %(number)s is too long (maximum %(max)s characters)."
+msgstr "অপশন %(number)s খুব দীর্ঘ (সর্বোচ্চ %(max)s অক্ষর)।"
+
+msgid "Each option needs a different sort order."
+msgstr "প্রতিটি অপশনের ক্রম আলাদা হতে হবে।"
+
+msgid "Two options have the same text."
+msgstr "দুটি অপশনের লেখা একই।"
+
+#, python-format
+msgid "The image is too large (maximum %(max)s MB)."
+msgstr "ছবিটি খুব বড় (সর্বোচ্চ %(max)s MB)।"
+
+msgid "Upload a valid JPEG, PNG or WebP image."
+msgstr "একটি সঠিক JPEG, PNG বা WebP ছবি আপলোড করুন।"
+
+msgid "The image dimensions are too large."
+msgstr "ছবির মাপ খুব বড়।"
 
 msgid "Verification"
 msgstr "যাচাইকরণ"
@@ -366,12 +491,6 @@ msgid ""
 "Your verification code is %(code)s. Valid for %(minutes)s min. Don't share "
 "it."
 msgstr "আপনার যাচাই কোড %(code)s। %(minutes)s মিনিট বৈধ। কাউকে জানাবেন না।"
-
-msgid "Bangla"
-msgstr "বাংলা"
-
-msgid "English"
-msgstr "ইংরেজি"
 
 msgid "Online MCQ — internal administration"
 msgstr "অনলাইন MCQ — অভ্যন্তরীণ অ্যাডমিনিস্ট্রেশন"

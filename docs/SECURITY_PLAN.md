@@ -99,9 +99,18 @@
 - All input passes through DRF serializers (types, lengths, choices, ranges).
 - Django ORM parameterized queries → SQL injection protection. **No raw SQL with string formatting.**
 - Rich text (question text, explanations, announcements): sanitized on save with an allow-list HTML sanitizer (e.g. `nh3`/`bleach`), and rendered safely on clients (React escapes by default; no `dangerouslySetInnerHTML` without sanitized content).
+  *(Milestone 3B: question/option/explanation text is **plain text** — stored as typed, never interpreted
+  as HTML, always rendered escaped. A sanitizer is only needed if rich text is approved later.)*
 - Text is **Unicode NFC-normalized**; Bangla and Western digits normalized in numeric inputs on the server.
 - **Contact form:** throttled per IP, hidden honeypot field, length limits, stored as plain text (escaped on display in admin), no file attachments.
 - File uploads (images): extension + MIME + real image check (Pillow), size limit (e.g. 2 MB), random file names, served as static files, never executed.
+  *(Milestone 3B, question images: the filename and declared type are ignored; Pillow detects the format
+  (JPEG/PNG/WebP only), size and pixel limits are settings, the image is **re-encoded** (drops EXIF/GPS and
+  anything embedded) and saved under a random name. Pillow's decompression-bomb warning is treated as an
+  error. File lifecycle: the new file is written before the (durable) transaction and removed again if it
+  does not commit; replaced/removed/deleted files are deleted only after the commit. Production must serve
+  `MEDIA_ROOT` as static files only, from a separate volume — configured with the deployment, Milestone 10;
+  Django serves media only when `DEBUG` is on.)*
 - Request body size limits at Nginx and Django.
 
 ### 3.7 Web security (website & admin)
@@ -163,7 +172,7 @@
 - [ ] Replayed success callback → no second subscription
 - [ ] Tampered amount → payment fails verification
 - [ ] OTP brute-force → locked after N tries; OTP resend cooldown works
-- [ ] XSS payload in question text/announcement is neutralized
+- [ ] XSS payload in question text/announcement is neutralized *(3B: stored as plain text; clients must escape)*
 - [ ] Production settings check fails with placeholder secrets / DEBUG on
 - [ ] Deactivated user cannot log in or refresh
 - [ ] Late join on a live exam gets only time until global end

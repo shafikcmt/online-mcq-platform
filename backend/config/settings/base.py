@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.audit",
     "apps.catalog",
+    "apps.questions",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -268,6 +269,22 @@ API_DOCS_ENABLED = env_bool("API_DOCS_ENABLED", False)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024  # 2 MB request body limit
+
+# --------------------------------------------------------------------------------------
+# Uploaded media (question images). Phase-1: local disk via Django's storage API
+# (swappable to S3-compatible storage later). Production serving (Nginx, no script
+# execution, separate volume) is configured with the deployment — docs/ROADMAP.md M10.
+# --------------------------------------------------------------------------------------
+MEDIA_ROOT = env_str("MEDIA_ROOT", str(BASE_DIR / "media"))
+MEDIA_URL = "/media/"
+
+# --------------------------------------------------------------------------------------
+# Question bank (Milestone 3B) — configurable business rules
+# --------------------------------------------------------------------------------------
+QUESTION_MIN_OPTIONS = env_int("QUESTION_MIN_OPTIONS", 2)  # docs/DATABASE_DESIGN.md §4.4
+QUESTION_MAX_OPTIONS = env_int("QUESTION_MAX_OPTIONS", 10)
+QUESTION_IMAGE_MAX_BYTES = env_int("QUESTION_IMAGE_MAX_BYTES", 2 * 1024 * 1024)  # 2 MB
+QUESTION_IMAGE_MAX_PIXELS = env_int("QUESTION_IMAGE_MAX_PIXELS", 16_000_000)  # e.g. 4000×4000
 
 # --------------------------------------------------------------------------------------
 # Logging — console output; never log secrets, passwords, OTPs or tokens

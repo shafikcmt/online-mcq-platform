@@ -3,6 +3,7 @@
 See docs/LOCALIZATION.md. Nothing here contains user-facing text.
 """
 
+import re
 import unicodedata
 from collections.abc import Mapping
 from typing import Any
@@ -82,3 +83,41 @@ def resolve_bilingual(source: Any, field: str, language: str) -> tuple[str, str 
         if text.strip():
             return text, lang
     return "", None
+
+
+# --------------------------------------------------------------------------------------
+# Admin-entered content (bilingual *_bn / *_en fields): plain-text normalization
+# --------------------------------------------------------------------------------------
+_WHITESPACE = re.compile(r"\s+")
+
+
+def _without_controls(value: str, keep: str = "", keep_whitespace: bool = False) -> str:
+    # Control characters (Cc) are dropped. Format characters such as ZWJ/ZWNJ are
+    # kept because Bangla spelling needs them.
+    return "".join(
+        ch
+        for ch in value
+        if ch in keep or (keep_whitespace and ch.isspace()) or unicodedata.category(ch) != "Cc"
+    )
+
+
+def has_meaningful_text(text: str, *, allow_symbols: bool = False) -> bool:
+    """True if ``text`` contains a letter or digit (and, optionally, a symbol such as
+    ``√``, ``∞`` or ``=``). Whitespace, invisible characters and punctuation alone do
+    not count."""
+    classes = "LNS" if allow_symbols else "LN"
+    return any(unicodedata.category(ch)[0] in classes for ch in text)
+
+
+def clean_single_line(value: str | None) -> str:
+    """NFC, no control characters, single spaces, trimmed."""
+    return _WHITESPACE.sub(
+        " ", normalize_text(_without_controls(value or "", keep_whitespace=True))
+    )
+
+
+def clean_multiline(value: str | None) -> str:
+    """Plain text: NFC, Unix line endings, no control characters except newline/tab,
+    trimmed. Stored verbatim otherwise — clients must render it escaped (never as HTML)."""
+    text = (value or "").replace("\r\n", "\n").replace("\r", "\n")
+    return normalize_text(_without_controls(text, keep="\n\t"))
