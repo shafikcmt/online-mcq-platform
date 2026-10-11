@@ -28,6 +28,13 @@ if settings.API_DOCS_ENABLED:
         path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
     ]
 
+# Uploaded media is served by Django only in development; production uses the web
+# server (static files only, never executed).
+if settings.DEBUG:
+    from django.conf.urls.static import static
+
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 # Any other /api/... path → JSON 404, in development too (clients always expect JSON).
 # Only paths ending in "/" match, so Django can still redirect "/api/v1/health" → "/api/v1/health/".
 urlpatterns += [re_path(r"^api/.*/$", not_found)]

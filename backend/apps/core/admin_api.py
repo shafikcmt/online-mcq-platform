@@ -56,6 +56,19 @@ def query_int(request, name: str) -> int | None:
     return value
 
 
+INVALID_CHOICE_MESSAGE = _("Unknown value.")
+
+
+def query_choice(request, name: str, choices) -> str | None:
+    raw = request.query_params.get(name)
+    if raw is None or raw == "":
+        return None
+    value = raw.strip().lower()
+    if value not in choices:
+        raise serializers.ValidationError({name: [INVALID_CHOICE_MESSAGE]})
+    return value
+
+
 def query_search(request, name: str = "search") -> str:
     from .i18n import normalize_text
 

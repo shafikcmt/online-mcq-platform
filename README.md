@@ -11,11 +11,11 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 3A — Catalog + audit basics.** Backend skeleton, Docker setup, tests, CI, the custom
+**Milestone 3B — Question bank.** Backend skeleton, Docker setup, tests, CI, the custom
 User model (mobile number login) + student profile, OTP verification, the student
 authentication API (register, login, JWT refresh/logout, password reset/change, profile),
-the Category → Subject catalog with an admin API, and an append-only audit log exist.
-No questions, exams or payments yet. See `docs/ROADMAP.md`.
+the Category → Subject catalog, the question bank (questions with options and optional
+images) with an admin API, and an append-only audit log exist. No exams or payments yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -37,7 +37,8 @@ online-mcq-platform/
 │   │   ├── accounts/         custom User (mobile number login), StudentProfile, roles, auth API
 │   │   ├── verification/     SMS OTP codes and verification tokens
 │   │   ├── audit/            append-only audit log of admin actions
-│   │   └── catalog/          Category → Subject (bilingual), admin API
+│   │   ├── catalog/          Category → Subject (bilingual), admin API
+│   │   └── questions/        question bank: questions + options (exactly one correct), images
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -131,12 +132,17 @@ logs while developing, set `SMS_MOCK_LOG_CONTENT=true` in `.env` (works only wit
 
 ### Admin API (catalog, audit log)
 
-`/api/v1/admin/categories/`, `/api/v1/admin/subjects/` and `/api/v1/admin/audit-logs/` need an
+`/api/v1/admin/categories/`, `/api/v1/admin/subjects/`, `/api/v1/admin/questions/` and
+`/api/v1/admin/audit-logs/` need an
 **admin session** (cookie) and the `admin` role — student tokens are not accepted.
 **Temporary (Milestone 3, backend only):** sign in at the internal Django admin with an admin
 account, then call the API from the same browser session. Write requests also need the CSRF
 token in an `X-CSRFToken` header. This is not the final Admin Panel login — that is built in
 Milestone 7. Every create/update/delete is written to the append-only audit log.
+
+Question images are uploaded with `POST /api/v1/admin/questions/{id}/image/` (multipart field
+`image`, JPEG/PNG/WebP, max 2 MB). They are stored under `MEDIA_ROOT` (default `backend/media/`,
+ignored by Git) and served by Django only while `DJANGO_DEBUG=true`.
 
 Internal Django admin (operations only, not the product Admin Panel):
 http://localhost:8000/django-admin/

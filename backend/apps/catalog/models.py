@@ -9,15 +9,18 @@ Text is normalized on every save (NFC, trimmed; names also collapse inner whites
 so admin, API and shell writes are stored the same way.
 """
 
-import re
-import unicodedata
-
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.i18n import normalize_digits, normalize_text
+from apps.core.i18n import (
+    clean_multiline,
+    clean_single_line,
+    has_meaningful_text,
+    normalize_digits,
+    normalize_text,
+)
 from apps.core.models import TimeStampedModel
 
 NAME_MAX_LENGTH = 120
@@ -33,34 +36,17 @@ CATEGORY_SLUG_TAKEN_MESSAGE = _("A category with this slug already exists.")
 SUBJECT_SLUG_TAKEN_MESSAGE = _("This category already has a subject with this slug.")
 
 slug_validator = RegexValidator(SLUG_REGEX, SLUG_INVALID_MESSAGE, code="invalid_slug")
-_WHITESPACE = re.compile(r"\s+")
-
-
-def _without_controls(value: str, keep: str = "", keep_whitespace: bool = False) -> str:
-    # Control characters (Cc) are dropped. Format characters such as ZWJ/ZWNJ are
-    # kept because Bangla spelling needs them.
-    return "".join(
-        ch
-        for ch in value
-        if ch in keep or (keep_whitespace and ch.isspace()) or unicodedata.category(ch) != "Cc"
-    )
 
 
 def normalize_name(value: str | None) -> str:
-    """NFC, no control characters, single spaces. A name without any letter or digit
-    (e.g. only invisible characters or punctuation) counts as empty."""
-    text = _WHITESPACE.sub(
-        " ", normalize_text(_without_controls(value or "", keep_whitespace=True))
-    )
-    if not any(unicodedata.category(ch)[0] in "LN" for ch in text):
-        return ""
-    return text
+    """Single line; a name without any letter or digit (e.g. only invisible characters
+    or punctuation) counts as empty."""
+    text = clean_single_line(value)
+    return text if has_meaningful_text(text) else ""
 
 
 def normalize_description(value: str | None) -> str:
-    """Plain text: NFC, Unix line endings, no control characters except newline/tab."""
-    text = (value or "").replace("\r\n", "\n").replace("\r", "\n")
-    return normalize_text(_without_controls(text, keep="\n\t"))
+    return clean_multiline(value)
 
 
 def normalize_slug(value: str | None) -> str:
