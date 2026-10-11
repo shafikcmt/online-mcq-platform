@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit.services import AuditContext
 
 from . import services
-from .exceptions import QuestionInUse
+from .exceptions import QuestionInUse, QuestionLocked
 from .models import Question, QuestionOption
 
 
@@ -64,7 +64,10 @@ class QuestionAdmin(admin.ModelAdmin):
     def _set_active(self, request, queryset, value: bool):
         ctx = AuditContext.from_request(request)
         for pk in queryset.values_list("pk", flat=True):
-            services.update_question(pk, {"is_active": value}, None, ctx=ctx)
+            try:
+                services.update_question(pk, {"is_active": value}, None, ctx=ctx)
+            except QuestionLocked as exc:
+                self.message_user(request, f"#{pk}: {exc.message}", level=messages.ERROR)
 
     @admin.action(description=_("Activate selected questions"), permissions=["status"])
     def activate(self, request, queryset):

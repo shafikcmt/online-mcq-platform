@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .public import PublicCategoryListView
 from .views import (
     CategoryDetailView,
     CategoryListCreateView,
@@ -12,4 +13,8 @@ admin_urlpatterns = [
     path("categories/<int:pk>/", CategoryDetailView.as_view(), name="category-detail"),
     path("subjects/", SubjectListCreateView.as_view(), name="subject-list"),
     path("subjects/<int:pk>/", SubjectDetailView.as_view(), name="subject-detail"),
+]
+
+public_urlpatterns = [
+    path("categories/", PublicCategoryListView.as_view(), name="category-list"),
 ]

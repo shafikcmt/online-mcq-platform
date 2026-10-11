@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 03:55+0000\n"
+"POT-Creation-Date: 2026-10-11 04:51+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -283,7 +283,267 @@ msgstr ""
 msgid "Something went wrong on our side. Please try again."
 msgstr ""
 
+msgid "Publish selected exams"
+msgstr ""
+
+msgid "Unpublish selected exams"
+msgstr ""
+
+msgid "Archive selected exams"
+msgstr ""
+
+msgid "Include a time zone (for example 2026-10-05T09:30:00Z or +06:00)."
+msgstr ""
+
+msgid "Exams"
+msgstr ""
+
+msgid ""
+"Published and archived exams cannot be changed. Unpublish the exam first, or "
+"duplicate it."
+msgstr ""
+
+msgid ""
+"Only draft exams can be deleted. Unpublish or archive this exam instead."
+msgstr ""
+
+msgid "This exam is already published."
+msgstr ""
+
+msgid "Only a published exam can be unpublished."
+msgstr ""
+
+msgid "Only draft or unpublished exams can be archived."
+msgstr ""
+
+msgid "Enter a title in Bangla or English (at least one is required)."
+msgstr ""
+
+msgid "An exam with this slug already exists."
+msgstr ""
+
+msgid "Practice"
+msgstr ""
+
+msgid "Regular"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
+msgid "Free"
+msgstr ""
+
+msgid "Paid"
+msgstr ""
+
+msgid "Bangla"
+msgstr ""
+
+msgid "English"
+msgstr ""
+
+msgid "Bangla and English"
+msgstr ""
+
+msgid "Draft"
+msgstr ""
+
+msgid "Published"
+msgstr ""
+
+msgid "Unpublished"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "First attempt"
+msgstr ""
+
+msgid "Best attempt"
+msgstr ""
+
+msgid "Latest attempt"
+msgstr ""
+
+msgid "Immediately after submission"
+msgstr ""
+
+msgid "After the exam ends"
+msgstr ""
+
+msgid "When an admin publishes results"
+msgstr ""
+
+msgid "public ID"
+msgstr ""
+
+msgid "title (Bangla)"
+msgstr ""
+
+msgid "title (English)"
+msgstr ""
+
+msgid "instructions (Bangla)"
+msgstr ""
+
+msgid "instructions (English)"
+msgstr ""
+
+msgid "content language"
+msgstr ""
+
+msgid "exam type"
+msgstr ""
+
+msgid "access"
+msgstr ""
+
+msgid "status"
+msgstr ""
+
+msgid "duration (minutes)"
+msgstr ""
+
+msgid "total questions"
+msgstr ""
+
+msgid "marks per question"
+msgstr ""
+
+msgid "negative marks per wrong answer"
+msgstr ""
+
+msgid "pass marks"
+msgstr ""
+
+msgid "starts at"
+msgstr ""
+
+msgid "ends at"
+msgstr ""
+
+msgid "shuffle questions"
+msgstr ""
+
+msgid "shuffle options"
+msgstr ""
+
+msgid "allow retake"
+msgstr ""
+
+msgid "maximum attempts"
+msgstr ""
+
+msgid "merit list enabled"
+msgstr ""
+
+msgid "merit strategy"
+msgstr ""
+
+msgid "result visibility"
+msgstr ""
+
+msgid "allow answer review"
+msgstr ""
+
+msgid "featured"
+msgstr ""
+
+msgid "created by"
+msgstr ""
+
+msgid "exam"
+msgstr ""
+
+msgid "exams"
+msgstr ""
+
 msgid "question"
+msgstr ""
+
+msgid "marks"
+msgstr ""
+
+msgid "exam question"
+msgstr ""
+
+msgid "exam questions"
+msgstr ""
+
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English title to "
+"generate it."
+msgstr ""
+
+msgid "The subject must belong to the selected category."
+msgstr ""
+
+msgid "The end time must be after the start time."
+msgstr ""
+
+msgid "The exam window is shorter than the exam duration."
+msgstr ""
+
+msgid "Live exams need a start and an end time."
+msgstr ""
+
+msgid "The end time has already passed."
+msgstr ""
+
+msgid ""
+"With retakes allowed, set at least 2 attempts, or leave it empty for "
+"unlimited attempts."
+msgstr ""
+
+#, python-format
+msgid "A title in %(language)s is required for this exam's language."
+msgstr ""
+
+msgid "Add questions before publishing."
+msgstr ""
+
+#, python-format
+msgid "This exam needs %(expected)s questions but %(actual)s are assigned."
+msgstr ""
+
+#, python-format
+msgid "Question #%(id)s is inactive."
+msgstr ""
+
+#, python-format
+msgid "Question #%(id)s is not available in %(language)s."
+msgstr ""
+
+#, python-format
+msgid ""
+"Question #%(id)s must have %(min)s–%(max)s options and one correct answer."
+msgstr ""
+
+#, python-format
+msgid "Pass marks cannot be higher than the total marks (%(total)s)."
+msgstr ""
+
+msgid "The category is inactive."
+msgstr ""
+
+msgid "The subject is inactive."
+msgstr ""
+
+#, python-format
+msgid "Question #%(id)s is listed more than once."
+msgstr ""
+
+msgid "Each question needs a different sort order."
+msgstr ""
+
+#, python-format
+msgid "Question #%(id)s does not exist."
+msgstr ""
+
+#, python-format
+msgid "An exam can have at most %(max)s questions."
 msgstr ""
 
 msgid "Activate selected questions"
@@ -301,6 +561,16 @@ msgstr ""
 msgid "This question is used in exams. Deactivate it instead of deleting it."
 msgstr ""
 
+msgid ""
+"This question is used in a published exam, so its content, options and "
+"correct answer can no longer change. Create a new question instead."
+msgstr ""
+
+msgid ""
+"This question is used in a published exam and cannot be deactivated. "
+"Unpublish the exam first."
+msgstr ""
+
 msgid "Enter the question in Bangla or English (at least one is required)."
 msgstr ""
 
@@ -314,15 +584,6 @@ msgid "Medium"
 msgstr ""
 
 msgid "Hard"
-msgstr ""
-
-msgid "Bangla"
-msgstr ""
-
-msgid "English"
-msgstr ""
-
-msgid "Bangla and English"
 msgstr ""
 
 msgid "question (Bangla)"
@@ -344,9 +605,6 @@ msgid "image"
 msgstr ""
 
 msgid "available languages"
-msgstr ""
-
-msgid "created by"
 msgstr ""
 
 msgid "questions"

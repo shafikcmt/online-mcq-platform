@@ -71,6 +71,7 @@
 | Re-taking to improve merit | Live exams: exactly one attempt. Regular: `allow_retake` + `max_attempts` enforced server-side; the merit attempt is chosen by the exam's `merit_strategy` on the server — never by the client |
 | Joining a live exam late to get extra time | `deadline_at` capped at the exam's global `end_at` |
 | Losing answers / injecting answers after time | No offline exam mode: answers count only when the server receives them before `deadline_at + grace`; retried saves carry `client_saved_at` only for ordering, never for timing |
+| Changing a question after its exam is published | *(3C)* Questions used by a published/unpublished/archived exam are content-locked (409) and cannot be deactivated while the exam is published; published exams are not editable; publish locks the exam and its questions so a concurrent edit cannot slip in; a system check fails if the lock is not registered |
 | Bypassing eligibility (paid/locked exam) | Eligibility (published, schedule, subscription access, attempt limit) re-checked on the server at start **and** on every save/submit |
 | Submitting an option from a different question | Server validates option belongs to the question in this attempt |
 | Changing marks via request | Marks never accepted from client; snapshot from server at attempt start |

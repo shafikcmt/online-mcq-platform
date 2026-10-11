@@ -9,17 +9,15 @@ Every write:
 Used by the admin API views and the internal Django admin.
 """
 
-import re
-
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError, RestrictedError
 from django.http import Http404
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit import services as audit
 from apps.audit.services import AuditContext
+from apps.core.slugs import first_free_slug, slug_base
 
 from .exceptions import CATEGORY_IN_USE_MESSAGE, SUBJECT_IN_USE_MESSAGE, CatalogInUse
 from .models import (
@@ -35,15 +33,13 @@ SLUG_REQUIRED_MESSAGE = _(
     "Enter a slug (English letters, digits and hyphens), or an English name to generate it."
 )
 CATEGORY_MISSING_MESSAGE = _("This category no longer exists.")
-_SLUG_SUFFIX_ROOM = 6  # "-99999"
 
 
 # --------------------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------------------
 def _slug_base(name_en: str) -> str:
-    base = re.sub(r"[^a-z0-9]+", "-", slugify(name_en or "")).strip("-")
-    return base[: SLUG_MAX_LENGTH - _SLUG_SUFFIX_ROOM].strip("-")
+    return slug_base(name_en, SLUG_MAX_LENGTH)
 
 
 def _ensure_slug(instance: CatalogEntry, scope) -> None:
@@ -55,11 +51,7 @@ def _ensure_slug(instance: CatalogEntry, scope) -> None:
     if not base:
         raise ValidationError({"slug": ValidationError(SLUG_REQUIRED_MESSAGE, code="required")})
     taken = set(scope.filter(slug__startswith=base).values_list("slug", flat=True))
-    candidate, number = base, 2
-    while candidate in taken:
-        candidate = f"{base}-{number}"
-        number += 1
-    instance.slug = candidate
+    instance.slug = first_free_slug(base, taken)
 
 
 def _summary(instance: CatalogEntry) -> str:

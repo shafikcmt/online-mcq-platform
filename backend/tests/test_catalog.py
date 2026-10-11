@@ -467,8 +467,11 @@ class TestCategoryListing:
         ]
         assert pages == ids
 
-    def test_public_catalog_endpoint_does_not_exist(self, api):
-        assert APIClient().get("/api/v1/public/categories/").status_code == 404
+    def test_public_categories_expose_no_admin_fields(self, api, data):
+        """Added in Milestone 3C (deferred from 3A): active categories only, public fields."""
+        rows = APIClient().get("/api/v1/public/categories/").json()["results"]
+        assert [row["slug"] for row in rows] == ["biology", "physics"]  # "art" is inactive
+        assert all(set(row) == {"slug", "name", "description", "subjects"} for row in rows)
 
     def test_subject_count(self, api, data):
         subject(data[0])
