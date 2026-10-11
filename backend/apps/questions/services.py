@@ -10,7 +10,8 @@ Every write:
 Options are owned by the question: they are only ever replaced as a complete set,
 never edited one by one, so a question can never be left with zero or two correct
 options. Option IDs change when the set is replaced; once questions are used in exams
-and attempts (Milestones 3C/4) ``_ensure_editable`` will refuse such edits.
+by an exam that is not a draft, ``_ensure_editable`` refuses content edits
+(see ``questions.locks``; Milestone 4 adds attempts).
 """
 
 import io
@@ -32,7 +33,14 @@ from apps.audit import services as audit
 from apps.audit.services import AuditContext
 from apps.catalog.models import Subject
 
-from .exceptions import QUESTION_IN_USE_MESSAGE, QuestionInUse
+from .exceptions import (
+    QUESTION_DEACTIVATE_LOCKED_MESSAGE,
+    QUESTION_IN_USE_MESSAGE,
+    QUESTION_LOCKED_MESSAGE,
+    QuestionInUse,
+    QuestionLocked,
+)
+from .locks import CONTENT, DEACTIVATE, LOCK_EXEMPT_FIELDS, is_locked
 from .models import (
     LANGUAGES,
     OPTION_TEXT_MAX_LENGTH,
@@ -209,9 +217,18 @@ def _lock_question(question_id) -> Question:
     return question
 
 
-def _ensure_editable(question: Question) -> None:
-    """Extension point: from Milestone 3C/4, refuse edits to questions already used in
-    exams with attempts (raise ``QuestionInUse``). Nothing references questions yet."""
+def _ensure_editable(question: Question, changed=("content",)) -> None:
+    """Refuse changes that registered locks forbid (see ``questions.locks``):
+    content changes to a question used by a once-published exam, and deactivating a
+    question used by a currently published exam. Reactivating is always allowed.
+
+    Must be called with the question row locked (``_lock_question``): exams lock the
+    same rows while publishing, so the check and the publish cannot interleave.
+    """
+    if set(changed) - LOCK_EXEMPT_FIELDS and is_locked(question, CONTENT):
+        raise QuestionLocked(QUESTION_LOCKED_MESSAGE)
+    if "is_active" in changed and not question.is_active and is_locked(question, DEACTIVATE):
+        raise QuestionLocked(QUESTION_DEACTIVATE_LOCKED_MESSAGE)
 
 
 QUESTION_FIELDS = (
@@ -270,7 +287,6 @@ def update_question(
 ) -> Question:
     """Apply ``data`` (question fields) and, if given, replace the complete option set."""
     question = _lock_question(question_id)
-    _ensure_editable(question)
     current_options = list(question.options.all())
     before = {field: getattr(question, field) for field in _COMPARED_FIELDS}
     before_state = _State.of(question, len(current_options))
@@ -303,6 +319,7 @@ def update_question(
             changed.append("correct_option")
     if not changed:
         return question  # nothing to save, nothing to audit
+    _ensure_editable(question, changed)
 
     question.save()
     if options_changed:

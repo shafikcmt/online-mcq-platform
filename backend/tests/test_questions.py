@@ -795,7 +795,7 @@ class TestConfidentiality:
             "/api/v1/public/questions/",
             "/api/v1/questions/",
             f"/api/v1/questions/{question.pk}/",
-            "/api/v1/public/categories/",
+            f"/api/v1/public/questions/{question.pk}/",
         ):
             assert client.get(path).status_code == 404, path
 

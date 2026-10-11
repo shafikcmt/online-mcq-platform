@@ -6,7 +6,10 @@ from apps.accounts.api.urls import auth_urlpatterns
 from apps.accounts.api.views import MeView
 from apps.audit.api.urls import admin_urlpatterns as audit_admin_urlpatterns
 from apps.catalog.api.urls import admin_urlpatterns as catalog_admin_urlpatterns
+from apps.catalog.api.urls import public_urlpatterns as catalog_public_urlpatterns
 from apps.core.views import HealthView
+from apps.exams.api.urls import admin_urlpatterns as exam_admin_urlpatterns
+from apps.exams.api.urls import public_urlpatterns as exam_public_urlpatterns
 from apps.questions.api.urls import admin_urlpatterns as question_admin_urlpatterns
 
 app_name = "api_v1"
@@ -15,6 +18,7 @@ app_name = "api_v1"
 admin_urlpatterns = [
     *catalog_admin_urlpatterns,
     *question_admin_urlpatterns,
+    *exam_admin_urlpatterns,
     *audit_admin_urlpatterns,
 ]
 
@@ -23,4 +27,6 @@ urlpatterns = [
     path("auth/", include((auth_urlpatterns, "auth"))),
     path("me/", MeView.as_view(), name="me"),
     path("admin/", include((admin_urlpatterns, "admin"))),
+    # Public (no login): website & app. Only published, safe fields — no questions.
+    path("public/", include(([*catalog_public_urlpatterns, *exam_public_urlpatterns], "public"))),
 ]

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.catalog",
     "apps.questions",
+    "apps.exams",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -258,7 +259,11 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
-    "ENUM_NAME_OVERRIDES": {"LanguageEnum": "apps.accounts.api.serializers.LANGUAGE_CHOICES"},
+    "ENUM_NAME_OVERRIDES": {
+        "LanguageEnum": "apps.accounts.api.serializers.LANGUAGE_CHOICES",
+        # bn / en / both — questions.available_languages and exams.content_language
+        "LanguageCoverageEnum": "apps.questions.models.AvailableLanguages",
+    },
 }
 # API docs (/api/schema/, /api/docs/) are exposed only when enabled (on in dev, off in prod).
 API_DOCS_ENABLED = env_bool("API_DOCS_ENABLED", False)
@@ -285,6 +290,9 @@ QUESTION_MIN_OPTIONS = env_int("QUESTION_MIN_OPTIONS", 2)  # docs/DATABASE_DESIG
 QUESTION_MAX_OPTIONS = env_int("QUESTION_MAX_OPTIONS", 10)
 QUESTION_IMAGE_MAX_BYTES = env_int("QUESTION_IMAGE_MAX_BYTES", 2 * 1024 * 1024)  # 2 MB
 QUESTION_IMAGE_MAX_PIXELS = env_int("QUESTION_IMAGE_MAX_PIXELS", 16_000_000)  # e.g. 4000×4000
+
+# Exam builder (Milestone 3C): upper bound for one exam's question list.
+EXAM_MAX_QUESTIONS = env_int("EXAM_MAX_QUESTIONS", 500)
 
 # --------------------------------------------------------------------------------------
 # Logging — console output; never log secrets, passwords, OTPs or tokens

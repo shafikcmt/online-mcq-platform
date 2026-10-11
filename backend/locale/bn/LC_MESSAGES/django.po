@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 03:55+0000\n"
+"POT-Creation-Date: 2026-10-11 04:51+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -46,8 +46,9 @@ msgid ""
 "An account already exists for this mobile number. Log in or reset your "
 "password."
 msgstr ""
-"এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।এই "
-"মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।"
+"এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট "
+"করুন।এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড "
+"রিসেট করুন।"
 
 msgid "A user with this email address already exists."
 msgstr "এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
@@ -107,7 +108,8 @@ msgid "active"
 msgstr "সক্রিয়"
 
 msgid "Inactive users cannot log in. Deactivate instead of deleting."
-msgstr "নিষ্ক্রিয় ব্যবহারকারী লগইন করতে পারেন না। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+msgstr ""
+"নিষ্ক্রিয় ব্যবহারকারী লগইন করতে পারেন না। মুছে না ফেলে নিষ্ক্রিয় করুন।"
 
 msgid "mobile verified"
 msgstr "মোবাইল যাচাইকৃত"
@@ -207,7 +209,8 @@ msgid ""
 "Use only lowercase English letters, digits and single hyphens (for example: "
 "physics-1)."
 msgstr ""
-"শুধু ইংরেজি ছোট হাতের অক্ষর, অঙ্ক ও একক হাইফেন ব্যবহার করুন (যেমন: physics-1)।"
+"শুধু ইংরেজি ছোট হাতের অক্ষর, অঙ্ক ও একক হাইফেন ব্যবহার করুন (যেমন: "
+"physics-1)।"
 
 msgid "A category with this slug already exists."
 msgstr "এই স্লাগ দিয়ে ইতিমধ্যে একটি ক্যাটাগরি আছে।"
@@ -243,11 +246,11 @@ msgid "categories"
 msgstr "ক্যাটাগরিসমূহ"
 
 msgid ""
-"Used in web addresses; unique within the category. Generated from the "
-"English name if left empty."
+"Used in web addresses; unique within the category. Generated from the English"
+" name if left empty."
 msgstr ""
-"ওয়েব ঠিকানায় ব্যবহৃত হয়; ক্যাটাগরির মধ্যে অনন্য। ফাঁকা রাখলে ইংরেজি নাম থেকে তৈরি "
-"হবে।"
+"ওয়েব ঠিকানায় ব্যবহৃত হয়; ক্যাটাগরির মধ্যে অনন্য। ফাঁকা রাখলে ইংরেজি নাম "
+"থেকে তৈরি হবে।"
 
 msgid "subject"
 msgstr "বিষয়"
@@ -256,8 +259,8 @@ msgid ""
 "Enter a slug (English letters, digits and hyphens), or an English name to "
 "generate it."
 msgstr ""
-"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি নাম "
-"দিন।"
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি "
+"নাম দিন।"
 
 msgid "This category no longer exists."
 msgstr "এই ক্যাটাগরিটি আর নেই।"
@@ -292,8 +295,277 @@ msgstr "অনুরোধ করা তথ্যটি পাওয়া য�
 msgid "Something went wrong on our side. Please try again."
 msgstr "আমাদের দিক থেকে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
 
+msgid "Publish selected exams"
+msgstr "নির্বাচিত পরীক্ষাগুলো প্রকাশ করুন"
+
+msgid "Unpublish selected exams"
+msgstr "নির্বাচিত পরীক্ষাগুলোর প্রকাশ বাতিল করুন"
+
+msgid "Archive selected exams"
+msgstr "নির্বাচিত পরীক্ষাগুলো আর্কাইভ করুন"
+
+msgid "Include a time zone (for example 2026-10-05T09:30:00Z or +06:00)."
+msgstr "সময় অঞ্চল উল্লেখ করুন (যেমন 2026-10-05T09:30:00Z বা +06:00)।"
+
+msgid "Exams"
+msgstr "পরীক্ষাসমূহ"
+
+msgid ""
+"Published and archived exams cannot be changed. Unpublish the exam first, or "
+"duplicate it."
+msgstr ""
+"প্রকাশিত ও আর্কাইভ করা পরীক্ষা পরিবর্তন করা যায় না। আগে প্রকাশ বাতিল করুন, "
+"অথবা পরীক্ষাটির একটি কপি তৈরি করুন।"
+
+msgid ""
+"Only draft exams can be deleted. Unpublish or archive this exam instead."
+msgstr ""
+"শুধু খসড়া পরীক্ষা মুছে ফেলা যায়। এর বদলে প্রকাশ বাতিল বা আর্কাইভ করুন।"
+
+msgid "This exam is already published."
+msgstr "এই পরীক্ষাটি ইতিমধ্যে প্রকাশিত।"
+
+msgid "Only a published exam can be unpublished."
+msgstr "শুধু প্রকাশিত পরীক্ষার প্রকাশ বাতিল করা যায়।"
+
+msgid "Only draft or unpublished exams can be archived."
+msgstr "শুধু খসড়া বা অপ্রকাশিত পরীক্ষা আর্কাইভ করা যায়।"
+
+msgid "Enter a title in Bangla or English (at least one is required)."
+msgstr "বাংলা বা ইংরেজিতে একটি শিরোনাম লিখুন (অন্তত একটি আবশ্যক)।"
+
+msgid "An exam with this slug already exists."
+msgstr "এই স্লাগ দিয়ে ইতিমধ্যে একটি পরীক্ষা আছে।"
+
+msgid "Practice"
+msgstr "অনুশীলন"
+
+msgid "Regular"
+msgstr "নিয়মিত"
+
+msgid "Live"
+msgstr "লাইভ"
+
+msgid "Free"
+msgstr "ফ্রি"
+
+msgid "Paid"
+msgstr "পেইড"
+
+msgid "Bangla"
+msgstr "বাংলা"
+
+msgid "English"
+msgstr "ইংরেজি"
+
+msgid "Bangla and English"
+msgstr "বাংলা ও ইংরেজি"
+
+msgid "Draft"
+msgstr "খসড়া"
+
+msgid "Published"
+msgstr "প্রকাশিত"
+
+msgid "Unpublished"
+msgstr "অপ্রকাশিত"
+
+msgid "Archived"
+msgstr "আর্কাইভ করা"
+
+msgid "First attempt"
+msgstr "প্রথম চেষ্টা"
+
+msgid "Best attempt"
+msgstr "সেরা চেষ্টা"
+
+msgid "Latest attempt"
+msgstr "সর্বশেষ চেষ্টা"
+
+msgid "Immediately after submission"
+msgstr "জমা দেওয়ার সঙ্গে সঙ্গে"
+
+msgid "After the exam ends"
+msgstr "পরীক্ষা শেষ হওয়ার পর"
+
+msgid "When an admin publishes results"
+msgstr "অ্যাডমিন ফলাফল প্রকাশ করলে"
+
+msgid "public ID"
+msgstr "পাবলিক আইডি"
+
+msgid "title (Bangla)"
+msgstr "শিরোনাম (বাংলা)"
+
+msgid "title (English)"
+msgstr "শিরোনাম (ইংরেজি)"
+
+msgid "instructions (Bangla)"
+msgstr "নির্দেশনা (বাংলা)"
+
+msgid "instructions (English)"
+msgstr "নির্দেশনা (ইংরেজি)"
+
+msgid "content language"
+msgstr "বিষয়বস্তুর ভাষা"
+
+msgid "exam type"
+msgstr "পরীক্ষার ধরন"
+
+msgid "access"
+msgstr "অ্যাক্সেস"
+
+msgid "status"
+msgstr "অবস্থা"
+
+msgid "duration (minutes)"
+msgstr "সময়কাল (মিনিট)"
+
+msgid "total questions"
+msgstr "মোট প্রশ্ন"
+
+msgid "marks per question"
+msgstr "প্রতি প্রশ্নের নম্বর"
+
+msgid "negative marks per wrong answer"
+msgstr "প্রতি ভুল উত্তরে নেগেটিভ মার্কিং"
+
+msgid "pass marks"
+msgstr "পাস নম্বর"
+
+msgid "starts at"
+msgstr "শুরুর সময়"
+
+msgid "ends at"
+msgstr "শেষের সময়"
+
+msgid "shuffle questions"
+msgstr "প্রশ্ন এলোমেলো করুন"
+
+msgid "shuffle options"
+msgstr "অপশন এলোমেলো করুন"
+
+msgid "allow retake"
+msgstr "পুনরায় অংশগ্রহণের অনুমতি"
+
+msgid "maximum attempts"
+msgstr "সর্বোচ্চ চেষ্টা"
+
+msgid "merit list enabled"
+msgstr "মেধাতালিকা চালু"
+
+msgid "merit strategy"
+msgstr "মেধাক্রম নির্ধারণের নিয়ম"
+
+msgid "result visibility"
+msgstr "ফলাফল দেখার নিয়ম"
+
+msgid "allow answer review"
+msgstr "উত্তর পর্যালোচনার অনুমতি"
+
+msgid "featured"
+msgstr "বিশেষ"
+
+msgid "created by"
+msgstr "তৈরি করেছেন"
+
+msgid "exam"
+msgstr "পরীক্ষা"
+
+msgid "exams"
+msgstr "পরীক্ষাসমূহ"
+
 msgid "question"
 msgstr "প্রশ্ন"
+
+msgid "marks"
+msgstr "নম্বর"
+
+msgid "exam question"
+msgstr "পরীক্ষার প্রশ্ন"
+
+msgid "exam questions"
+msgstr "পরীক্ষার প্রশ্নসমূহ"
+
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English title to "
+"generate it."
+msgstr ""
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি "
+"শিরোনাম দিন।"
+
+msgid "The subject must belong to the selected category."
+msgstr "বিষয়টি নির্বাচিত ক্যাটাগরির হতে হবে।"
+
+msgid "The end time must be after the start time."
+msgstr "শেষের সময় শুরুর সময়ের পরে হতে হবে।"
+
+msgid "The exam window is shorter than the exam duration."
+msgstr "পরীক্ষার সময়সীমা পরীক্ষার সময়কালের চেয়ে কম।"
+
+msgid "Live exams need a start and an end time."
+msgstr "লাইভ পরীক্ষার শুরু ও শেষের সময় প্রয়োজন।"
+
+msgid "The end time has already passed."
+msgstr "শেষের সময় ইতিমধ্যে পার হয়ে গেছে।"
+
+msgid ""
+"With retakes allowed, set at least 2 attempts, or leave it empty for "
+"unlimited attempts."
+msgstr ""
+"পুনরায় অংশগ্রহণের অনুমতি থাকলে অন্তত ২টি চেষ্টা দিন, অথবা সীমাহীন চেষ্টার "
+"জন্য ফাঁকা রাখুন।"
+
+#, python-format
+msgid "A title in %(language)s is required for this exam's language."
+msgstr "এই পরীক্ষার ভাষার জন্য %(language)s শিরোনাম প্রয়োজন।"
+
+msgid "Add questions before publishing."
+msgstr "প্রকাশের আগে প্রশ্ন যোগ করুন।"
+
+#, python-format
+msgid "This exam needs %(expected)s questions but %(actual)s are assigned."
+msgstr ""
+"এই পরীক্ষায় %(expected)sটি প্রশ্ন প্রয়োজন, কিন্তু যোগ করা হয়েছে "
+"%(actual)sটি।"
+
+#, python-format
+msgid "Question #%(id)s is inactive."
+msgstr "প্রশ্ন #%(id)s নিষ্ক্রিয়।"
+
+#, python-format
+msgid "Question #%(id)s is not available in %(language)s."
+msgstr "প্রশ্ন #%(id)s %(language)s ভাষায় নেই।"
+
+#, python-format
+msgid ""
+"Question #%(id)s must have %(min)s–%(max)s options and one correct answer."
+msgstr "প্রশ্ন #%(id)s-এ %(min)s–%(max)sটি অপশন ও একটি সঠিক উত্তর থাকতে হবে।"
+
+#, python-format
+msgid "Pass marks cannot be higher than the total marks (%(total)s)."
+msgstr "পাস নম্বর মোট নম্বরের (%(total)s) বেশি হতে পারে না।"
+
+msgid "The category is inactive."
+msgstr "ক্যাটাগরিটি নিষ্ক্রিয়।"
+
+msgid "The subject is inactive."
+msgstr "বিষয়টি নিষ্ক্রিয়।"
+
+#, python-format
+msgid "Question #%(id)s is listed more than once."
+msgstr "প্রশ্ন #%(id)s একাধিকবার যোগ করা হয়েছে।"
+
+msgid "Each question needs a different sort order."
+msgstr "প্রতিটি প্রশ্নের ক্রম আলাদা হতে হবে।"
+
+#, python-format
+msgid "Question #%(id)s does not exist."
+msgstr "প্রশ্ন #%(id)s নেই।"
+
+#, python-format
+msgid "An exam can have at most %(max)s questions."
+msgstr "একটি পরীক্ষায় সর্বোচ্চ %(max)sটি প্রশ্ন থাকতে পারে।"
 
 msgid "Activate selected questions"
 msgstr "নির্বাচিত প্রশ্নগুলো সক্রিয় করুন"
@@ -310,6 +582,20 @@ msgstr "প্রশ্নব্যাংক"
 msgid "This question is used in exams. Deactivate it instead of deleting it."
 msgstr "এই প্রশ্নটি পরীক্ষায় ব্যবহৃত হচ্ছে। মুছে না ফেলে নিষ্ক্রিয় করুন।"
 
+msgid ""
+"This question is used in a published exam, so its content, options and "
+"correct answer can no longer change. Create a new question instead."
+msgstr ""
+"এই প্রশ্নটি একটি প্রকাশিত পরীক্ষায় ব্যবহৃত হয়েছে, তাই এর বিষয়বস্তু, অপশন ও"
+" সঠিক উত্তর আর পরিবর্তন করা যাবে না। এর বদলে নতুন প্রশ্ন তৈরি করুন।"
+
+msgid ""
+"This question is used in a published exam and cannot be deactivated. "
+"Unpublish the exam first."
+msgstr ""
+"এই প্রশ্নটি একটি প্রকাশিত পরীক্ষায় ব্যবহৃত হচ্ছে, তাই এটি নিষ্ক্রিয় করা "
+"যাবে না। আগে পরীক্ষাটির প্রকাশ বাতিল করুন।"
+
 msgid "Enter the question in Bangla or English (at least one is required)."
 msgstr "বাংলা বা ইংরেজিতে প্রশ্নটি লিখুন (অন্তত একটি আবশ্যক)।"
 
@@ -324,15 +610,6 @@ msgstr "মাঝারি"
 
 msgid "Hard"
 msgstr "কঠিন"
-
-msgid "Bangla"
-msgstr "বাংলা"
-
-msgid "English"
-msgstr "ইংরেজি"
-
-msgid "Bangla and English"
-msgstr "বাংলা ও ইংরেজি"
 
 msgid "question (Bangla)"
 msgstr "প্রশ্ন (বাংলা)"
@@ -354,9 +631,6 @@ msgstr "ছবি"
 
 msgid "available languages"
 msgstr "উপলব্ধ ভাষা"
-
-msgid "created by"
-msgstr "তৈরি করেছেন"
 
 msgid "questions"
 msgstr "প্রশ্নসমূহ"

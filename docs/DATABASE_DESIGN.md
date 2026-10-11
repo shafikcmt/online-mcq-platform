@@ -271,7 +271,7 @@ Rules:
 
 ### 4.5 exams
 
-#### `exams`
+#### `exams` *(implemented in Milestone 3C — model `exams.Exam`)*
 | Field | Type | Notes |
 |---|---|---|
 | public_id | uuid U | |
@@ -297,14 +297,36 @@ Rules:
 | merit_enabled | bool | default true for live/regular, false for practice |
 | merit_strategy | varchar | which attempt counts for merit: `first_attempt` \| `best_attempt` \| `latest_attempt`. **Live: always `first_attempt`** (the single submitted attempt). Regular: admin-configurable, default `first_attempt` |
 | result_visibility | varchar | `immediate` \| `after_exam_end` \| `manual` |
-| result_published_at | timestamptz? | set when admin publishes (manual mode) |
+| result_published_at | timestamptz? | set when admin publishes (manual mode) — *added with results in Milestone 4* |
 | allow_answer_review | bool | show correct answers/explanations after result is visible |
 | is_featured | bool | for home page / website |
 | created_by | FK? → users | |
 
 Indexes: `(status, start_at)`, `(category_id, status)`, `(access_type)`.
 
-#### `exam_questions` (join table)
+Implementation notes (3C):
+- Title/description/instructions are plain text (NFC, control characters removed; rendered escaped).
+  `CHECK` at least one title. Slug generated from `title_en` when empty (same rules as catalog).
+- Status changes only through actions: `draft → published` (publish), `published → unpublished`
+  (unpublish), `unpublished → published` (publish again), `draft|unpublished → archived` (archive).
+  Only `draft`/`unpublished` exams are editable; only `draft` exams can be deleted.
+- Database `CHECK`s: positive duration / question count / default marks; `negative_marks >= 0`;
+  `pass_marks` NULL or ≥ 0; `end_at > start_at`; `max_attempts` NULL or ≥ 1; no retake ⇒
+  `max_attempts = 1`; live ⇒ no retake, 1 attempt, `first_attempt`; a non-draft live exam has a schedule;
+  all enum values. When both times are set, the window must fit the duration (service).
+- `total_questions` is a **stored target** (as designed above): the assigned list may differ while the exam
+  is draft/unpublished (the admin builds it up), publish requires `assigned = total_questions`, and a
+  published exam cannot change. Deriving it from the assignments would remove that publish check.
+- Duplicate copies the configuration and question list into a new draft; it resets `slug`, `public_id`,
+  status, the schedule and `is_featured` (featuring is a decision for a specific published exam).
+- Schedule times must include a time zone (naive input is rejected) and are stored in UTC. Partial
+  schedules (only start or only end) are allowed for regular/practice exams; live exams need both.
+- Publish validation: title in each content language; active category/subject; assigned question count
+  `> 0` and `= total_questions`; every question active, with exactly one correct option and 2–10 options,
+  and available in the exam's language(s); valid schedule (live needs one; not already ended); pass marks
+  `≤` total marks.
+
+#### `exam_questions` (join table) *(implemented in Milestone 3C — model `exams.ExamQuestion`)*
 | Field | Type | Notes |
 |---|---|---|
 | exam_id | FK → exams | CASCADE |
@@ -312,8 +334,16 @@ Indexes: `(status, start_at)`, `(category_id, status)`, `(access_type)`.
 | sort_order | int | default order when not shuffled |
 | marks | numeric(7,2)? | override; null = exam.default_marks |
 
-`UNIQUE(exam_id, question_id)`.
+`UNIQUE(exam_id, question_id)`, `UNIQUE(exam_id, sort_order)`, `CHECK sort_order >= 0`, `CHECK marks IS NULL OR marks > 0`.
 Editing questions of an exam that already has attempts is blocked (admin must duplicate the exam).
+*(3C: the list is only replaced as a complete set. A question used by any exam cannot be deleted
+(PROTECT); once the exam has been published — published, unpublished or archived — the question's
+content, options, correct answer, subject and image are locked (only `is_active`/`difficulty` change);
+while an exam using it is **published**, it also cannot be deactivated — so a published exam never contains
+an inactive question. After unpublishing, deactivation is allowed and blocks re-publishing until the
+question is reactivated or removed. Attempt-based locks follow in Milestone 4. The lock is registered by the
+exams app at startup (`questions.locks`); a system check (`questions.E001`) fails if another model
+references questions but no lock is registered.)*
 
 ### 4.6 attempts (exam engine)
 

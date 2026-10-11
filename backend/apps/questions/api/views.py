@@ -28,7 +28,7 @@ from apps.core.admin_api import (
 from apps.core.exceptions import ApiError
 
 from .. import services
-from ..exceptions import QuestionInUse
+from ..exceptions import QuestionInUse, QuestionLocked
 from ..models import AvailableLanguages, Difficulty, Question
 from .serializers import QuestionAdminSerializer
 
@@ -52,6 +52,12 @@ def _write(request, func, *args, **kwargs):
     except QuestionInUse as exc:
         raise ApiError(
             status_code=status.HTTP_409_CONFLICT, code="in_use", message=str(exc.message)
+        ) from exc
+    except QuestionLocked as exc:
+        raise ApiError(
+            status_code=status.HTTP_409_CONFLICT,
+            code="question_locked",
+            message=str(exc.message),
         ) from exc
 
 
