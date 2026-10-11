@@ -90,7 +90,7 @@ exam_attempts 1──1 results
 
 packages 1──* package_access_rules ──► (all paid exams | selected categories | selected exams)
 users 1──* subscriptions *──1 packages
-subscriptions 0..1──1 payments (the payment that created it)
+payments *──0..1 subscriptions (the subscription a payment created or extended — Milestone 5; see §4.8)
 users 1──* payments *──1 packages
 payments 1──* payment_events
 
@@ -117,7 +117,7 @@ erDiagram
     PACKAGE ||--o{ SUBSCRIPTION : sold_as
     USER ||--o{ PAYMENT : makes
     PACKAGE ||--o{ PAYMENT : for
-    PAYMENT ||--o| SUBSCRIPTION : activates
+    SUBSCRIPTION |o--o{ PAYMENT : "created or extended by"
     PAYMENT ||--o{ PAYMENT_EVENT : logs
     USER ||--o{ NOTIFICATION : receives
 ```
@@ -423,7 +423,7 @@ Result **visibility** is not a column here — it is derived from `exams.result_
 
 ### 4.8 subscriptions
 
-#### `packages`
+#### `packages` *(implemented in Milestone 4A — model `subscriptions.Package`)*
 | Field | Type | Notes |
 |---|---|---|
 | name🌐 | varchar | `name_bn`, `name_en` |
@@ -436,7 +436,7 @@ Result **visibility** is not a column here — it is derived from `exams.result_
 | status | varchar | `active` \| `inactive` |
 | sort_order, is_featured | | |
 
-#### `package_access_rules`
+#### `package_access_rules` *(implemented in Milestone 4A — model `subscriptions.PackageAccessRule`)*
 | Field | Type | Notes |
 |---|---|---|
 | package_id | FK → packages | CASCADE |
@@ -448,12 +448,12 @@ Result **visibility** is not a column here — it is derived from `exams.result_
 Access check: *"user can open paid exam E if they have an active subscription whose package has a
 rule matching E (all paid, E's category, or E itself)."*
 
-#### `subscriptions`
+#### `subscriptions` *(implemented in Milestone 4A — model `subscriptions.Subscription`)*
 | Field | Type | Notes |
 |---|---|---|
 | user_id | FK → users | |
 | package_id | FK → packages | PROTECT |
-| payment_id | FK? → payments, U | the payment that created it; null if granted manually by admin |
+| ~~payment_id~~ | — | **Not on this table** (decided in 4A): renewals extend the same row, so one subscription can be paid by several payments. The link lives on the payment side instead — `payments.subscription_id` (Milestone 5, see notes below). A subscription with no payment = manual admin grant |
 | status | varchar | `active` \| `expired` \| `cancelled` |
 | starts_at / expires_at | timestamptz | |
 | price_paid | numeric(12,2) | snapshot |
@@ -461,6 +461,41 @@ rule matching E (all paid, E's category, or E itself)."*
 Index: `(user_id, status, expires_at)`.
 Renewal policy (assumption): buying the same package while active **extends** `expires_at`
 from the current expiry; a different package creates a parallel subscription.
+
+Implementation notes (4A):
+- **Package:** `features_bn`/`features_en` are JSON lists of short plain-text lines (`[]` = none,
+  not NULL; max 20 lines × 200 characters). `currency` is `BDT` only for now. `validity_days` is
+  1–3650 (sanity bound). Ordering `(sort_order, id)`. Database CHECKs: name present, ASCII slug,
+  `price >= 0`, validity range, valid choices. A package with any subscription cannot be deleted
+  (`409 in_use`) — deactivate it instead; an unused package can be deleted (its rules go with it).
+- **Inactive package:** cannot be granted (or sold in M5) and is hidden from `/public/packages`,
+  but subscriptions already granted keep their access until they expire.
+- **Access rules:** `category_id` and `exam_id` are **PROTECT** (deleting a category/exam a
+  package grants → `409 in_use`). Partial unique indexes: one `all_paid_exams` rule per package,
+  each category/exam once. Exam rules only accept **paid** exams. The rule list is replaced as a
+  complete set (`PATCH /admin/packages/{id}/access-rules`).
+- **Payment ↔ subscription (Milestone 5 implementation detail — direction decided now).**
+  Renewals extend one row (below), so **one subscription may be created and then extended by
+  several successful payments**. Therefore there is **no `subscriptions.payment_id` (and no
+  "one payment = one subscription row" uniqueness)**. Milestone 5 adds the link on the payment
+  side: `payments.subscription_id` FK? → subscriptions (PROTECT), set inside the verification
+  transaction to the subscription the payment created or extended — many payments may point to
+  the same subscription. "Paid once" is guaranteed by the payment itself (unique
+  `provider_transaction_id`, forward-only status, idempotent verification), not by a unique FK
+  on subscriptions. This needs no change to `subscriptions.0001`; the payments migration adds the
+  column on its own table. Manual admin grants (Phase-1 decision, ROADMAP decisions log #16) have
+  no payment at all.
+- **Active = computed, never trusted from `status` alone:** `status = active AND starts_at <= now
+  AND expires_at > now` (server UTC). A row past `expires_at` grants nothing even if the expiry
+  job (Milestone 5) has not marked it `expired`; a future-dated grant opens nothing early.
+- **Renewal (implemented):** at most one `status = active` row per (user, package) — a partial
+  unique index. Granting the same package while that row is running (active or scheduled)
+  **extends it**: `expires_at = max(expires_at, now) + validity_days`, and `price_paid` becomes the
+  total paid. A row that already ran out but is still `active` is marked `expired` in the same
+  transaction and a new row starts. Another package → a parallel row.
+- **Cancel:** `active` → `cancelled`, access ends immediately; cancelled/expired rows never become
+  active again. Refunds are out of scope.
+- `user_id` is PROTECT (entitlement history; users are deactivated, not deleted).
 
 ### 4.9 payments
 
@@ -471,6 +506,7 @@ from the current expiry; a different package creates a parallel subscription.
 | merchant_reference | varchar U | our own transaction ID sent to provider |
 | user_id | FK → users | PROTECT |
 | package_id | FK → packages | PROTECT |
+| subscription_id | FK? → subscriptions | PROTECT; set when verification succeeds — the subscription this payment **created or extended**. Several payments may reference the same subscription (renewals). *(Milestone 5)* |
 | provider | varchar | `mock` \| `sslcommerz` (**first implementation**) \| `bkash` \| `nagad` (added later through the same gateway interface — no schema change) |
 | amount | numeric(12,2) | copied from package price **at initiation** |
 | currency | char(3) | |
@@ -578,7 +614,7 @@ Django-admin path can change a row. Entries are written in the same transaction 
 | One correct option per question | Partial unique index + service validation |
 | Selected option belongs to the question | Service validation |
 | Payment can't be verified twice | Unique `provider_transaction_id` + status transition check in a transaction |
-| Subscription only from verified payment | `subscriptions.payment_id` unique; created inside the verification transaction |
+| Subscription only from verified payment (or an audited admin grant) | Created/extended by `subscriptions.services.grant_subscription` inside the verification transaction; the payment is processed once (unique `provider_transaction_id` + forward-only status) and records the subscription it created or extended (`payments.subscription_id`, many-to-one — Milestone 5). Manual grants: admin-only + audited |
 | One merit-counted result per user per exam | Partial unique index on `results` |
 | Live exam = one attempt | Service rule + `max_attempts = 1` enforced on save |
 | Old results unaffected by edits | Snapshots in `attempt_answers`; edit locks on used questions/exams |

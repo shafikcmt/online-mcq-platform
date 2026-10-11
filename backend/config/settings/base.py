@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.questions",
     "apps.exams",
+    "apps.subscriptions",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -263,6 +264,8 @@ SPECTACULAR_SETTINGS = {
         "LanguageEnum": "apps.accounts.api.serializers.LANGUAGE_CHOICES",
         # bn / en / both — questions.available_languages and exams.content_language
         "LanguageCoverageEnum": "apps.questions.models.AvailableLanguages",
+        "PackageStatusEnum": "apps.subscriptions.models.PackageStatus",
+        "SubscriptionStatusEnum": "apps.subscriptions.models.SubscriptionStatus",
     },
 }
 # API docs (/api/schema/, /api/docs/) are exposed only when enabled (on in dev, off in prod).
@@ -293,6 +296,9 @@ QUESTION_IMAGE_MAX_PIXELS = env_int("QUESTION_IMAGE_MAX_PIXELS", 16_000_000)  # 
 
 # Exam builder (Milestone 3C): upper bound for one exam's question list.
 EXAM_MAX_QUESTIONS = env_int("EXAM_MAX_QUESTIONS", 500)
+
+# Packages (Milestone 4A): upper bound for one package's access-rule list.
+PACKAGE_MAX_ACCESS_RULES = env_int("PACKAGE_MAX_ACCESS_RULES", 500)
 
 # --------------------------------------------------------------------------------------
 # Logging — console output; never log secrets, passwords, OTPs or tokens

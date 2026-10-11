@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 04:51+0000\n"
+"POT-Creation-Date: 2026-10-11 09:58+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -46,9 +46,9 @@ msgid ""
 "An account already exists for this mobile number. Log in or reset your "
 "password."
 msgstr ""
-"এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট "
-"করুন।এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড "
-"রিসেট করুন।"
+"এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট"
+" করুন।এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড"
+" রিসেট করুন।"
 
 msgid "A user with this email address already exists."
 msgstr "এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
@@ -115,7 +115,8 @@ msgid "mobile verified"
 msgstr "মোবাইল যাচাইকৃত"
 
 msgid "Set only by the registration / account flow after OTP verification."
-msgstr "শুধু OTP যাচাইয়ের পর নিবন্ধন / অ্যাকাউন্ট প্রক্রিয়ায় নির্ধারিত হয়।"
+msgstr ""
+"শুধু OTP যাচাইয়ের পর নিবন্ধন / অ্যাকাউন্ট প্রক্রিয়ায় নির্ধারিত হয়।"
 
 msgid "authentication version"
 msgstr "প্রমাণীকরণ সংস্করণ"
@@ -196,11 +197,18 @@ msgid ""
 "This category still has subjects. Move or delete them first, or deactivate "
 "the category."
 msgstr ""
-"এই ক্যাটাগরিতে এখনও বিষয় আছে। আগে বিষয়গুলো সরান বা মুছুন, অথবা ক্যাটাগরিটি "
-"নিষ্ক্রিয় করুন।"
+"এই ক্যাটাগরিতে এখনও বিষয় আছে। আগে বিষয়গুলো সরান বা মুছুন, অথবা ক্যাটাগরিটি"
+" নিষ্ক্রিয় করুন।"
 
 msgid "This subject is still in use. Deactivate it instead of deleting it."
 msgstr "এই বিষয়টি এখনও ব্যবহৃত হচ্ছে। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+
+msgid ""
+"This category is still used by exams or packages. Deactivate it instead of "
+"deleting it."
+msgstr ""
+"এই ক্যাটাগরি এখনও পরীক্ষা বা প্যাকেজে ব্যবহৃত হচ্ছে। মুছে ফেলার বদলে এটি "
+"নিষ্ক্রিয় করুন।"
 
 msgid "Enter a name in Bangla or English (at least one is required)."
 msgstr "বাংলা বা ইংরেজিতে একটি নাম লিখুন (অন্তত একটি আবশ্যক)।"
@@ -246,8 +254,8 @@ msgid "categories"
 msgstr "ক্যাটাগরিসমূহ"
 
 msgid ""
-"Used in web addresses; unique within the category. Generated from the English"
-" name if left empty."
+"Used in web addresses; unique within the category. Generated from the "
+"English name if left empty."
 msgstr ""
 "ওয়েব ঠিকানায় ব্যবহৃত হয়; ক্যাটাগরির মধ্যে অনন্য। ফাঁকা রাখলে ইংরেজি নাম "
 "থেকে তৈরি হবে।"
@@ -259,8 +267,8 @@ msgid ""
 "Enter a slug (English letters, digits and hyphens), or an English name to "
 "generate it."
 msgstr ""
-"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি "
-"নাম দিন।"
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি"
+" নাম দিন।"
 
 msgid "This category no longer exists."
 msgstr "এই ক্যাটাগরিটি আর নেই।"
@@ -311,8 +319,8 @@ msgid "Exams"
 msgstr "পরীক্ষাসমূহ"
 
 msgid ""
-"Published and archived exams cannot be changed. Unpublish the exam first, or "
-"duplicate it."
+"Published and archived exams cannot be changed. Unpublish the exam first, or"
+" duplicate it."
 msgstr ""
 "প্রকাশিত ও আর্কাইভ করা পরীক্ষা পরিবর্তন করা যায় না। আগে প্রকাশ বাতিল করুন, "
 "অথবা পরীক্ষাটির একটি কপি তৈরি করুন।"
@@ -330,6 +338,13 @@ msgstr "শুধু প্রকাশিত পরীক্ষার প্র
 
 msgid "Only draft or unpublished exams can be archived."
 msgstr "শুধু খসড়া বা অপ্রকাশিত পরীক্ষা আর্কাইভ করা যায়।"
+
+msgid ""
+"This exam is still used by a package. Remove it from the package first, or "
+"archive the exam."
+msgstr ""
+"এই পরীক্ষাটি এখনও একটি প্যাকেজে ব্যবহৃত হচ্ছে। আগে প্যাকেজ থেকে সরান, অথবা "
+"পরীক্ষাটি আর্কাইভ করুন।"
 
 msgid "Enter a title in Bangla or English (at least one is required)."
 msgstr "বাংলা বা ইংরেজিতে একটি শিরোনাম লিখুন (অন্তত একটি আবশ্যক)।"
@@ -491,8 +506,8 @@ msgid ""
 "Enter a slug (English letters, digits and hyphens), or an English title to "
 "generate it."
 msgstr ""
-"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি "
-"শিরোনাম দিন।"
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি"
+" শিরোনাম দিন।"
 
 msgid "The subject must belong to the selected category."
 msgstr "বিষয়টি নির্বাচিত ক্যাটাগরির হতে হবে।"
@@ -586,8 +601,8 @@ msgid ""
 "This question is used in a published exam, so its content, options and "
 "correct answer can no longer change. Create a new question instead."
 msgstr ""
-"এই প্রশ্নটি একটি প্রকাশিত পরীক্ষায় ব্যবহৃত হয়েছে, তাই এর বিষয়বস্তু, অপশন ও"
-" সঠিক উত্তর আর পরিবর্তন করা যাবে না। এর বদলে নতুন প্রশ্ন তৈরি করুন।"
+"এই প্রশ্নটি একটি প্রকাশিত পরীক্ষায় ব্যবহৃত হয়েছে, তাই এর বিষয়বস্তু, অপশন "
+"ও সঠিক উত্তর আর পরিবর্তন করা যাবে না। এর বদলে নতুন প্রশ্ন তৈরি করুন।"
 
 msgid ""
 "This question is used in a published exam and cannot be deactivated. "
@@ -688,6 +703,162 @@ msgstr "একটি সঠিক JPEG, PNG বা WebP ছবি আপলো�
 msgid "The image dimensions are too large."
 msgstr "ছবির মাপ খুব বড়।"
 
+msgid "Subscriptions"
+msgstr "সাবস্ক্রিপশন"
+
+msgid ""
+"This package has subscriptions and cannot be deleted. Deactivate it instead."
+msgstr ""
+"এই প্যাকেজে সাবস্ক্রিপশন আছে, তাই মুছে ফেলা যাবে না। এর বদলে নিষ্ক্রিয় "
+"করুন।"
+
+msgid "This subscription is already cancelled."
+msgstr "এই সাবস্ক্রিপশন ইতিমধ্যে বাতিল করা হয়েছে।"
+
+msgid "This subscription has already expired."
+msgstr "এই সাবস্ক্রিপশনের মেয়াদ ইতিমধ্যে শেষ হয়ে গেছে।"
+
+msgid "A package with this slug already exists."
+msgstr "এই স্লাগ দিয়ে একটি প্যাকেজ আগে থেকেই আছে।"
+
+msgid "Enter the features as a list of short text lines."
+msgstr "সুবিধাগুলো ছোট ছোট লাইনের তালিকা হিসেবে লিখুন।"
+
+#, python-format
+msgid "Enter at most %(max)s features."
+msgstr "সর্বোচ্চ %(max)sটি সুবিধা লিখুন।"
+
+#, python-format
+msgid "Each feature can have at most %(max)s characters."
+msgstr "প্রতিটি সুবিধায় সর্বোচ্চ %(max)s অক্ষর থাকতে পারে।"
+
+msgid "Bangladeshi taka"
+msgstr "বাংলাদেশি টাকা"
+
+msgid "Active"
+msgstr "সক্রিয়"
+
+msgid "Inactive"
+msgstr "নিষ্ক্রিয়"
+
+msgid "All paid exams"
+msgstr "সব পেইড পরীক্ষা"
+
+msgid "Category"
+msgstr "ক্যাটাগরি"
+
+msgid "Exam"
+msgstr "পরীক্ষা"
+
+msgid "Expired"
+msgstr "মেয়াদোত্তীর্ণ"
+
+msgid "Cancelled"
+msgstr "বাতিল"
+
+msgid "features (Bangla)"
+msgstr "সুবিধা (বাংলা)"
+
+msgid "features (English)"
+msgstr "সুবিধা (ইংরেজি)"
+
+msgid "price"
+msgstr "মূল্য"
+
+msgid "currency"
+msgstr "মুদ্রা"
+
+msgid "validity (days)"
+msgstr "মেয়াদ (দিন)"
+
+msgid "package"
+msgstr "প্যাকেজ"
+
+msgid "packages"
+msgstr "প্যাকেজসমূহ"
+
+msgid "rule type"
+msgstr "নিয়মের ধরন"
+
+msgid "package access rule"
+msgstr "প্যাকেজ অ্যাক্সেস নিয়ম"
+
+msgid "package access rules"
+msgstr "প্যাকেজ অ্যাক্সেস নিয়মসমূহ"
+
+msgid "expires at"
+msgstr "মেয়াদ শেষের সময়"
+
+msgid "price paid"
+msgstr "পরিশোধিত মূল্য"
+
+msgid "subscription"
+msgstr "সাবস্ক্রিপশন"
+
+msgid "subscriptions"
+msgstr "সাবস্ক্রিপশনসমূহ"
+
+#, python-format
+msgid "A package can have at most %(max)s access rules."
+msgstr "একটি প্যাকেজে সর্বোচ্চ %(max)sটি অ্যাক্সেস নিয়ম থাকতে পারে।"
+
+msgid "The same access rule is listed more than once."
+msgstr "একই অ্যাক্সেস নিয়ম একাধিকবার দেওয়া হয়েছে।"
+
+#, python-format
+msgid "Category #%(id)s does not exist."
+msgstr "ক্যাটাগরি #%(id)s পাওয়া যায়নি।"
+
+#, python-format
+msgid "Exam #%(id)s does not exist."
+msgstr "পরীক্ষা #%(id)s পাওয়া যায়নি।"
+
+#, python-format
+msgid "Exam #%(id)s is free; only paid exams can be added to a package."
+msgstr "পরীক্ষা #%(id)s ফ্রি; প্যাকেজে শুধু পেইড পরীক্ষা যোগ করা যায়।"
+
+msgid ""
+"Choose a category only for category rules and an exam only for exam rules."
+msgstr ""
+"ক্যাটাগরি শুধু ক্যাটাগরি নিয়মে এবং পরীক্ষা শুধু পরীক্ষা নিয়মে বেছে নিন।"
+
+msgid "This user does not exist."
+msgstr "এই ব্যবহারকারী পাওয়া যায়নি।"
+
+msgid "Subscriptions can only be given to active student accounts."
+msgstr "সাবস্ক্রিপশন শুধু সক্রিয় শিক্ষার্থী অ্যাকাউন্টকে দেওয়া যায়।"
+
+msgid "This package does not exist."
+msgstr "এই প্যাকেজ পাওয়া যায়নি।"
+
+msgid "This package is inactive and cannot be granted."
+msgstr "এই প্যাকেজটি নিষ্ক্রিয়, তাই দেওয়া যাবে না।"
+
+msgid "The start time cannot be in the past."
+msgstr "শুরুর সময় অতীতে হতে পারে না।"
+
+#, python-format
+msgid "The start time can be at most %(days)s days ahead."
+msgstr "শুরুর সময় সর্বোচ্চ %(days)s দিন পরে হতে পারে।"
+
+msgid "Enter a price of 0 or more."
+msgstr "০ বা তার বেশি মূল্য লিখুন।"
+
+#, python-format
+msgid ""
+"This extension would make the total paid for the subscription larger than "
+"%(max)s."
+msgstr ""
+"এই মেয়াদ বৃদ্ধির ফলে সাবস্ক্রিপশনের মোট পরিশোধিত মূল্য %(max)s-এর বেশি হয়ে"
+" যাবে।"
+
+msgid ""
+"This student already has this package; it will be extended from its current "
+"expiry, so a start time cannot be set."
+msgstr ""
+"এই শিক্ষার্থীর কাছে প্যাকেজটি আগে থেকেই আছে; এটি বর্তমান মেয়াদ শেষ হওয়ার "
+"সময় থেকে বাড়ানো হবে, তাই শুরুর সময় দেওয়া যাবে না।"
+
 msgid "Verification"
 msgstr "যাচাইকরণ"
 
@@ -729,9 +900,6 @@ msgstr "OTP হ্যাশ"
 
 msgid "language"
 msgstr "ভাষা"
-
-msgid "expires at"
-msgstr "মেয়াদ শেষের সময়"
 
 msgid "used at"
 msgstr "ব্যবহারের সময়"

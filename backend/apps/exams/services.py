@@ -19,7 +19,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Q
+from django.db.models import Count, ProtectedError, Q, RestrictedError
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -33,6 +33,7 @@ from apps.questions.models import Question
 
 from .exceptions import (
     ALREADY_PUBLISHED_MESSAGE,
+    EXAM_IN_USE_MESSAGE,
     EXAM_LOCKED_MESSAGE,
     EXAM_NOT_DELETABLE_MESSAGE,
     NOT_ARCHIVABLE_MESSAGE,
@@ -343,12 +344,17 @@ def update_exam(exam_id: int, data: dict, *, ctx: AuditContext) -> Exam:
 @transaction.atomic
 def delete_exam(exam_id: int, *, ctx: AuditContext) -> None:
     """Only drafts (never published) can be deleted; published history is kept —
-    unpublish/archive instead. Its question list goes with it; questions stay."""
+    unpublish/archive instead. Its question list goes with it; questions stay. An
+    exam a package grants (``subscriptions``) is protected → 409 ``in_use``."""
     exam = _lock_exam(exam_id)
     if exam.status != ExamStatus.DRAFT:
         raise ExamStateError("exam_not_deletable", EXAM_NOT_DELETABLE_MESSAGE)
     snapshot = _State.of(exam).values()
-    exam.delete()
+    try:
+        with transaction.atomic():
+            exam.delete()
+    except (ProtectedError, RestrictedError) as exc:  # e.g. a package access rule
+        raise ExamStateError("in_use", EXAM_IN_USE_MESSAGE) from exc
     _audit(ctx, "exam.delete", exam_id, {"snapshot": snapshot})
 
 

@@ -204,6 +204,7 @@ Branch: `release/1.0`
 | 13 | Reports | Phase-1 = basic operational dashboard statistics; advanced analytics = Phase-2 |
 | 14 | Answer saving | No full offline exam mode; local temporary state + server autosave + retry/sync after temporary disconnection; server is source of truth |
 | 15 | Server-side controls | Timer, eligibility, submission, scoring, negative marking, payment verification, subscription access |
+| 16 | Manual subscription grant *(decided in Milestone 4A; was open question 12)* | **Allowed in Phase-1** for support, testing and legitimate manual entitlements (e.g. offline payment). Admin-only: admin session + CSRF + `admin` role (`POST /admin/subscriptions/grant`); never exposed to students or the public. Every grant and extension is written to the audit log. No Payment row is required. Payment-created subscriptions arrive in Milestone 5 through the same `grant_subscription` service |
 
 ## Open questions (still unresolved)
 
@@ -218,7 +219,7 @@ Branch: `release/1.0`
 9. **Contact form handling:** messages stored and shown in the Admin Panel only (email forwarding is a future extension) — OK?
 10. **Admin roles:** is one "admin" role enough, or is a limited staff role (e.g. question editor) needed?
 11. **Question format:** images in questions/options needed? Math formulas?
-12. **Manual subscription grant** by admin (e.g. cash/offline payment) — allowed?
+12. ~~**Manual subscription grant** by admin~~ — **resolved in Milestone 4A:** allowed, admin-only and audited (Decisions log #16).
 13. **Refunds/cancellations:** assumed out of scope — confirm.
 14. **Hosting:** which server/provider for production; domain + subdomains (`api.`, `admin.`)?
 15. **Two Next.js apps vs one:** plan uses separate `web/` and `admin/` apps; merge into one only if budget requires.
