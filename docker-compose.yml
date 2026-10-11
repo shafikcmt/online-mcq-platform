@@ -53,7 +53,11 @@ services:
   celery:
     <<: *backend
     command: sh -c "python manage.py compilemessages --verbosity 0 && celery -A config worker --loglevel=info"
-    # No tasks exist yet; the worker proves the Celery ↔ Redis wiring works.
+
+  celery-beat:
+    <<: *backend
+    # Periodic jobs (e.g. finalizing abandoned exam attempts every minute).
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
 
 volumes:
   postgres_data:

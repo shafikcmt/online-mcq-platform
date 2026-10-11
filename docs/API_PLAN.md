@@ -149,6 +149,43 @@ The website has **no login** in Phase-1; all website endpoints are under `/publi
 | POST | `/attempts/{public_id}/submit` | Final submit (idempotent) `{answers?: [...], source: "manual"\|"client_timeout"}` |
 | GET | `/attempts` | My exam history |
 
+*(4B implementation — student JWT; every query filtered by `request.user`; attempts addressed only by UUID.)*
+- **Start/resume:** `POST /exams/{slug}/attempts` *(slug, not id: exams are public by slug since 3C)*,
+  body `{client_info?}` → `201` new attempt or `200` the open one (same deadline, order and answers).
+  Errors: `404` (not published / inactive category or subject / unknown), `403 needs_subscription`,
+  `422 exam_not_started` (`details.start_at`), `422 exam_ended`, `422 retake_not_allowed`,
+  `422 attempt_limit_reached` (`details.max_attempts`). An open attempt past deadline + grace is
+  finalized (`server_auto`) before a new one starts.
+- **Room payload** (start, resume): `attempt_id`, `attempt_no`, `status`, `server_time`, `started_at`,
+  `deadline_at`, `remaining_seconds`, `can_edit`, `can_submit`, `submitted_at`, `submit_source`,
+  `content_language`, `exam {slug, title, instructions, exam_type, content_language, duration_minutes,
+  total_questions, negative_marks}`, `questions [{question_id, number, text, (text_bn, text_en for
+  "both"), image, marks, options [{id, text, (text_bn, text_en)}], selected_option_id,
+  is_marked_for_review}]` in this attempt's own order.
+- **Autosave:** `PUT /attempts/{id}/answers/{question_id}` `{selected_option_id?, is_marked_for_review?,
+  client_saved_at}` — omitted = keep, `null` = clear. **Batch:** `PUT /attempts/{id}/answers`
+  `{answers: [{question_id, …}]}` in one transaction. Response `{server_time, deadline_at,
+  remaining_seconds, answers: [{question_id, status: saved|stale, selected_option_id,
+  is_marked_for_review}]}`. An item whose `client_saved_at` is **older** than the stored one is `stale`
+  and changes nothing; an invalid item (question not in the attempt, option of another question,
+  duplicate) rejects the whole request (`400`). Errors: `409 attempt_not_in_progress`,
+  `410 attempt_deadline_passed` (from `deadline_at` on — also during the submit grace),
+  `403 needs_subscription` (access re-checked on every save and submit).
+- **Submit:** `POST /attempts/{id}/submit` `{source: manual|client_timeout, answers?}`, optional
+  `Idempotency-Key` header (stored). A finished attempt is returned as is (`200`). Within
+  `deadline_at + grace` it is submitted; `answers` in the body are applied only before `deadline_at`
+  (else reported `deadline_passed`). After `deadline_at + grace` the server finalizes it
+  (`auto_submitted`, `server_auto`) and returns that state. `result_available: false`, `result: null`
+  until the results milestone.
+- **Timing rule:** answers change only while `now < deadline_at`; submit is accepted until
+  `deadline_at + ATTEMPT_SUBMIT_GRACE_SECONDS` (default 30 s) with its answers applied only before
+  `deadline_at`; then the server finalizes (`server_auto`). `client_saved_at` never affects timing.
+- **Exam status changes:** unpublish/archive or an inactive category/subject block **new** starts
+  (`404`); a running attempt still resumes (`GET /attempts/{id}`), saves and submits until its deadline.
+- **History:** `GET /attempts` — paginated summaries with `exam {slug, title}`.
+- Not built yet: `GET /exams`, `GET /exams/{id}` with `can_start`/`locked_reason` (planned with the
+  dashboard/results work).
+
 **Start/resume response (example):**
 ```json
 {
@@ -293,7 +330,7 @@ never only by the ID in the URL (prevents IDOR).
   attempt the app keeps a *local temporary answer state* and autosaves each change to the server.
   If the connection drops briefly, unsent answers wait in a small pending queue and are retried with
   backoff, then synced via the batch endpoint. The server remains the source of truth: only answers it
-  received before `deadline_at + grace` count. If the device timer hits zero, call submit with
+  received before `deadline_at` count (grace only covers the submit request). If the device timer hits zero, call submit with
   `source=client_timeout`; the server finalizes anyway via Celery if the request never arrives.
 - **Website:** server-side fetch from `/public/*` only; no login and no tokens in the browser.
   "Download App" opens the Play Store; "Open App" tries the app's URL scheme and falls back to the Play

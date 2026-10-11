@@ -66,16 +66,16 @@
 |---|---|
 | Reading correct answers from API traffic | Student serializers never include `is_correct` / `explanation`; tests assert their absence. Answers revealed only after submit + visible result + `allow_answer_review` |
 | Extending time by changing phone clock | Server computes `deadline_at`; client only displays it using `server_time` offset |
-| Submitting late | Answers/submit rejected after `deadline_at + grace` (grace configurable, small) |
-| Double submit / race from two devices | Row lock + status check + one-to-one result; only one open attempt per exam (partial unique index) |
+| Submitting late | **One cutoff for answers: `deadline_at`.** Saves are rejected from `deadline_at` on (`410 attempt_deadline_passed`). A small, configurable grace (`ATTEMPT_SUBMIT_GRACE_SECONDS`, default 30 s) only absorbs network latency of the **submit request**: it is accepted until `deadline_at + grace`, but answers sent with it are applied only if it arrived before `deadline_at` — grace never extends answer editing. After `deadline_at + grace` the server finalizes the attempt (`server_auto`) with the answers saved so far |
+| Double submit / race from two devices | Row lock + status check + one-to-one result; only one open attempt per exam (partial unique index) *(4B: starts lock the student's user row; saves/submit lock the attempt row; a finished attempt never changes — retried submits return it as is)* |
 | Re-taking to improve merit | Live exams: exactly one attempt. Regular: `allow_retake` + `max_attempts` enforced server-side; the merit attempt is chosen by the exam's `merit_strategy` on the server — never by the client |
 | Joining a live exam late to get extra time | `deadline_at` capped at the exam's global `end_at` |
-| Losing answers / injecting answers after time | No offline exam mode: answers count only when the server receives them before `deadline_at + grace`; retried saves carry `client_saved_at` only for ordering, never for timing |
+| Losing answers / injecting answers after time | No offline exam mode: answers count only when the server receives them before `deadline_at`; retried saves carry `client_saved_at` only for ordering (an older retry never overwrites a newer answer), never for timing |
 | Changing a question after its exam is published | *(3C)* Questions used by a published/unpublished/archived exam are content-locked (409) and cannot be deactivated while the exam is published; published exams are not editable; publish locks the exam and its questions so a concurrent edit cannot slip in; a system check fails if the lock is not registered |
-| Bypassing eligibility (paid/locked exam) | Eligibility (published, schedule, subscription access, attempt limit) re-checked on the server at start **and** on every save/submit |
+| Bypassing eligibility (paid/locked exam) | **Start** checks everything on the server: published exam with active category/subject, schedule window, subscription access (`user_can_access_exam`) and retake limits. **Every save and submit** re-checks the attempt (owner, still open, inside its deadline — which is never later than the exam's end) and subscription access: a cancelled/expired subscription stops further saves and the submit (`403 needs_subscription`); saved answers stay and the server finalizes the attempt after its deadline. *(4B decision)* Unpublishing/archiving an exam or deactivating its category/subject stops **new** attempts only — it never strands a student mid-exam: the running attempt keeps working from its own snapshot until its deadline |
 | Submitting an option from a different question | Server validates option belongs to the question in this attempt |
 | Changing marks via request | Marks never accepted from client; snapshot from server at attempt start |
-| Abandoning attempt to avoid a bad score | Celery auto-finalizes expired attempts |
+| Abandoning attempt to avoid a bad score | Celery auto-finalizes expired attempts *(4B: `celery beat` every minute, bounded batches, `SKIP LOCKED`, idempotent; a new start also finalizes the student's overdue open attempt)* |
 | Screenshots/sharing questions | Android `FLAG_SECURE` (via Expo module) on exam screens — *deterrent only*, optional (pending decision in ROADMAP) |
 
 > Honest limitation: a determined student can still take photos with another phone or get help
@@ -164,7 +164,7 @@
 
 - [ ] Student API responses never contain `is_correct`/`explanation` before submission (automated test)
 - [ ] Submit twice → one result; concurrent submit → one result
-- [ ] Submit after deadline + grace → rejected; Celery finalizes abandoned attempt
+- [ ] Save at/after `deadline_at` → rejected (also during grace); submit after `deadline_at + grace` → not accepted, server finalizes (`server_auto`); Celery finalizes abandoned attempts
 - [ ] Changing device clock does not change remaining time
 - [ ] Student A cannot read Student B's attempt/result/payment (IDOR tests)
 - [ ] Student token rejected on `/admin/*`

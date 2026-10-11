@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.questions",
     "apps.exams",
     "apps.subscriptions",
+    "apps.attempts",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -159,7 +160,7 @@ CACHES = {
 }
 
 # --------------------------------------------------------------------------------------
-# Celery — app is configured, no tasks yet
+# Celery
 # --------------------------------------------------------------------------------------
 CELERY_BROKER_URL = env_str("CELERY_BROKER_URL", REDIS_URL)
 CELERY_TASK_IGNORE_RESULT = True  # no result backend until a feature needs one
@@ -167,6 +168,14 @@ CELERY_TIMEZONE = "UTC"
 CELERY_TASK_ACKS_LATE = True  # re-deliver if a worker dies mid-task (tasks must be idempotent)
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# Periodic jobs (run by the ``celery beat`` service).
+CELERY_BEAT_SCHEDULE = {
+    # docs/ARCHITECTURE.md §7: close abandoned attempts after deadline + grace.
+    "finalize-overdue-attempts": {
+        "task": "apps.attempts.tasks.finalize_overdue_attempts_task",
+        "schedule": 60.0,
+    },
+}
 
 # --------------------------------------------------------------------------------------
 # Internationalization — Bangla + English (see docs/LOCALIZATION.md)
@@ -266,6 +275,9 @@ SPECTACULAR_SETTINGS = {
         "LanguageCoverageEnum": "apps.questions.models.AvailableLanguages",
         "PackageStatusEnum": "apps.subscriptions.models.PackageStatus",
         "SubscriptionStatusEnum": "apps.subscriptions.models.SubscriptionStatus",
+        # bn / en with labels — users.preferred_language and attempts.content_language
+        "AppLanguageEnum": "apps.attempts.models.AttemptLanguage",
+        "AttemptStatusEnum": "apps.attempts.models.AttemptStatus",
     },
 }
 # API docs (/api/schema/, /api/docs/) are exposed only when enabled (on in dev, off in prod).
@@ -299,6 +311,13 @@ EXAM_MAX_QUESTIONS = env_int("EXAM_MAX_QUESTIONS", 500)
 
 # Packages (Milestone 4A): upper bound for one package's access-rule list.
 PACKAGE_MAX_ACCESS_RULES = env_int("PACKAGE_MAX_ACCESS_RULES", 500)
+
+# Exam engine (Milestone 4B). Grace absorbs network latency of the final submit only;
+# answers can change only before the deadline (docs/SECURITY_PLAN.md §3.4).
+ATTEMPT_SUBMIT_GRACE_SECONDS = env_int("ATTEMPT_SUBMIT_GRACE_SECONDS", 30)
+# Auto-finalize job: rows per transaction, and transactions per run (bounded work).
+ATTEMPT_FINALIZE_BATCH_SIZE = env_int("ATTEMPT_FINALIZE_BATCH_SIZE", 200)
+ATTEMPT_FINALIZE_MAX_BATCHES = env_int("ATTEMPT_FINALIZE_MAX_BATCHES", 50)
 
 # --------------------------------------------------------------------------------------
 # Logging — console output; never log secrets, passwords, OTPs or tokens

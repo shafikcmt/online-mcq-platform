@@ -4,6 +4,7 @@ from django.urls import include, path
 
 from apps.accounts.api.urls import auth_urlpatterns
 from apps.accounts.api.views import MeView
+from apps.attempts.api.urls import student_urlpatterns as attempt_student_urlpatterns
 from apps.audit.api.urls import admin_urlpatterns as audit_admin_urlpatterns
 from apps.catalog.api.urls import admin_urlpatterns as catalog_admin_urlpatterns
 from apps.catalog.api.urls import public_urlpatterns as catalog_public_urlpatterns
@@ -33,6 +34,8 @@ urlpatterns = [
     # Student JWT; every query is filtered by request.user.
     path("me/", include((subscription_me_urlpatterns, "me"))),
     path("admin/", include((admin_urlpatterns, "admin"))),
+    # Student exam engine (student JWT; every query filtered by request.user).
+    path("", include((attempt_student_urlpatterns, "attempts"))),
     # Public (no login): website & app. Only published, safe fields — no questions.
     path(
         "public/",

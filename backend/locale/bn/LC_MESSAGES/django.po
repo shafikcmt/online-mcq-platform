@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 09:58+0000\n"
+"POT-Creation-Date: 2026-10-11 10:49+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -150,6 +150,154 @@ msgstr "শিক্ষার্থী প্রোফাইল"
 
 msgid "student profiles"
 msgstr "শিক্ষার্থী প্রোফাইলসমূহ"
+
+msgid "Send client info as a few short text values."
+msgstr "ক্লায়েন্ট তথ্য কয়েকটি ছোট টেক্সট মান হিসেবে পাঠান।"
+
+msgid "Idempotency-Key must be 1–64 letters, digits or the characters . _ : -"
+msgstr "Idempotency-Key-এ ১–৬৪টি অক্ষর, সংখ্যা অথবা . _ : - চিহ্ন থাকতে হবে।"
+
+msgid "Exam attempts"
+msgstr "পরীক্ষার অংশগ্রহণ"
+
+msgid "This exam has not started yet."
+msgstr "এই পরীক্ষা এখনও শুরু হয়নি।"
+
+msgid "This exam has ended."
+msgstr "এই পরীক্ষা শেষ হয়ে গেছে।"
+
+msgid "You need an active subscription that includes this exam."
+msgstr ""
+"এই পরীক্ষার জন্য এটি অন্তর্ভুক্ত এমন একটি সক্রিয় সাবস্ক্রিপশন প্রয়োজন।"
+
+msgid "This exam can be taken only once."
+msgstr "এই পরীক্ষা শুধু একবার দেওয়া যায়।"
+
+msgid "You have used all your attempts for this exam."
+msgstr "এই পরীক্ষার জন্য আপনার সব সুযোগ ব্যবহার করা হয়ে গেছে।"
+
+msgid "This attempt has already been submitted."
+msgstr "এই পরীক্ষা ইতিমধ্যে জমা দেওয়া হয়েছে।"
+
+msgid "The time for this attempt is over."
+msgstr "এই পরীক্ষার সময় শেষ।"
+
+msgid "In progress"
+msgstr "চলমান"
+
+msgid "Submitted"
+msgstr "জমা দেওয়া হয়েছে"
+
+msgid "Submitted automatically"
+msgstr "স্বয়ংক্রিয়ভাবে জমা হয়েছে"
+
+msgid "Submitted by the student"
+msgstr "শিক্ষার্থী জমা দিয়েছে"
+
+msgid "Device timer ran out"
+msgstr "ডিভাইসের টাইমার শেষ হয়েছে"
+
+msgid "Finalized by the server"
+msgstr "সার্ভার চূড়ান্ত করেছে"
+
+msgid "Bangla"
+msgstr "বাংলা"
+
+msgid "English"
+msgstr "ইংরেজি"
+
+msgid "public ID"
+msgstr "পাবলিক আইডি"
+
+msgid "exam"
+msgstr "পরীক্ষা"
+
+msgid "attempt number"
+msgstr "অংশগ্রহণ নম্বর"
+
+msgid "status"
+msgstr "অবস্থা"
+
+msgid "started at"
+msgstr "শুরুর সময়"
+
+msgid "deadline"
+msgstr "শেষ সময়"
+
+msgid "submitted at"
+msgstr "জমা দেওয়ার সময়"
+
+msgid "submitted by"
+msgstr "যেভাবে জমা হয়েছে"
+
+msgid "client info"
+msgstr "ক্লায়েন্ট তথ্য"
+
+msgid "content language"
+msgstr "বিষয়বস্তুর ভাষা"
+
+msgid "idempotency key"
+msgstr "আইডেমপোটেন্সি কী"
+
+msgid "exam attempt"
+msgstr "পরীক্ষার অংশগ্রহণ"
+
+msgid "exam attempts"
+msgstr "পরীক্ষার অংশগ্রহণসমূহ"
+
+msgid "attempt"
+msgstr "অংশগ্রহণ"
+
+msgid "question"
+msgstr "প্রশ্ন"
+
+msgid "display order"
+msgstr "প্রদর্শনের ক্রম"
+
+msgid "option order"
+msgstr "অপশনের ক্রম"
+
+msgid "marks"
+msgstr "নম্বর"
+
+msgid "negative marks"
+msgstr "নেগেটিভ মার্কস"
+
+msgid "selected option"
+msgstr "নির্বাচিত অপশন"
+
+msgid "marked for review"
+msgstr "পর্যালোচনার জন্য চিহ্নিত"
+
+msgid "answered at"
+msgstr "উত্তর দেওয়ার সময়"
+
+msgid "saved on device at"
+msgstr "ডিভাইসে সংরক্ষণের সময়"
+
+msgid "correct"
+msgstr "সঠিক"
+
+msgid "awarded marks"
+msgstr "প্রাপ্ত নম্বর"
+
+msgid "attempt answer"
+msgstr "অংশগ্রহণের উত্তর"
+
+msgid "attempt answers"
+msgstr "অংশগ্রহণের উত্তরসমূহ"
+
+#, python-format
+msgid "Question #%(id)s is not part of this attempt."
+msgstr "প্রশ্ন #%(id)s এই পরীক্ষার অংশ নয়।"
+
+#, python-format
+msgid "This option does not belong to question #%(id)s."
+msgstr "এই অপশনটি প্রশ্ন #%(id)s-এর নয়।"
+
+#, python-format
+msgid "Question #%(id)s is listed more than once."
+msgstr "প্রশ্ন #%(id)s একাধিকবার যোগ করা হয়েছে।"
 
 msgid "Audit log"
 msgstr "অডিট লগ"
@@ -340,6 +488,13 @@ msgid "Only draft or unpublished exams can be archived."
 msgstr "শুধু খসড়া বা অপ্রকাশিত পরীক্ষা আর্কাইভ করা যায়।"
 
 msgid ""
+"Students have already taken this exam, so it cannot be changed. Duplicate it"
+" instead."
+msgstr ""
+"শিক্ষার্থীরা ইতিমধ্যে এই পরীক্ষা দিয়েছে, তাই এটি পরিবর্তন করা যাবে না। এর "
+"বদলে একটি কপি তৈরি করুন।"
+
+msgid ""
 "This exam is still used by a package. Remove it from the package first, or "
 "archive the exam."
 msgstr ""
@@ -366,12 +521,6 @@ msgstr "ফ্রি"
 
 msgid "Paid"
 msgstr "পেইড"
-
-msgid "Bangla"
-msgstr "বাংলা"
-
-msgid "English"
-msgstr "ইংরেজি"
 
 msgid "Bangla and English"
 msgstr "বাংলা ও ইংরেজি"
@@ -406,9 +555,6 @@ msgstr "পরীক্ষা শেষ হওয়ার পর"
 msgid "When an admin publishes results"
 msgstr "অ্যাডমিন ফলাফল প্রকাশ করলে"
 
-msgid "public ID"
-msgstr "পাবলিক আইডি"
-
 msgid "title (Bangla)"
 msgstr "শিরোনাম (বাংলা)"
 
@@ -421,17 +567,11 @@ msgstr "নির্দেশনা (বাংলা)"
 msgid "instructions (English)"
 msgstr "নির্দেশনা (ইংরেজি)"
 
-msgid "content language"
-msgstr "বিষয়বস্তুর ভাষা"
-
 msgid "exam type"
 msgstr "পরীক্ষার ধরন"
 
 msgid "access"
 msgstr "অ্যাক্সেস"
-
-msgid "status"
-msgstr "অবস্থা"
 
 msgid "duration (minutes)"
 msgstr "সময়কাল (মিনিট)"
@@ -484,17 +624,8 @@ msgstr "বিশেষ"
 msgid "created by"
 msgstr "তৈরি করেছেন"
 
-msgid "exam"
-msgstr "পরীক্ষা"
-
 msgid "exams"
 msgstr "পরীক্ষাসমূহ"
-
-msgid "question"
-msgstr "প্রশ্ন"
-
-msgid "marks"
-msgstr "নম্বর"
 
 msgid "exam question"
 msgstr "পরীক্ষার প্রশ্ন"
@@ -566,10 +697,6 @@ msgstr "ক্যাটাগরিটি নিষ্ক্রিয়।"
 
 msgid "The subject is inactive."
 msgstr "বিষয়টি নিষ্ক্রিয়।"
-
-#, python-format
-msgid "Question #%(id)s is listed more than once."
-msgstr "প্রশ্ন #%(id)s একাধিকবার যোগ করা হয়েছে।"
 
 msgid "Each question needs a different sort order."
 msgstr "প্রতিটি প্রশ্নের ক্রম আলাদা হতে হবে।"
@@ -655,9 +782,6 @@ msgstr "অপশন (বাংলা)"
 
 msgid "option (English)"
 msgstr "অপশন (ইংরেজি)"
-
-msgid "correct"
-msgstr "সঠিক"
 
 msgid "option"
 msgstr "অপশন"

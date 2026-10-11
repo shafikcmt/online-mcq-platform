@@ -347,14 +347,14 @@ references questions but no lock is registered.)*
 
 ### 4.6 attempts (exam engine)
 
-#### `exam_attempts`
+#### `exam_attempts` *(implemented in Milestone 4B — model `attempts.ExamAttempt`)*
 | Field | Type | Notes |
 |---|---|---|
 | public_id | uuid U | used in URLs |
 | exam_id | FK → exams | PROTECT |
 | user_id | FK → users | PROTECT |
 | attempt_no | int | 1, 2, 3… |
-| status | varchar | `in_progress` \| `submitted` \| `auto_submitted` \| `cancelled` |
+| status | varchar | `in_progress` \| `submitted` \| `auto_submitted` \| `cancelled` *(reserved: no Phase-1 operation produces it, so 4B does not include it in the enum)* |
 | started_at | timestamptz | server time |
 | deadline_at | timestamptz | server-computed: `min(started_at + duration, exam.end_at)` — so a late joiner on a live exam gets only the time left until the global end |
 | submitted_at | timestamptz? | |
@@ -369,7 +369,7 @@ Constraints / indexes:
   attempt** per user per exam (prevents double-start from two devices).
 - `IDX(status, deadline_at)` — for the auto-finalize job.
 
-#### `attempt_answers` (one row per question in the attempt, created at start)
+#### `attempt_answers` (one row per question in the attempt, created at start) *(implemented in Milestone 4B — model `attempts.AttemptAnswer`)*
 | Field | Type | Notes |
 |---|---|---|
 | attempt_id | FK → exam_attempts | CASCADE |
@@ -386,6 +386,33 @@ Constraints / indexes:
 | awarded_marks | numeric(7,2)? | filled at scoring time (+marks / −negative / 0) |
 
 `UNIQUE(attempt_id, question_id)`. Service validates `selected_option.question_id == question_id`.
+
+Implementation notes (4B):
+- **Statuses implemented:** `in_progress` → `submitted` (`manual` / `client_timeout`) or
+  `auto_submitted` (`server_auto`); finished attempts never change again. `cancelled` is listed above
+  but nothing produces it yet, so it is **not** in the 4B enum (added with the flow that needs it).
+  `CHECK`s: `deadline_at > started_at`, `attempt_no >= 1`; `in_progress` ⇔ no `submitted_at`/source;
+  `auto_submitted` ⇒ `server_auto`; valid enums. Extra index `(user_id, exam_id)`.
+- **Timing rule (one cutoff for answers):** answers change only while `now < deadline_at`; the submit
+  request is accepted until `deadline_at + ATTEMPT_SUBMIT_GRACE_SECONDS` (default 30 s) and its answers
+  are applied only if it arrived before `deadline_at`; after that the server finalizes the attempt
+  (`auto_submitted` / `server_auto`, Celery beat every minute) with the answers saved so far.
+  `client_saved_at` only orders retried saves — never timing.
+- **Exam status changes:** unpublishing/archiving the exam (or deactivating its category/subject) blocks
+  new attempts only; running attempts keep working from their snapshot until their deadline.
+- `content_language` is `bn`/`en`: the exam's language, or for `both` exams the request language at
+  start. `client_info` is a small validated JSON object (≤ 10 short values).
+- **Deadline:** `min(started_at + duration, end_at)` whenever the exam has an `end_at` (live, and
+  scheduled regular/practice exams); `started_at + duration` otherwise. Start is allowed in
+  `[start_at, end_at)`.
+- **Snapshot = IDs, order and marks, not text.** `option_order` lists option IDs; `marks` is the
+  override or the exam's default, `negative_marks` the exam's. Text is not copied because every question
+  an attempt uses is **content-locked for good** (`questions.locks`, registered by the attempts app), its
+  options can't be replaced, and `question_id`/`selected_option_id` are PROTECT.
+- **Exams with attempts are frozen** (`exams.locks`): their settings and question list can't change
+  (`409 exam_has_attempts`); publish/unpublish/archive/duplicate still work; attempts are PROTECT on
+  `exam_id` and `user_id`.
+- Rows are created once at start (`bulk_create`); `is_correct`/`awarded_marks` stay NULL until scoring.
 
 ### 4.7 results
 

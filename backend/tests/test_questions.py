@@ -803,9 +803,50 @@ class TestConfidentiality:
         from drf_spectacular.generators import SchemaGenerator
 
         schema = SchemaGenerator().get_schema(request=None, public=True)
+        # Question management stays admin-only; the only other question URL is the exam
+        # room's autosave (Milestone 4B), which takes a question id but returns no content.
+        exam_room_answer = "/api/v1/attempts/{public_id}/answers/{question_id}/"
         for path in schema["paths"]:
-            if "question" in path:
+            if "question" in path and path != exam_room_answer:
                 assert path.startswith("/api/v1/admin/"), path
+        # No non-admin operation can return an answer key or explanation.
+        components = schema["components"]["schemas"]
+
+        def fields(ref, seen):
+            name = ref.rsplit("/", 1)[-1]
+            if name in seen:
+                return set()
+            seen.add(name)
+            component = components[name]
+            found = set(component.get("properties", {}))
+            for prop in component.get("properties", {}).values():
+                for nested in (prop, prop.get("items", {})):
+                    for key in ("$ref",):
+                        if key in nested:
+                            found |= fields(nested[key], seen)
+                    for option in nested.get("allOf", []):
+                        if "$ref" in option:
+                            found |= fields(option["$ref"], seen)
+            return found
+
+        for path, operations in schema["paths"].items():
+            if path.startswith("/api/v1/admin/"):
+                continue
+            for operation in operations.values():
+                for response in operation.get("responses", {}).values():
+                    for media in response.get("content", {}).values():
+                        ref = media.get("schema", {}).get("$ref") or media.get("schema", {}).get(
+                            "items", {}
+                        ).get("$ref")
+                        if ref:
+                            exposed = fields(ref, set())
+                            assert not exposed & {
+                                "is_correct",
+                                "explanation_bn",
+                                "explanation_en",
+                                "explanation",
+                                "awarded_marks",
+                            }, path
 
 
 # ======================================================================================
