@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 04:51+0000\n"
+"POT-Creation-Date: 2026-10-11 09:58+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -196,6 +196,11 @@ msgstr ""
 msgid "This subject is still in use. Deactivate it instead of deleting it."
 msgstr ""
 
+msgid ""
+"This category is still used by exams or packages. Deactivate it instead of "
+"deleting it."
+msgstr ""
+
 msgid "Enter a name in Bangla or English (at least one is required)."
 msgstr ""
 
@@ -314,6 +319,11 @@ msgid "Only a published exam can be unpublished."
 msgstr ""
 
 msgid "Only draft or unpublished exams can be archived."
+msgstr ""
+
+msgid ""
+"This exam is still used by a package. Remove it from the package first, or "
+"archive the exam."
 msgstr ""
 
 msgid "Enter a title in Bangla or English (at least one is required)."
@@ -663,6 +673,155 @@ msgstr ""
 msgid "The image dimensions are too large."
 msgstr ""
 
+msgid "Subscriptions"
+msgstr ""
+
+msgid ""
+"This package has subscriptions and cannot be deleted. Deactivate it instead."
+msgstr ""
+
+msgid "This subscription is already cancelled."
+msgstr ""
+
+msgid "This subscription has already expired."
+msgstr ""
+
+msgid "A package with this slug already exists."
+msgstr ""
+
+msgid "Enter the features as a list of short text lines."
+msgstr ""
+
+#, python-format
+msgid "Enter at most %(max)s features."
+msgstr ""
+
+#, python-format
+msgid "Each feature can have at most %(max)s characters."
+msgstr ""
+
+msgid "Bangladeshi taka"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "All paid exams"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Exam"
+msgstr ""
+
+msgid "Expired"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "features (Bangla)"
+msgstr ""
+
+msgid "features (English)"
+msgstr ""
+
+msgid "price"
+msgstr ""
+
+msgid "currency"
+msgstr ""
+
+msgid "validity (days)"
+msgstr ""
+
+msgid "package"
+msgstr ""
+
+msgid "packages"
+msgstr ""
+
+msgid "rule type"
+msgstr ""
+
+msgid "package access rule"
+msgstr ""
+
+msgid "package access rules"
+msgstr ""
+
+msgid "expires at"
+msgstr ""
+
+msgid "price paid"
+msgstr ""
+
+msgid "subscription"
+msgstr ""
+
+msgid "subscriptions"
+msgstr ""
+
+#, python-format
+msgid "A package can have at most %(max)s access rules."
+msgstr ""
+
+msgid "The same access rule is listed more than once."
+msgstr ""
+
+#, python-format
+msgid "Category #%(id)s does not exist."
+msgstr ""
+
+#, python-format
+msgid "Exam #%(id)s does not exist."
+msgstr ""
+
+#, python-format
+msgid "Exam #%(id)s is free; only paid exams can be added to a package."
+msgstr ""
+
+msgid ""
+"Choose a category only for category rules and an exam only for exam rules."
+msgstr ""
+
+msgid "This user does not exist."
+msgstr ""
+
+msgid "Subscriptions can only be given to active student accounts."
+msgstr ""
+
+msgid "This package does not exist."
+msgstr ""
+
+msgid "This package is inactive and cannot be granted."
+msgstr ""
+
+msgid "The start time cannot be in the past."
+msgstr ""
+
+#, python-format
+msgid "The start time can be at most %(days)s days ahead."
+msgstr ""
+
+msgid "Enter a price of 0 or more."
+msgstr ""
+
+#, python-format
+msgid ""
+"This extension would make the total paid for the subscription larger than "
+"%(max)s."
+msgstr ""
+
+msgid ""
+"This student already has this package; it will be extended from its current "
+"expiry, so a start time cannot be set."
+msgstr ""
+
 msgid "Verification"
 msgstr ""
 
@@ -703,9 +862,6 @@ msgid "OTP hash"
 msgstr ""
 
 msgid "language"
-msgstr ""
-
-msgid "expires at"
 msgstr ""
 
 msgid "used at"

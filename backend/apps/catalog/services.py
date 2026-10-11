@@ -19,7 +19,12 @@ from apps.audit import services as audit
 from apps.audit.services import AuditContext
 from apps.core.slugs import first_free_slug, slug_base
 
-from .exceptions import CATEGORY_IN_USE_MESSAGE, SUBJECT_IN_USE_MESSAGE, CatalogInUse
+from .exceptions import (
+    CATEGORY_IN_USE_MESSAGE,
+    CATEGORY_REFERENCED_MESSAGE,
+    SUBJECT_IN_USE_MESSAGE,
+    CatalogInUse,
+)
 from .models import (
     CATEGORY_SLUG_TAKEN_MESSAGE,
     SLUG_MAX_LENGTH,
@@ -172,8 +177,8 @@ def delete_category(category_id: int, *, ctx: AuditContext) -> None:
     try:
         with transaction.atomic():
             category.delete()
-    except (ProtectedError, RestrictedError) as exc:  # e.g. exams in later milestones
-        raise CatalogInUse(CATEGORY_IN_USE_MESSAGE) from exc
+    except (ProtectedError, RestrictedError) as exc:  # exams, package access rules
+        raise CatalogInUse(CATEGORY_REFERENCED_MESSAGE) from exc
     _audit(ctx, "category.delete", category, category_id, summary, {"snapshot": snapshot})
 
 

@@ -19,3 +19,6 @@ EXAM_NOT_DELETABLE_MESSAGE = _(
 ALREADY_PUBLISHED_MESSAGE = _("This exam is already published.")
 NOT_PUBLISHED_MESSAGE = _("Only a published exam can be unpublished.")
 NOT_ARCHIVABLE_MESSAGE = _("Only draft or unpublished exams can be archived.")
+EXAM_IN_USE_MESSAGE = _(
+    "This exam is still used by a package. Remove it from the package first, or archive the exam."
+)

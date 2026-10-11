@@ -58,7 +58,7 @@
 - Default DRF permission = **IsAuthenticated**; public endpoints explicitly opt out.
 - Role check (`IsAdminRole`) on every `/admin/*` view via a shared base class — not per-view copy-paste.
 - **Object-level ownership**: student querysets always filtered by `request.user` (prevents IDOR — reading someone else's attempt by guessing the ID). Attempts/payments also use UUIDs.
-- Paid exam access is checked **server-side** at attempt start (subscription active & package rule matches).
+- Paid exam access is checked **server-side** at attempt start (subscription active & package rule matches). *(4A: one policy function, `subscriptions.selectors.user_can_access_exam`; "active" is computed from server time — status, `starts_at`, `expires_at` — so an expired-but-not-yet-marked subscription grants nothing; only active student accounts are entitled; unknown access types fail closed. `/me/subscriptions` is filtered by `request.user`; subscription status changes only through audited grant/cancel actions.)*
 - Admin cannot be created through public registration; first admin created by `createsuperuser`/management command.
 
 ### 3.4 Exam integrity (most important for this product)
