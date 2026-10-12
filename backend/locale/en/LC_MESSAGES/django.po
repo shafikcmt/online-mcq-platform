@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 10:49+0000\n"
+"POT-Creation-Date: 2026-10-11 17:24+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -595,6 +595,9 @@ msgstr ""
 msgid "allow answer review"
 msgstr ""
 
+msgid "results published at"
+msgstr ""
+
 msgid "featured"
 msgstr ""
 
@@ -625,6 +628,11 @@ msgid "The exam window is shorter than the exam duration."
 msgstr ""
 
 msgid "Live exams need a start and an end time."
+msgstr ""
+
+msgid ""
+"Results shown after the exam ends need an end time. Set an end time or "
+"choose another result visibility."
 msgstr ""
 
 msgid "The end time has already passed."
@@ -792,6 +800,63 @@ msgid "Upload a valid JPEG, PNG or WebP image."
 msgstr ""
 
 msgid "The image dimensions are too large."
+msgstr ""
+
+msgid "Results"
+msgstr ""
+
+msgid "This exam has no merit list."
+msgstr ""
+
+msgid "The result could not be calculated. Please contact support."
+msgstr ""
+
+msgid "The result of this exam is not available yet."
+msgstr ""
+
+msgid "Answer review is not available for this exam."
+msgstr ""
+
+msgid "correct answers"
+msgstr ""
+
+msgid "wrong answers"
+msgstr ""
+
+msgid "unanswered questions"
+msgstr ""
+
+msgid "marks for correct answers"
+msgstr ""
+
+msgid "obtained marks"
+msgstr ""
+
+msgid "total marks"
+msgstr ""
+
+msgid "percentage"
+msgstr ""
+
+msgid "passed"
+msgstr ""
+
+msgid "time used (seconds)"
+msgstr ""
+
+msgid "counts for merit"
+msgstr ""
+
+msgid "merit position"
+msgstr ""
+
+msgid "calculated at"
+msgstr ""
+
+msgid "result"
+msgstr ""
+
+msgid "results"
 msgstr ""
 
 msgid "Subscriptions"

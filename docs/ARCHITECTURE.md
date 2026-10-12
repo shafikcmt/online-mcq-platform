@@ -203,6 +203,7 @@ App ──POST /api/v1/attempts/{id}/submit/ (Idempotency-Key)──► Django
   3. Accept the submit only if now ≤ deadline_at + grace_seconds; apply its final answer batch
      only if now < deadline_at (after deadline + grace the server finalizes instead)
   4. Mark submitted, compute result server-side (correct/wrong/unanswered/negative/percentage/pass)
+     — the same `results.services.record_result` for manual, device-timeout and server-auto finalization
   5. Commit transaction
   (Merit is computed later by the merit service using the exam's merit_strategy:
    live = the single submitted attempt; regular = configurable first/best/latest attempt.)
@@ -238,7 +239,7 @@ Nagad be added later as new gateway classes without changing the API, database o
 | Auto-finalize expired attempts | Celery beat, every 1 min | Student may have closed the app; result must still be produced |
 | Expire subscriptions | Celery beat, hourly | Change `active` → `expired` status for reporting (access checks also compare dates directly) |
 | Reconcile pending payments | Celery beat, every 10–15 min | Re-query provider for payments stuck in `pending` |
-| Generate merit positions | After exam window closes / on admin request | Ranking many results is heavier work; applies the exam's `merit_strategy` |
+| Generate merit positions | After exam window closes / on admin request | Ranking many results is heavier work; applies the exam's `merit_strategy` *(4C: Celery beat every 5 min re-ranks ended — or open-ended — exams with new counted results; open-ended leaderboards can lag by that interval)* |
 | Clean expired OTPs | Celery beat, daily | Keep tables small |
 
 Important rule: **jobs must be idempotent** (safe to run twice) because Celery may retry.

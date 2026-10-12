@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.exams.api.serializers import AwareDateTimeField
+from apps.results.api.serializers import ResultSummarySerializer
 
 from ..models import AttemptLanguage, AttemptStatus, SubmitSource
 
@@ -140,7 +141,7 @@ class SaveResultSerializer(serializers.Serializer):
 class SubmitResultSerializer(AttemptSummarySerializer):
     answers = AnswerStateSerializer(many=True)
     result_available = serializers.BooleanField()
-    result = serializers.JSONField(allow_null=True)
+    result = ResultSummarySerializer(allow_null=True)
 
 
 class HistoryExamSerializer(serializers.Serializer):

@@ -7,6 +7,8 @@ from .views import (
     ExamListCreateView,
     ExamPublishView,
     ExamQuestionsView,
+    ExamResultsHideView,
+    ExamResultsPublishView,
     ExamUnpublishView,
     PublicExamDetailView,
     PublicExamListView,
@@ -20,6 +22,12 @@ admin_urlpatterns = [
     path("exams/<int:pk>/unpublish/", ExamUnpublishView.as_view(), name="exam-unpublish"),
     path("exams/<int:pk>/archive/", ExamArchiveView.as_view(), name="exam-archive"),
     path("exams/<int:pk>/duplicate/", ExamDuplicateView.as_view(), name="exam-duplicate"),
+    path(
+        "exams/<int:pk>/results/publish/",
+        ExamResultsPublishView.as_view(),
+        name="exam-results-publish",
+    ),
+    path("exams/<int:pk>/results/hide/", ExamResultsHideView.as_view(), name="exam-results-hide"),
 ]
 
 public_urlpatterns = [

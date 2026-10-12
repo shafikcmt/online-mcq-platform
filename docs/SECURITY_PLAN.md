@@ -150,7 +150,8 @@
 
 ### 3.11 Data protection & backups
 - Collect only needed personal data (name, phone, email, optional institution).
-- Leaderboards use a **configurable display-name mode** (default `masked`, e.g. `Rah*** H.`; alternatives initials / student-chosen display name / full name) set separately for the public website and the app. Phone numbers and emails are never shown.
+- Leaderboards use a **configurable display-name mode** (default `masked`, e.g. `Rah*** H.`; alternatives initials / student-chosen display name / full name) set separately for the public website and the app. Phone numbers and emails are never shown. *(4C: modes from settings until Milestone 6; unknown values fall back to `masked`; leaderboard rows carry no user ids; a student sees their own full name only in their own row.)*
+- *(4C)* Results: scored only on the server from the attempt snapshot and the answer key (no score field is ever accepted from a client); one result per attempt (one-to-one + row lock); visibility checked by one policy (`results.selectors.results_visible`) on every result, review and leaderboard endpoint — a stored result is not proof of visibility; correct answers and explanations only in the separate review payload after visibility **and** `allow_answer_review`; no endpoint edits or recalculates scores.
 - Daily `pg_dump` backups stored off-server; test restore at least once before launch.
 - DB and Redis not exposed to the internet (Docker internal network only).
 

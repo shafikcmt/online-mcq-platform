@@ -296,8 +296,8 @@ Rules:
 | max_attempts | int? | used when `allow_retake = true`; null = unlimited. Live = 1 (enforced), regular default 1, practice default null. `CHECK (max_attempts IS NULL OR max_attempts >= 1)` |
 | merit_enabled | bool | default true for live/regular, false for practice |
 | merit_strategy | varchar | which attempt counts for merit: `first_attempt` \| `best_attempt` \| `latest_attempt`. **Live: always `first_attempt`** (the single submitted attempt). Regular: admin-configurable, default `first_attempt` |
-| result_visibility | varchar | `immediate` \| `after_exam_end` \| `manual` |
-| result_published_at | timestamptz? | set when admin publishes (manual mode) — *added with results in Milestone 4* |
+| result_visibility | varchar | `immediate` \| `after_exam_end` \| `manual` *(4C: `after_exam_end` requires `end_at`)* |
+| result_published_at | timestamptz? | set when admin publishes (manual mode) — *implemented in Milestone 4C: only through `POST /admin/exams/{id}/results/publish` / `…/hide` (audited), never through an exam update; publishing makes results visible in any mode, hiding withdraws only the publication* |
 | allow_answer_review | bool | show correct answers/explanations after result is visible |
 | is_featured | bool | for home page / website |
 | created_by | FK? → users | |
@@ -416,7 +416,7 @@ Implementation notes (4B):
 
 ### 4.7 results
 
-#### `results`
+#### `results` *(implemented in Milestone 4C — model `results.Result`)*
 | Field | Type | Notes |
 |---|---|---|
 | attempt_id | FK → exam_attempts, U | one-to-one |
@@ -447,6 +447,41 @@ can be added the same way.
 
 Result **visibility** is not a column here — it is derived from `exams.result_visibility`,
 `exams.end_at` and `exams.result_published_at`.
+
+Implementation notes (4C):
+- **Extra column `submitted_at`** (copied from the attempt) — the merit index above orders by it.
+- **Column sizes (derived from the bounds of every valid exam):** a question's marks are 0.01–99 999.99
+  and its negative marks 0–99 999.99 (NUMERIC(7,2) with `> 0` / `≥ 0` checks); an exam has at most
+  10 000 questions. So |aggregate marks| ≤ 10 000 × 99 999.99 = **999 999 900.00** and the percentage
+  is between **−999 999 900.00** (a 0.01-mark question with a 99 999.99 penalty) and 100.00. Both fit
+  NUMERIC(11,2); `positive_marks`, `negative_marks_total`, `obtained_marks`, `total_marks` and
+  `percentage` are **NUMERIC(12,2)** for headroom. The percentage is stored raw (never clamped), and
+  the scoring service checks every value against the column limit before saving — an impossible value
+  becomes a controlled `result_out_of_range` error (nothing saved, attempt stays open), never a
+  database overflow.
+- **CHECKs:** counts add up to `total_questions`; `obtained = positive − negative`; totals ≥ 0,
+  `total_marks > 0`, `positive ≤ total`; a `merit_position` only on the counted result. Partial unique
+  `(exam_id, user_id) WHERE is_merit_counted` and `(exam_id, merit_position) WHERE merit_position IS NOT
+  NULL`. `attempt_id` is one-to-one (PROTECT) — **one attempt can never have two results**.
+- **When:** scored in the transaction that finalizes the attempt, the same way for manual submit, device
+  timeout and server auto-finalize (`results.services.record_result`, called by `attempts`). A second call
+  returns the existing row; results are never recalculated or edited (no endpoint for it).
+- `AttemptAnswer.is_correct` / `awarded_marks` are written at the same time.
+- **Visibility:** `immediate` → as soon as the attempt is finished; `after_exam_end` → from `end_at` on
+  (an `after_exam_end` exam **must** have an `end_at`: enforced on create/update/publish with
+  `end_required_for_results` and by the `CHECK` `exams_exam_results_after_end_needs_end`); `manual` →
+  once published. Publishing reveals results in any mode;
+  hiding withdraws only the publication (immediate results stay visible). Answer review additionally
+  needs `allow_answer_review`.
+- **Merit:** each scoring moves `is_merit_counted` for that student (live: always the single first
+  attempt; merit off → none), serialized per (exam, student) by a transaction advisory lock so two
+  scorings can never leave zero or two counted rows (the partial unique index is the last guard).
+  Positions are generated in the approved merit order — marks ↓, time ↑, submit ↑, attempt id ↑ — so
+  **positions are sequential (never shared) and deterministic even for exact ties** (ROADMAP decision
+  #18). Generation runs on admin request and from Celery beat (every 5 min) for merit-enabled exams with
+  new counted results whose `end_at` has passed (or that have no end) — open-ended exams' leaderboards
+  can lag a new result by up to that interval. A scoring that moves a student's counted result clears
+  the stale position so the next run re-ranks. Leaderboards read the generated positions.
 
 ### 4.8 subscriptions
 
@@ -665,6 +700,10 @@ percentage     = obtained_marks / total_marks × 100
 is_passed      = obtained_marks ≥ pass_marks   (null if no pass_marks)
 time_used      = min(submitted_at, deadline_at) − started_at
 ```
+*(4C, implemented as written: Decimal arithmetic only; `obtained_marks` may be negative (no floor);
+`percentage` rounded half-up to 2 places and stored raw (clients may clamp for display); `pass_marks`
+is an absolute mark and needs no snapshot because an exam with attempts can no longer change;
+`time_used` in whole seconds — never more than the attempt's own deadline allows.)*
 
 ---
 

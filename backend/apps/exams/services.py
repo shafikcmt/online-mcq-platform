@@ -51,6 +51,7 @@ from .models import (
     ExamStatus,
     ExamType,
     MeritStrategy,
+    ResultVisibility,
 )
 
 SLUG_REQUIRED_MESSAGE = _(
@@ -60,6 +61,10 @@ SUBJECT_CATEGORY_MESSAGE = _("The subject must belong to the selected category."
 SCHEDULE_ORDER_MESSAGE = _("The end time must be after the start time.")
 SCHEDULE_TOO_SHORT_MESSAGE = _("The exam window is shorter than the exam duration.")
 SCHEDULE_REQUIRED_MESSAGE = _("Live exams need a start and an end time.")
+RESULTS_AFTER_END_MESSAGE = _(
+    "Results shown after the exam ends need an end time. Set an end time or choose "
+    "another result visibility."
+)
 SCHEDULE_ENDED_MESSAGE = _("The end time has already passed.")
 MAX_ATTEMPTS_MESSAGE = _(
     "With retakes allowed, set at least 2 attempts, or leave it empty for unlimited attempts."
@@ -157,6 +162,10 @@ def normalize_rules(exam: Exam) -> None:
         exam.max_attempts = 1
     elif exam.max_attempts == 1:
         raise _error("max_attempts", MAX_ATTEMPTS_MESSAGE, "max_attempts_too_low")
+
+    # "after_exam_end" must have a real end: otherwise results would never appear.
+    if exam.result_visibility == ResultVisibility.AFTER_EXAM_END and not exam.end_at:
+        raise _error("end_at", RESULTS_AFTER_END_MESSAGE, "end_required_for_results")
 
     if exam.subject_id and exam.subject.category_id != exam.category_id:
         raise _error("subject", SUBJECT_CATEGORY_MESSAGE, "subject_category_mismatch")
@@ -573,6 +582,45 @@ def archive_exam(exam_id: int, *, ctx: AuditContext) -> Exam:
     exam.save(update_fields=["status", "updated_at"])
     _audit(
         ctx, "exam.archive", exam.pk, {"changes": {"status": {"from": before, "to": exam.status}}}
+    )
+    return exam
+
+
+# --------------------------------------------------------------------------------------
+# Result publication (Milestone 4C)
+# --------------------------------------------------------------------------------------
+@transaction.atomic
+def publish_results(exam_id: int, *, ctx: AuditContext) -> Exam:
+    """Make the exam's results visible to students (any visibility mode; the only way
+    for ``manual``). Already published → no change, no audit entry."""
+    exam = _lock_exam(exam_id)
+    if exam.result_published_at is not None:
+        return exam
+    exam.result_published_at = timezone.now()
+    exam.save(update_fields=["result_published_at", "updated_at"])
+    _audit(
+        ctx,
+        "exam.results_publish",
+        exam.pk,
+        {"changes": {"results_published": {"from": False, "to": True}}},
+    )
+    return exam
+
+
+@transaction.atomic
+def hide_results(exam_id: int, *, ctx: AuditContext) -> Exam:
+    """Withdraw the publication. ``immediate`` results stay visible (that mode does not
+    depend on publication); ``after_exam_end`` falls back to the exam's end time."""
+    exam = _lock_exam(exam_id)
+    if exam.result_published_at is None:
+        return exam
+    exam.result_published_at = None
+    exam.save(update_fields=["result_published_at", "updated_at"])
+    _audit(
+        ctx,
+        "exam.results_hide",
+        exam.pk,
+        {"changes": {"results_published": {"from": True, "to": False}}},
     )
     return exam
 

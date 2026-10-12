@@ -763,7 +763,8 @@ class TestSubmit:
         assert first.status_code == 200, first.json()
         body = first.json()
         assert body["status"] == "submitted" and body["submit_source"] == "manual"
-        assert body["result_available"] is False and body["result"] is None
+        # Default visibility is "immediate": the score comes with the submit (4C).
+        assert body["result_available"] is True and body["result"]["total_questions"] == 3
         attempt.refresh_from_db()
         assert attempt.idempotency_key == "k-1" and attempt.submitted_at is not None
         again = client.post(url(attempt, "submit/"), {}, format="json", HTTP_IDEMPOTENCY_KEY="k-1")

@@ -172,6 +172,12 @@ class Exam(TimeStampedModel):
         default=ResultVisibility.IMMEDIATE,
     )
     allow_answer_review = models.BooleanField(_("allow answer review"), default=True)
+    # Set by the "publish results" action (results/hide clears it). Changes only through
+    # exams.services — never through an exam update — so it stays editable on exams
+    # that already have attempts.
+    result_published_at = models.DateTimeField(
+        _("results published at"), null=True, blank=True, editable=False
+    )
     is_featured = models.BooleanField(_("featured"), default=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -200,6 +206,7 @@ class Exam(TimeStampedModel):
         "category_id",
         "subject_id",
         "source_exam_id",
+        "results_published",
     )
     AUDIT_PRESENCE_FIELDS = (
         "title_bn",
@@ -283,6 +290,11 @@ class Exam(TimeStampedModel):
                 | models.Q(status=ExamStatus.DRAFT)
                 | models.Q(start_at__isnull=False, end_at__isnull=False),
                 name="exams_exam_live_schedule_required",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(result_visibility=ResultVisibility.AFTER_EXAM_END)
+                | models.Q(end_at__isnull=False),
+                name="exams_exam_results_after_end_needs_end",
             ),
             models.CheckConstraint(
                 condition=models.Q(exam_type__in=ExamType.values)

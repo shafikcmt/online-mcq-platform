@@ -28,7 +28,8 @@ Timing rule (one cutoff for answers):
 - after that the server finalizes the attempt (``server_auto``);
 - ``client_saved_at`` (device time) only orders retried saves.
 
-No scoring here — results are calculated in the results milestone.
+Every finalization (manual, device timeout, server auto) is scored by
+``results.services.record_result`` in the same transaction.
 """
 
 import logging
@@ -46,6 +47,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core.i18n import normalize_language
 from apps.exams.models import ContentLanguage, Exam, ExamQuestion, ExamStatus, ExamType
 from apps.questions.models import QuestionOption
+from apps.results.services import record_result
 from apps.subscriptions.selectors import user_can_access_exam
 
 from .exceptions import (
@@ -153,6 +155,8 @@ def _finalize(attempt: ExamAttempt, now: datetime, source: str, idempotency_key:
     attempt.save(
         update_fields=["status", "submitted_at", "submit_source", "idempotency_key", "updated_at"]
     )
+    # Scored in the same transaction, the same way for every source (one implementation).
+    record_result(attempt)
     logger.info(
         "Attempt finalized attempt=%s user=%s exam=%s source=%s",
         attempt.public_id,

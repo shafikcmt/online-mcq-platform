@@ -200,10 +200,12 @@ Branch: `release/1.0`
 | 9 | Academic structure | Category → many Subjects → many Questions; one subject belongs to one category |
 | 10 | Packages | Can grant all paid exams, selected categories, selected exams |
 | 11 | Website | No exams, no login (Phase-1); basic contact form; Download App / Open App flow |
-| 12 | Leaderboard privacy | Configurable display-name mode (default masked), separately for website and app; never phone/email |
+| 12 | Leaderboard privacy | Display-name mode defaults to `masked` on both the public website and the app; phone/email are never exposed; the mode becomes configurable (separately for website and app) through the Milestone 6 site settings |
 | 13 | Reports | Phase-1 = basic operational dashboard statistics; advanced analytics = Phase-2 |
 | 14 | Answer saving | No full offline exam mode; local temporary state + server autosave + retry/sync after temporary disconnection; server is source of truth |
 | 15 | Server-side controls | Timer, eligibility, submission, scoring, negative marking, payment verification, subscription access |
+| 17 | Answer review *(decided in Milestone 4C; was open question 5)* | Correct answers and explanations are shown **only** when the attempt is finalized **and** its result is visible (per `result_visibility` / admin publication) **and** the exam's `allow_answer_review` is on (default on). Otherwise no answer key or explanation is exposed anywhere |
+| 18 | Merit order and ties *(decided in Milestone 4C; was open question 6)* | Merit order: obtained marks ↓, then time used ↑, then submit time ↑, then the attempt's stable id ↑ as the final deterministic key. Positions are **sequential, never shared**: an exact tie (same marks, time and submit instant) still gets 1, 2, … by the final key. One position per student per exam (`UNIQUE(exam, merit_position)`) |
 | 16 | Manual subscription grant *(decided in Milestone 4A; was open question 12)* | **Allowed in Phase-1** for support, testing and legitimate manual entitlements (e.g. offline payment). Admin-only: admin session + CSRF + `admin` role (`POST /admin/subscriptions/grant`); never exposed to students or the public. Every grant and extension is written to the audit log. No Payment row is required. Payment-created subscriptions arrive in Milestone 5 through the same `grant_subscription` service |
 
 ## Open questions (still unresolved)
@@ -212,9 +214,9 @@ Branch: `release/1.0`
 2. **SSLCommerz account:** sandbox store ID/password available now? Live merchant onboarding timeline?
 3. **Default language:** Bangla as the platform default and English as the admin default — OK? Please also confirm the Bangla glossary in `LOCALIZATION.md` §10.1.
 4. **Practice exams:** results shown immediately, unlimited retakes, no merit — OK as defaults?
-5. **Answer review:** may students see correct answers + explanations after results are published (per-exam `allow_answer_review`, default on)?
-6. **Merit tie-break:** marks ↓, then time used ↑, then submit time ↑ — OK?
-7. **Default leaderboard name mode:** `masked` on the website and in the app — or `display_name`/full name inside the app?
+5. ~~**Answer review**~~ — **resolved in Milestone 4C** (Decisions log #17).
+6. ~~**Merit tie-break**~~ — **resolved in Milestone 4C** (Decisions log #18).
+7. ~~**Default leaderboard name mode**~~ — **resolved:** `masked` on both the website and the app, configurable per channel later in the Milestone 6 site settings (Decisions log #12).
 8. **"Open App" flow:** a simple app URL scheme with Play Store fallback is planned; verified Android App Links / content deep links are listed as Phase-2 in the requirements — confirm that's sufficient.
 9. **Contact form handling:** messages stored and shown in the Admin Panel only (email forwarding is a future extension) — OK?
 10. **Admin roles:** is one "admin" role enough, or is a limited staff role (e.g. question editor) needed?
