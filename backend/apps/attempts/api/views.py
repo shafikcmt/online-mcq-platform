@@ -26,6 +26,9 @@ from apps.core.admin_api import to_drf_validation_error
 from apps.core.exceptions import ApiError
 from apps.core.i18n import resolve_bilingual
 from apps.exams.api.views import public_exams
+from apps.results.api.views import result_summary
+from apps.results.exceptions import ResultError
+from apps.results.selectors import results_visible
 
 from .. import services
 from ..exceptions import AttemptError
@@ -65,6 +68,8 @@ def _call(func, *args, **kwargs):
         raise ApiError(
             status_code=exc.status, code=exc.code, message=str(exc.message), details=exc.details
         ) from exc
+    except ResultError as exc:  # scoring refused to store an impossible value
+        raise ApiError(status_code=exc.status, code=exc.code, message=str(exc.message)) from exc
 
 
 def _room(request, public_id, status_code=status.HTTP_200_OK):
@@ -228,11 +233,16 @@ class SubmitView(APIView):
             items=data.validated_data.get("answers"),
             idempotency_key=key,
         )
+        now = timezone.now()
+        result = getattr(attempt, "result", None) if attempt.is_finished else None
+        visible = result is not None and results_visible(attempt.exam, now)
         payload = {
-            **attempt_summary(attempt, timezone.now()),
+            **attempt_summary(attempt, now),
             "answers": _answer_states(attempt, results),
-            # Scoring arrives with the results milestone.
-            "result_available": False,
-            "result": None,
+            # The score only when the exam's result visibility allows it.
+            "result_available": visible,
+            "result": result_summary(result, request.user, now, request.LANGUAGE_CODE)
+            if visible
+            else None,
         }
         return Response(SubmitResultSerializer(payload).data)

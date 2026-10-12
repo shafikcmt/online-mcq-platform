@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "apps.exams",
     "apps.subscriptions",
     "apps.attempts",
+    "apps.results",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -174,6 +175,11 @@ CELERY_BEAT_SCHEDULE = {
     "finalize-overdue-attempts": {
         "task": "apps.attempts.tasks.finalize_overdue_attempts_task",
         "schedule": 60.0,
+    },
+    # docs/ARCHITECTURE.md §7: generate merit positions after the exam window closes.
+    "generate-due-merit": {
+        "task": "apps.results.tasks.generate_due_merit_task",
+        "schedule": 300.0,
     },
 }
 
@@ -318,6 +324,14 @@ ATTEMPT_SUBMIT_GRACE_SECONDS = env_int("ATTEMPT_SUBMIT_GRACE_SECONDS", 30)
 # Auto-finalize job: rows per transaction, and transactions per run (bounded work).
 ATTEMPT_FINALIZE_BATCH_SIZE = env_int("ATTEMPT_FINALIZE_BATCH_SIZE", 200)
 ATTEMPT_FINALIZE_MAX_BATCHES = env_int("ATTEMPT_FINALIZE_MAX_BATCHES", 50)
+
+# Results & merit (Milestone 4C). Leaderboard name modes: masked (default) | initials |
+# display_name | full_name — never phone/email. Moved to the admin-editable site
+# settings in Milestone 6; these are the defaults until then.
+LEADERBOARD_PUBLIC_NAME_MODE = env_str("LEADERBOARD_PUBLIC_NAME_MODE", "masked")
+LEADERBOARD_APP_NAME_MODE = env_str("LEADERBOARD_APP_NAME_MODE", "masked")
+# Rows on the public (website) leaderboard ("top N").
+LEADERBOARD_PUBLIC_SIZE = env_int("LEADERBOARD_PUBLIC_SIZE", 100)
 
 # --------------------------------------------------------------------------------------
 # Logging — console output; never log secrets, passwords, OTPs or tokens

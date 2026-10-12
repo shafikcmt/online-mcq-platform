@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 10:49+0000\n"
+"POT-Creation-Date: 2026-10-11 17:24+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -618,6 +618,9 @@ msgstr "ফলাফল দেখার নিয়ম"
 msgid "allow answer review"
 msgstr "উত্তর পর্যালোচনার অনুমতি"
 
+msgid "results published at"
+msgstr "ফলাফল প্রকাশের সময়"
+
 msgid "featured"
 msgstr "বিশেষ"
 
@@ -651,6 +654,13 @@ msgstr "পরীক্ষার সময়সীমা পরীক্ষা�
 
 msgid "Live exams need a start and an end time."
 msgstr "লাইভ পরীক্ষার শুরু ও শেষের সময় প্রয়োজন।"
+
+msgid ""
+"Results shown after the exam ends need an end time. Set an end time or "
+"choose another result visibility."
+msgstr ""
+"পরীক্ষা শেষ হওয়ার পর ফলাফল দেখাতে হলে শেষ সময় দিতে হবে। শেষ সময় দিন অথবা "
+"অন্য ফলাফল প্রদর্শনের নিয়ম বেছে নিন।"
 
 msgid "The end time has already passed."
 msgstr "শেষের সময় ইতিমধ্যে পার হয়ে গেছে।"
@@ -826,6 +836,63 @@ msgstr "একটি সঠিক JPEG, PNG বা WebP ছবি আপলো�
 
 msgid "The image dimensions are too large."
 msgstr "ছবির মাপ খুব বড়।"
+
+msgid "Results"
+msgstr "ফলাফল"
+
+msgid "This exam has no merit list."
+msgstr "এই পরীক্ষার কোনো মেধাতালিকা নেই।"
+
+msgid "The result could not be calculated. Please contact support."
+msgstr "ফলাফল গণনা করা যায়নি। অনুগ্রহ করে সহায়তা টিমের সঙ্গে যোগাযোগ করুন।"
+
+msgid "The result of this exam is not available yet."
+msgstr "এই পরীক্ষার ফলাফল এখনও পাওয়া যাচ্ছে না।"
+
+msgid "Answer review is not available for this exam."
+msgstr "এই পরীক্ষার উত্তর পর্যালোচনা উপলব্ধ নয়।"
+
+msgid "correct answers"
+msgstr "সঠিক উত্তর"
+
+msgid "wrong answers"
+msgstr "ভুল উত্তর"
+
+msgid "unanswered questions"
+msgstr "উত্তর না দেওয়া প্রশ্ন"
+
+msgid "marks for correct answers"
+msgstr "সঠিক উত্তরের নম্বর"
+
+msgid "obtained marks"
+msgstr "প্রাপ্ত নম্বর"
+
+msgid "total marks"
+msgstr "মোট নম্বর"
+
+msgid "percentage"
+msgstr "শতকরা হার"
+
+msgid "passed"
+msgstr "উত্তীর্ণ"
+
+msgid "time used (seconds)"
+msgstr "ব্যবহৃত সময় (সেকেন্ড)"
+
+msgid "counts for merit"
+msgstr "মেধাতালিকায় গণনা হয়"
+
+msgid "merit position"
+msgstr "মেধাক্রম"
+
+msgid "calculated at"
+msgstr "গণনার সময়"
+
+msgid "result"
+msgstr "ফলাফল"
+
+msgid "results"
+msgstr "ফলাফলসমূহ"
 
 msgid "Subscriptions"
 msgstr "সাবস্ক্রিপশন"

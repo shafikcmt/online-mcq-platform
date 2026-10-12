@@ -206,6 +206,14 @@ class ExamArchiveView(_ExamActionView):
     service = staticmethod(services.archive_exam)
 
 
+class ExamResultsPublishView(_ExamActionView):
+    service = staticmethod(services.publish_results)
+
+
+class ExamResultsHideView(_ExamActionView):
+    service = staticmethod(services.hide_results)
+
+
 class ExamDuplicateView(_ExamActionView):
     service = staticmethod(services.duplicate_exam)
     success_status = status.HTTP_201_CREATED

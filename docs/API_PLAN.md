@@ -121,7 +121,7 @@ and a `field_errors` entry; nothing is saved. Other unknown fields are ignored.
 | GET | `/public/announcements` | Public notices |
 | GET | `/public/faqs` | FAQ list |
 | GET | `/public/pages/{slug}` | About / Terms / Privacy |
-| GET | `/public/exams/{slug}/leaderboard` | Top N merit (only if results visible). Names rendered per `public_leaderboard_name_mode` (default **masked**, e.g. `Rah*** H.`); never phone/email |
+| GET | `/public/exams/{slug}/leaderboard` | Top N merit (only if results visible). Names rendered per `public_leaderboard_name_mode` (default **masked**, e.g. `Rah*** H.`); never phone/email *(4C: published exams only; N = `LEADERBOARD_PUBLIC_SIZE`, default 100; rows `{position, name, obtained_marks, total_marks, percentage, time_used_seconds}`; `404` when merit is off or results are not visible)* |
 | POST | `/public/contact` | Basic contact form `{name, phone?, email?, subject, message}` — throttled + honeypot field; stored in `contact_messages` |
 | GET | `/public/app-links` | Play Store URL + app open URL for the "Download / Open App" flow (from site settings) |
 
@@ -206,6 +206,8 @@ The website has **no login** in Phase-1; all website endpoints are under `/publi
 Never included before submission: `is_correct`, `explanation`, any correct-answer hint.
 
 **Submit response:** `{ "attempt_id", "status": "submitted", "result_available": true|false, "result": {...} | null }`
+*(4C: `result` is the result summary below whenever the exam's results are visible — `immediate`, or
+already ended/published — otherwise `null`; the result is calculated either way.)*
 (`result` is null when `result_visibility` is `after_exam_end` or `manual`.)
 
 ### 3.5 Student — results & merit
@@ -215,6 +217,29 @@ Never included before submission: `is_correct`, `explanation`, any correct-answe
 | GET | `/results/{attempt_public_id}` | Result summary: counts, marks, %, pass/fail, time used, merit position |
 | GET | `/results/{attempt_public_id}/review` | Per-question review with correct answers & explanations — **only if result visible AND exam.allow_answer_review** |
 | GET | `/exams/{id}/leaderboard` | Exam merit list (paginated) + `my_position`; uses the exam's `merit_strategy` (live = single attempt); names per `app_leaderboard_name_mode` (student always sees own name) |
+
+*(4C implementation — student JWT, own data only, results addressed by the attempt UUID:)*
+- `GET /results` — my results whose exam results are visible now (newest first, paginated).
+- `GET /results/{attempt_public_id}` — `attempt_id`, `attempt_no`, `status`, `exam {slug, title,
+  exam_type}`, `submitted_at`, `total_questions`, `correct_count`, `wrong_count`, `unanswered_count`,
+  `positive_marks`, `negative_marks_total`, `obtained_marks`, `total_marks`, `percentage`, `pass_marks`,
+  `is_passed`, `time_used_seconds`, `is_merit_counted`, `merit_position`, `review_available`.
+  Not finished / not mine → `404`; finished but not visible yet → `403 result_not_visible`.
+- `GET /results/{attempt_public_id}/review` — `{result, questions: [{question_id, number, text, image,
+  options [{id, text, is_correct}], selected_option_id, correct_option_id, is_correct, marks,
+  awarded_marks, is_marked_for_review, explanation}]}` (plus `_bn`/`_en` pairs for "both" exams);
+  `403 result_not_visible` / `403 review_not_allowed` otherwise.
+- `GET /exams/{slug}/leaderboard` *(slug, like the start endpoint)* — the **generated** merit list:
+  `{count, next, previous, my_position, results: [{position, name, obtained_marks, total_marks,
+  percentage, time_used_seconds, is_me}]}`; exams the student can see (published, or taken by them);
+  `404 merit_disabled`, `403 result_not_visible`.
+- Name modes come from settings (`LEADERBOARD_APP_NAME_MODE`, `LEADERBOARD_PUBLIC_NAME_MODE`, default
+  `masked`) until the site settings of Milestone 6 exist.
+- Merit positions follow ROADMAP decision #18 (marks ↓, time ↑, submit ↑, attempt id ↑; sequential).
+  Open-ended exams are re-ranked by Celery beat every 5 minutes, so their leaderboard can lag a new
+  result by up to that interval.
+- Exam create/update/publish: `result_visibility = after_exam_end` without `end_at` → `400
+  validation_error` (`end_at`: `end_required_for_results`).
 
 ### 3.6 Student — packages & payments
 | Method | Path | Purpose |
@@ -262,7 +287,7 @@ call the provider's verify/query API and compare amount + currency + status.
 | Questions | `GET/POST /admin/questions` (filters: `category`, `subject`, `difficulty`, `is_active`, `language` = `bn`/`en`/`both`, `search` over Bangla/English text; `ordering` = `id`, `created_at`, `updated_at`, `difficulty`), `GET/PATCH/DELETE /admin/questions/{id}` — options are nested in the question payload and saved atomically. On `PATCH`, `options` (when sent) is the **complete** new option set and replaces the current one. `POST/DELETE /admin/questions/{id}/image` uploads (multipart field `image`) or removes the question image *(Milestone 3B; used instead of a generic upload endpoint so no unreferenced files are left behind)*. Bulk import is Phase-2 |
 | Exams | Fields include `content_language`, `allow_retake`, `max_attempts`, `merit_enabled`, `merit_strategy` (live exams forced to 1 attempt / `first_attempt`). `GET/POST /admin/exams`, `GET/PATCH/DELETE /admin/exams/{id}`, `POST /admin/exams/{id}/publish`, `POST /admin/exams/{id}/unpublish`, `POST /admin/exams/{id}/duplicate` *(3C: also `POST /admin/exams/{id}/archive`; filters `exam_type`, `status`, `content_language`, `access_type`, `category`, `subject`, `is_featured`, `upcoming`, `search` (titles); `ordering` = `id`, `created_at`, `updated_at`, `start_at`. `status` is read-only — it changes only through the actions. Publish failures → `400 validation_error` with `field_errors`; wrong status → `409` (`exam_locked`, `already_published`, `not_published`, `not_archivable`, `invalid_status`, `exam_not_deletable`). Duplicate → new draft, same configuration and question list, schedule cleared, slug `<slug>-copy[-n]`)* |
 | Exam questions | `GET /admin/exams/{id}/questions`, `PATCH /admin/exams/{id}/questions` with `{"questions": [{"question", "sort_order"?, "marks"?}]}` — the **complete** new list (add, remove, reorder and marks overrides in one atomic request). *(3C: replaces the separate add/reorder/marks/remove endpoints planned earlier.)* Editing a question used by a published exam → `409 question_locked` |
-| Attempts & results | `GET /admin/exams/{id}/attempts`, `GET /admin/attempts/{public_id}`, `GET /admin/results?exam=`, `POST /admin/exams/{id}/results/publish`, `POST /admin/exams/{id}/results/hide`, `POST /admin/exams/{id}/merit/generate` (applies the exam's `merit_strategy`) |
+| Attempts & results | `GET /admin/exams/{id}/attempts`, `GET /admin/attempts/{public_id}`, `GET /admin/results?exam=`, `POST /admin/exams/{id}/results/publish`, `POST /admin/exams/{id}/results/hide`, `POST /admin/exams/{id}/merit/generate` (applies the exam's `merit_strategy`) *(4C: built — `GET /admin/results` (filters `exam`, `user`, `merit_counted`), publish/hide (set/clear `result_published_at`, audited, repeated calls are no-ops) and merit/generate (`{ranked_count}`, audited; `409 merit_disabled`). Not yet: the admin attempt list/detail. No endpoint edits or recalculates a score.)* |
 | Packages | `GET/POST /admin/packages`, `GET/PATCH/DELETE /admin/packages/{id}`, nested access rules *(4A: filters `status`, `is_featured`, `search`; `ordering` = `id`, `sort_order`, `price`, `validity_days`, `created_at`, `updated_at`. `DELETE` of a package with subscriptions → `409 in_use`. Rules: `GET/PATCH /admin/packages/{id}/access-rules` with `{"rules": [{"rule_type": "all_paid_exams"\|"category"\|"exam", "category"?, "exam"?}]}` — the **complete** list, replaced atomically; exam rules need a paid exam)* |
 | Subscriptions | `GET /admin/subscriptions` (filter active/expired, package, user), `POST /admin/subscriptions` (manual grant — audited) *(4A — manual grant approved for Phase-1, ROADMAP decisions log #16: support, testing and legitimate manual entitlements; admin session + CSRF + admin role; every grant/extension audited; no Payment row needed; never available to students or the public. `GET /admin/subscriptions` filters `status`, `active` (computed from server time), `package`, `user`; `GET /admin/subscriptions/{id}`; `POST /admin/subscriptions/grant` `{user, package, price_paid?, starts_at?}` → `201` new or `200` extension of the running subscription to the same package; `POST /admin/subscriptions/{id}/cancel` → `409 already_cancelled` / `subscription_expired` when not running. Status is read-only — no PATCH/PUT/DELETE.)* |
 | Payments | `GET /admin/payments` (filter status/provider/date), `GET /admin/payments/{id}` (with events), `POST /admin/payments/{id}/reverify` (re-query provider) |

@@ -830,7 +830,9 @@ class TestConfidentiality:
             return found
 
         for path, operations in schema["paths"].items():
-            if path.startswith("/api/v1/admin/"):
+            # Answer review (4C) is the one documented student exception: correct answers
+            # only after submission, a visible result and allow_answer_review.
+            if path.startswith("/api/v1/admin/") or path == "/api/v1/results/{attempt_id}/review/":
                 continue
             for operation in operations.values():
                 for response in operation.get("responses", {}).values():

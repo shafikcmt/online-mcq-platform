@@ -11,15 +11,15 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 4B — Exam engine.** Backend skeleton, Docker setup, tests, CI, the custom
+**Milestone 4C — Results & merit.** Backend skeleton, Docker setup, tests, CI, the custom
 User model (mobile number login) + student profile, OTP verification, the student
 authentication API (register, login, JWT refresh/logout, password reset/change, profile),
 the Category → Subject catalog, the question bank (questions with options and optional
 images), the exam builder (question lists, publish rules, duplicate) with an admin API, public
 exam/category listing, packages with access rules, manually granted subscriptions with the
 server-side `user_can_access_exam` check, the exam engine (start/resume, autosave, batch sync,
-submit, automatic finalization) and an append-only audit log exist. No scoring/results or payments
-yet. See `docs/ROADMAP.md`.
+submit, automatic finalization), server-side scoring with results, answer review, configurable merit
+lists and leaderboards, and an append-only audit log exist. No payments yet. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -45,7 +45,8 @@ online-mcq-platform/
 │   │   ├── questions/        question bank: questions + options (exactly one correct), images
 │   │   ├── exams/            exam builder: exams, question lists, publish rules, public listing
 │   │   ├── subscriptions/    packages, access rules, subscriptions, exam access check
-│   │   └── attempts/         exam engine: start/resume, answers, submit, auto-finalize
+│   │   ├── attempts/         exam engine: start/resume, answers, submit, auto-finalize
+│   │   └── results/          scoring, result visibility, answer review, merit, leaderboards
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -157,7 +158,11 @@ subscriptions are granted manually with `POST /api/v1/admin/subscriptions/grant/
 Exam engine (student token): `POST /api/v1/exams/{slug}/attempts/` starts or resumes an attempt;
 answers are saved with `PUT /api/v1/attempts/{id}/answers/{question_id}/` (or the batch
 `PUT …/answers/`) and the attempt is submitted with `POST /api/v1/attempts/{id}/submit/`. The
-`celery-beat` service finalizes abandoned attempts every minute.
+`celery-beat` service finalizes abandoned attempts every minute and generates merit lists.
+
+Results (student token): `GET /api/v1/results/`, `/api/v1/results/{attempt_id}/`, answer review at
+`/api/v1/results/{attempt_id}/review/`, and `GET /api/v1/exams/{slug}/leaderboard/`. The public merit
+list is `GET /api/v1/public/exams/{slug}/leaderboard/` (masked names).
 
 Question images are uploaded with `POST /api/v1/admin/questions/{id}/image/` (multipart field
 `image`, JPEG/PNG/WebP, max 2 MB). They are stored under `MEDIA_ROOT` (default `backend/media/`,

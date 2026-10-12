@@ -108,13 +108,22 @@ class ExamAdminSerializer(serializers.ModelSerializer):
             "result_visibility",
             "allow_answer_review",
             "is_featured",
+            "result_published_at",
             "question_count",
             "total_marks",
             "created_by",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "public_id", "status", "created_by", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "public_id",
+            "status",
+            "result_published_at",
+            "created_by",
+            "created_at",
+            "updated_at",
+        )
         validators = []  # uniqueness is checked on normalized values by the service
 
     def get_question_count(self, exam) -> int:
