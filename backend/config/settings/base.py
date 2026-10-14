@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.subscriptions",
     "apps.attempts",
     "apps.results",
+    "apps.payments",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -181,6 +182,17 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.results.tasks.generate_due_merit_task",
         "schedule": 300.0,
     },
+    # docs/ARCHITECTURE.md §7: mark subscriptions past expires_at as expired (bookkeeping;
+    # access is computed from server time and never waits for this job).
+    "expire-subscriptions": {
+        "task": "apps.subscriptions.tasks.expire_subscriptions_task",
+        "schedule": 3600.0,
+    },
+    # docs/ARCHITECTURE.md §7: re-query the provider for payments stuck in pending.
+    "reconcile-payments": {
+        "task": "apps.payments.tasks.reconcile_payments_task",
+        "schedule": float(env_int("PAYMENT_RECONCILE_INTERVAL_SECONDS", 600)),
+    },
 }
 
 # --------------------------------------------------------------------------------------
@@ -267,6 +279,8 @@ AUTH_THROTTLE_RATES = {
     "password_reset": env_str("THROTTLE_PASSWORD_RESET", "10/hour"),
     "password_change": env_str("THROTTLE_PASSWORD_CHANGE", "10/hour"),  # per user
     "token_refresh": env_str("THROTTLE_TOKEN_REFRESH", "120/hour"),
+    "payment_init": env_str("THROTTLE_PAYMENT_INIT", "10/hour"),  # per student
+    "payment_callback": env_str("THROTTLE_PAYMENT_CALLBACK", "120/minute"),  # per client IP
 }
 
 SPECTACULAR_SETTINGS = {
@@ -284,6 +298,9 @@ SPECTACULAR_SETTINGS = {
         # bn / en with labels — users.preferred_language and attempts.content_language
         "AppLanguageEnum": "apps.attempts.models.AttemptLanguage",
         "AttemptStatusEnum": "apps.attempts.models.AttemptStatus",
+        "PaymentStatusEnum": "apps.payments.models.PaymentStatus",
+        "PaymentProviderEnum": "apps.payments.models.PaymentProvider",
+        "PaymentEventTypeEnum": "apps.payments.models.PaymentEventType",
     },
 }
 # API docs (/api/schema/, /api/docs/) are exposed only when enabled (on in dev, off in prod).
@@ -332,6 +349,48 @@ LEADERBOARD_PUBLIC_NAME_MODE = env_str("LEADERBOARD_PUBLIC_NAME_MODE", "masked")
 LEADERBOARD_APP_NAME_MODE = env_str("LEADERBOARD_APP_NAME_MODE", "masked")
 # Rows on the public (website) leaderboard ("top N").
 LEADERBOARD_PUBLIC_SIZE = env_int("LEADERBOARD_PUBLIC_SIZE", 100)
+
+# Subscription expiry job (Milestone 5): rows per transaction, transactions per run.
+SUBSCRIPTION_EXPIRY_BATCH_SIZE = env_int("SUBSCRIPTION_EXPIRY_BATCH_SIZE", 500)
+SUBSCRIPTION_EXPIRY_MAX_BATCHES = env_int("SUBSCRIPTION_EXPIRY_MAX_BATCHES", 20)
+
+# --------------------------------------------------------------------------------------
+# Payments (Milestone 5) — docs/SECURITY_PLAN.md §3.5. Credentials only from the
+# environment; never committed, logged or returned by the API.
+# --------------------------------------------------------------------------------------
+# Provider used for new payments. Gateways are registered here (bKash/Nagad later).
+PAYMENT_PROVIDER = env_str("PAYMENT_PROVIDER", "mock")
+PAYMENT_PROVIDERS = {
+    "mock": "apps.payments.gateways.mock.MockGateway",
+    "sslcommerz": "apps.payments.gateways.sslcommerz.SslCommerzGateway",
+}
+# The mock provider grants access without real money: development/tests only.
+# prod.py forces this off (no override).
+PAYMENT_MOCK_ALLOWED = env_bool("PAYMENT_MOCK_ALLOWED", True)
+# Public base URL of this API, used to build the provider callback/IPN URLs
+# (e.g. https://api.example.com). Never taken from the request.
+PAYMENT_CALLBACK_BASE_URL = env_str("PAYMENT_CALLBACK_BASE_URL", "http://localhost:8000")
+# Where the browser is sent after a callback (app return page or app scheme), with
+# ?payment=<id>&status=<status>. Empty = a small JSON answer (development).
+PAYMENT_RETURN_URL = env_str("PAYMENT_RETURN_URL", "")
+# Reconciliation: only payments older than this are re-queried; one the provider has
+# never heard of is closed as "abandoned" after PAYMENT_ABANDON_AFTER_SECONDS.
+PAYMENT_RECONCILE_MIN_AGE_SECONDS = env_int("PAYMENT_RECONCILE_MIN_AGE_SECONDS", 900)
+PAYMENT_ABANDON_AFTER_SECONDS = env_int("PAYMENT_ABANDON_AFTER_SECONDS", 24 * 3600)
+PAYMENT_RECONCILE_BATCH_SIZE = env_int("PAYMENT_RECONCILE_BATCH_SIZE", 50)
+PAYMENT_RECONCILE_MAX_BATCHES = env_int("PAYMENT_RECONCILE_MAX_BATCHES", 10)
+
+# SSLCommerz (sandbox by default; live needs SSLCOMMERZ_SANDBOX=false).
+SSLCOMMERZ_STORE_ID = env_str("SSLCOMMERZ_STORE_ID", "")
+SSLCOMMERZ_STORE_PASSWORD = env_str("SSLCOMMERZ_STORE_PASSWORD", "")
+SSLCOMMERZ_SANDBOX = env_bool("SSLCOMMERZ_SANDBOX", True)
+SSLCOMMERZ_TIMEOUT_SECONDS = env_int("SSLCOMMERZ_TIMEOUT_SECONDS", 15)
+# SSLCommerz requires customer e-mail and address fields; we send the student's name,
+# mobile and e-mail (if any) and these neutral defaults for the rest.
+SSLCOMMERZ_CUSTOMER_EMAIL = env_str("SSLCOMMERZ_CUSTOMER_EMAIL", "customer@example.com")
+SSLCOMMERZ_CUSTOMER_ADDRESS = env_str("SSLCOMMERZ_CUSTOMER_ADDRESS", "Dhaka")
+SSLCOMMERZ_CUSTOMER_CITY = env_str("SSLCOMMERZ_CUSTOMER_CITY", "Dhaka")
+SSLCOMMERZ_CUSTOMER_COUNTRY = env_str("SSLCOMMERZ_CUSTOMER_COUNTRY", "Bangladesh")
 
 # --------------------------------------------------------------------------------------
 # Logging — console output; never log secrets, passwords, OTPs or tokens

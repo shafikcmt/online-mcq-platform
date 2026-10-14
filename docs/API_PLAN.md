@@ -249,6 +249,18 @@ already ended/published — otherwise `null`; the result is calculated either wa
 | GET | `/payments/{public_id}` | Poll status (`pending/success/failed/cancelled`) |
 | GET | `/payments` | My payment history |
 
+*(Milestone 5 — built: `POST /payments/` → `201` with the payment (`payment_id`, `merchant_reference`,
+`status`, `provider`, `amount`, `currency`, `package {slug, name}`, `checkout_url` (only while
+`pending`), `transaction_id` (only on `success`), `verified_at`, `created_at`, `updated_at`). Only
+`package_id` is read from the body — amount and currency come from the server-side package. Same
+`Idempotency-Key` again → `200` with the same payment; reused for another package → `409
+idempotency_key_reused`. Errors: `400` unknown package, `409 package_inactive`,
+`409 package_not_purchasable` (price 0), `403 not_student`, `503 payment_unavailable` (provider
+session could not be opened — the payment is `failed`, `details.payment_id`), `429` (`payment_init`
+throttle). `GET` endpoints show only the caller's own payments (another student's → `404`); no
+provider payloads, events or internal ids. The `GET /packages` "already subscribed" flags are not
+built yet.)*
+
 ### 3.7 Payment gateway interface & callbacks
 
 All providers implement one backend interface (in `payments/gateways/`):
@@ -277,6 +289,17 @@ call SSLCommerz Validation API → check `status=VALID/VALIDATED`, `amount`, `cu
 These endpoints never trust the query/body alone; they look up the `merchant_reference`,
 call the provider's verify/query API and compare amount + currency + status.
 
+*(Milestone 5 — built, as `/payments/callback/{provider}/{success|fail|cancel}/` (GET or form POST)
+and `/payments/ipn/{provider}/` (POST); no login, `payment_callback` throttle per IP; not in the
+OpenAPI schema (provider-facing). Success/IPN → signature check (SSLCommerz `verify_sign`) →
+Validation API with `val_id`; fail/cancel → transaction query by `tran_id` (a forged "cancel" cannot
+end a paid payment). Unknown reference, bad signature, another payment's `val_id` → nothing
+changes. Browser callbacks redirect to the server setting `PAYMENT_RETURN_URL` with
+`?payment=<payment_id>&status=<status>` (`status=unknown` for an unknown reference; the target never
+comes from the request); without it they answer that JSON. IPN always answers `200
+{"status": "received"}`. Development: the mock provider's checkout page
+`/payments/mock/checkout/{reference}/?result=success|fail|cancel` (404 in production).)*
+
 ### 3.8 Admin (`/admin/`) — role `admin` required
 | Area | Endpoints |
 |---|---|
@@ -290,7 +313,7 @@ call the provider's verify/query API and compare amount + currency + status.
 | Attempts & results | `GET /admin/exams/{id}/attempts`, `GET /admin/attempts/{public_id}`, `GET /admin/results?exam=`, `POST /admin/exams/{id}/results/publish`, `POST /admin/exams/{id}/results/hide`, `POST /admin/exams/{id}/merit/generate` (applies the exam's `merit_strategy`) *(4C: built — `GET /admin/results` (filters `exam`, `user`, `merit_counted`), publish/hide (set/clear `result_published_at`, audited, repeated calls are no-ops) and merit/generate (`{ranked_count}`, audited; `409 merit_disabled`). Not yet: the admin attempt list/detail. No endpoint edits or recalculates a score.)* |
 | Packages | `GET/POST /admin/packages`, `GET/PATCH/DELETE /admin/packages/{id}`, nested access rules *(4A: filters `status`, `is_featured`, `search`; `ordering` = `id`, `sort_order`, `price`, `validity_days`, `created_at`, `updated_at`. `DELETE` of a package with subscriptions → `409 in_use`. Rules: `GET/PATCH /admin/packages/{id}/access-rules` with `{"rules": [{"rule_type": "all_paid_exams"\|"category"\|"exam", "category"?, "exam"?}]}` — the **complete** list, replaced atomically; exam rules need a paid exam)* |
 | Subscriptions | `GET /admin/subscriptions` (filter active/expired, package, user), `POST /admin/subscriptions` (manual grant — audited) *(4A — manual grant approved for Phase-1, ROADMAP decisions log #16: support, testing and legitimate manual entitlements; admin session + CSRF + admin role; every grant/extension audited; no Payment row needed; never available to students or the public. `GET /admin/subscriptions` filters `status`, `active` (computed from server time), `package`, `user`; `GET /admin/subscriptions/{id}`; `POST /admin/subscriptions/grant` `{user, package, price_paid?, starts_at?}` → `201` new or `200` extension of the running subscription to the same package; `POST /admin/subscriptions/{id}/cancel` → `409 already_cancelled` / `subscription_expired` when not running. Status is read-only — no PATCH/PUT/DELETE.)* |
-| Payments | `GET /admin/payments` (filter status/provider/date), `GET /admin/payments/{id}` (with events), `POST /admin/payments/{id}/reverify` (re-query provider) |
+| Payments | `GET /admin/payments` (filter status/provider/date), `GET /admin/payments/{id}` (with events), `POST /admin/payments/{id}/reverify` (re-query provider) *(M5 — built with `{id}` = the payment's `payment_id` UUID. List filters `status`, `provider`, `user`, `package`, `created_from`/`created_to` (UTC dates), `search` (exact merchant reference or transaction ID); `ordering` = `id`, `created_at`, `updated_at`, `amount`, `verified_at`. Detail adds the sanitized `raw_verification` and `events`. Re-verify queries the provider and applies its answer exactly like a callback (audited `payment.reverify`; `409 provider_disabled`); for a `failed`/`cancelled` payment that the provider proves was paid this performs the late-success recovery. No PATCH/PUT/DELETE and no "mark success".)* |
 | Contact messages | `GET /admin/contact-messages`, `PATCH /admin/contact-messages/{id}` (status) |
 | Content | `GET/PATCH /admin/settings` (incl. default language, leaderboard name modes, app links), CRUD `/admin/announcements`, CRUD `/admin/faqs`, CRUD `/admin/pages` |
 | Uploads | `POST /admin/uploads/image` (type/size validated) |
@@ -336,6 +359,7 @@ never only by the ID in the URL (prevents IDOR).
 | `answer_save` | 120 per minute per user |
 | `submit` | 10 per minute per user |
 | `payment_init` | 10 per hour per user |
+| `payment_callback` | 120 per minute per IP *(M5: provider callbacks/IPN)* |
 | anonymous public API | 120 per minute per IP |
 | authenticated general | 600 per minute per user |
 

@@ -11,8 +11,9 @@ Locking the user row serializes every grant for one student, so two concurrent g
 of the same package cannot both create a row or lose an extension; the partial unique
 index (one ``active`` row per user and package) is the database's last guard.
 
-Payments (Milestone 5) will call ``grant_subscription`` from inside the payment
-verification transaction; nothing here talks to a payment provider.
+Payments (Milestone 5) call ``grant_subscription`` from inside the payment
+verification transaction (``for_verified_payment=True``); nothing here talks to a
+payment provider. ``expire_subscriptions`` is the expiry job (Celery beat).
 """
 
 from dataclasses import dataclass
@@ -415,22 +416,22 @@ def _audit_subscription(ctx, action: str, subscription: Subscription, metadata: 
     )
 
 
-def _lock_student(user_id):
+def _lock_student(user_id, *, require_active: bool = True):
     user = get_user_model().objects.select_for_update(no_key=True).filter(pk=user_id).first()
     if user is None:
         raise _error("user", USER_MISSING_MESSAGE, "does_not_exist")
-    if not (user.is_active and user.is_student):
+    if not user.is_student or (require_active and not user.is_active):
         raise _error("user", USER_NOT_STUDENT_MESSAGE, "not_student")
     return user
 
 
-def _lock_grantable_package(package_id) -> Package:
+def _lock_grantable_package(package_id, *, require_active: bool = True) -> Package:
     # NO KEY UPDATE conflicts with the FOR UPDATE taken by package update/delete, so a
     # concurrent deactivation or delete is either seen here or waits for this grant.
     package = Package.objects.select_for_update(no_key=True).filter(pk=package_id).first()
     if package is None:
         raise _error("package", PACKAGE_MISSING_MESSAGE, "does_not_exist")
-    if package.status != PackageStatus.ACTIVE:
+    if require_active and package.status != PackageStatus.ACTIVE:
         raise _error("package", PACKAGE_INACTIVE_MESSAGE, "package_inactive")
     return package
 
@@ -449,6 +450,7 @@ def grant_subscription(
     ctx: AuditContext,
     price_paid: Decimal | None = None,
     starts_at: datetime | None = None,
+    for_verified_payment: bool = False,
 ) -> GrantResult:
     """Give a student a package (manual/admin grant now; verified payments in M5).
 
@@ -460,9 +462,15 @@ def grant_subscription(
       (parallel subscriptions).
 
     ``price_paid`` defaults to the package's current price and is stored as a snapshot.
+
+    ``for_verified_payment``: the provider has already taken the money (Milestone 5), so
+    the sale is honoured even if the package was deactivated or the account deactivated
+    during checkout (ROADMAP decisions log #19). Access itself still needs an active
+    student account (``selectors.user_can_access_exam``).
     """
-    user = _lock_student(user_id)
-    package = _lock_grantable_package(package_id)
+    require_active = not for_verified_payment
+    user = _lock_student(user_id, require_active=require_active)
+    package = _lock_grantable_package(package_id, require_active=require_active)
     now = timezone.now()  # after the locks: a grant that waited must not use a stale clock
     amount = package.price if price_paid is None else Decimal(price_paid)
     if amount < 0:
@@ -577,3 +585,37 @@ def cancel_subscription(subscription_id: int, *, ctx: AuditContext) -> Subscript
         },
     )
     return subscription
+
+
+# --------------------------------------------------------------------------------------
+# Expiry job (Celery beat)
+# --------------------------------------------------------------------------------------
+def expire_subscriptions(*, batch_size: int | None = None, max_batches: int | None = None):
+    """Mark ``active`` subscriptions whose ``expires_at`` has passed as ``expired``.
+
+    Bookkeeping only: access already ends at ``expires_at`` (``selectors.active_window``),
+    so a late or failed run never extends access. Bounded batches, each one short
+    transaction; rows locked by a grant in flight are skipped (the grant handles them, or
+    the next run does). Idempotent — an expired row is never selected again. Not audited
+    (the same change ``grant_subscription`` makes for a stale row).
+    """
+    batch_size = batch_size or settings.SUBSCRIPTION_EXPIRY_BATCH_SIZE
+    max_batches = max_batches or settings.SUBSCRIPTION_EXPIRY_MAX_BATCHES
+    total = 0
+    for _batch in range(max_batches):
+        with transaction.atomic():
+            now = timezone.now()
+            ids = list(
+                Subscription.objects.select_for_update(skip_locked=True)
+                .filter(status=SubscriptionStatus.ACTIVE, expires_at__lte=now)
+                .order_by("expires_at", "id")
+                .values_list("pk", flat=True)[:batch_size]
+            )
+            if ids:
+                Subscription.objects.filter(pk__in=ids).update(
+                    status=SubscriptionStatus.EXPIRED, updated_at=now
+                )
+        total += len(ids)
+        if len(ids) < batch_size:
+            break
+    return total

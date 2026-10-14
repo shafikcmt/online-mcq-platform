@@ -6,10 +6,17 @@ from .base import (
     DATABASES,
     DEBUG,
     JWT_SIGNING_KEY,
+    PAYMENT_CALLBACK_BASE_URL,
+    PAYMENT_PROVIDER,
+    PAYMENT_PROVIDERS,
+    PAYMENT_RETURN_URL,
     SECRET_KEY,
     SMS_PROVIDER,
+    SSLCOMMERZ_SANDBOX,
+    SSLCOMMERZ_STORE_ID,
+    SSLCOMMERZ_STORE_PASSWORD,
 )
-from .checks import validate_production_settings
+from .checks import validate_payment_settings, validate_production_settings
 from .env import env_bool, env_int
 
 validate_production_settings(
@@ -21,6 +28,19 @@ validate_production_settings(
     allow_mock_sms=env_bool("SMS_ALLOW_MOCK_IN_PRODUCTION", False),
     jwt_signing_key=JWT_SIGNING_KEY,
 )
+
+validate_payment_settings(
+    provider=PAYMENT_PROVIDER,
+    providers=PAYMENT_PROVIDERS,
+    store_id=SSLCOMMERZ_STORE_ID,
+    store_password=SSLCOMMERZ_STORE_PASSWORD,
+    sandbox=SSLCOMMERZ_SANDBOX,
+    allow_sandbox=env_bool("PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION", False),
+    callback_base_url=PAYMENT_CALLBACK_BASE_URL,
+    return_url=PAYMENT_RETURN_URL,
+)
+# The mock payment provider can never run in production — not even for old payments.
+PAYMENT_MOCK_ALLOWED = False
 
 # OTP/SMS text is never written to logs in production.
 SMS_MOCK_LOG_CONTENT = False

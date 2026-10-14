@@ -52,3 +52,41 @@ def validate_production_settings(
         )
     if problems:
         raise ImproperlyConfigured("Unsafe production configuration: " + " ".join(problems))
+
+
+def validate_payment_settings(
+    *,
+    provider: str,
+    providers: dict,
+    store_id: str,
+    store_password: str,
+    sandbox: bool,
+    allow_sandbox: bool,
+    callback_base_url: str,
+    return_url: str,
+) -> None:
+    """Production refuses fake money and broken provider configuration."""
+    problems = []
+    if provider == "mock":
+        problems.append(
+            "PAYMENT_PROVIDER=mock grants access without payment and is never allowed in "
+            "production."
+        )
+    elif provider not in providers:
+        problems.append(f"PAYMENT_PROVIDER={provider!r} is not a configured provider.")
+    if provider == "sslcommerz":
+        if store_id.strip().lower() in PLACEHOLDER_VALUES:
+            problems.append("SSLCOMMERZ_STORE_ID must be set.")
+        if store_password.strip().lower() in PLACEHOLDER_VALUES:
+            problems.append("SSLCOMMERZ_STORE_PASSWORD must be set.")
+        if sandbox and not allow_sandbox:
+            problems.append(
+                "SSLCOMMERZ_SANDBOX=true takes no real money. Use live credentials, or set "
+                "PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true only for a non-public test deployment."
+            )
+    if not callback_base_url.startswith("https://"):
+        problems.append("PAYMENT_CALLBACK_BASE_URL must be the public https:// URL of the API.")
+    if not return_url:
+        problems.append("PAYMENT_RETURN_URL must be set (the app's payment return page).")
+    if problems:
+        raise ImproperlyConfigured("Unsafe payment configuration: " + " ".join(problems))

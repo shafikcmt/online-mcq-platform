@@ -11,7 +11,7 @@ A production-oriented Online MCQ Examination Platform with:
 
 ## Current Status
 
-**Milestone 4C — Results & merit.** Backend skeleton, Docker setup, tests, CI, the custom
+**Milestone 5 — Payments & subscriptions.** Backend skeleton, Docker setup, tests, CI, the custom
 User model (mobile number login) + student profile, OTP verification, the student
 authentication API (register, login, JWT refresh/logout, password reset/change, profile),
 the Category → Subject catalog, the question bank (questions with options and optional
@@ -19,7 +19,9 @@ images), the exam builder (question lists, publish rules, duplicate) with an adm
 exam/category listing, packages with access rules, manually granted subscriptions with the
 server-side `user_can_access_exam` check, the exam engine (start/resume, autosave, batch sync,
 submit, automatic finalization), server-side scoring with results, answer review, configurable merit
-lists and leaderboards, and an append-only audit log exist. No payments yet. See `docs/ROADMAP.md`.
+lists and leaderboards, an append-only audit log, and payments (mock gateway + SSLCommerz behind
+one gateway interface, server-side verification, subscription activation, reconciliation and
+subscription expiry jobs) exist. See `docs/ROADMAP.md`.
 
 Planning documents live in `docs/` — start with `docs/ARCHITECTURE.md`.
 
@@ -46,7 +48,8 @@ online-mcq-platform/
 │   │   ├── exams/            exam builder: exams, question lists, publish rules, public listing
 │   │   ├── subscriptions/    packages, access rules, subscriptions, exam access check
 │   │   ├── attempts/         exam engine: start/resume, answers, submit, auto-finalize
-│   │   └── results/          scoring, result visibility, answer review, merit, leaderboards
+│   │   ├── results/          scoring, result visibility, answer review, merit, leaderboards
+│   │   └── payments/         payments + event log, gateways (mock, SSLCommerz), verification
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -141,8 +144,8 @@ logs while developing, set `SMS_MOCK_LOG_CONTENT=true` in `.env` (works only wit
 ### Admin API (catalog, audit log)
 
 `/api/v1/admin/categories/`, `/api/v1/admin/subjects/`, `/api/v1/admin/questions/`,
-`/api/v1/admin/exams/`, `/api/v1/admin/packages/`, `/api/v1/admin/subscriptions/` and
-`/api/v1/admin/audit-logs/` need an
+`/api/v1/admin/exams/`, `/api/v1/admin/packages/`, `/api/v1/admin/subscriptions/`,
+`/api/v1/admin/payments/` and `/api/v1/admin/audit-logs/` need an
 **admin session** (cookie) and the `admin` role — student tokens are not accepted.
 **Temporary (Milestone 3, backend only):** sign in at the internal Django admin with an admin
 account, then call the API from the same browser session. Write requests also need the CSRF
@@ -152,8 +155,8 @@ Milestone 7. Every create/update/delete is written to the append-only audit log.
 Public endpoints (no login): `/api/v1/public/categories/`, `/api/v1/public/exams/` and
 `/api/v1/public/exams/{slug}/` — published exams only, never questions or answers — and
 `/api/v1/public/packages/` (active packages and prices). Students see their own subscriptions
-at `/api/v1/me/subscriptions/` (student token). Until payments exist (Milestone 5),
-subscriptions are granted manually with `POST /api/v1/admin/subscriptions/grant/`.
+at `/api/v1/me/subscriptions/` (student token). Subscriptions are bought through payments (below)
+or, for support, granted manually with `POST /api/v1/admin/subscriptions/grant/` (audited).
 
 Exam engine (student token): `POST /api/v1/exams/{slug}/attempts/` starts or resumes an attempt;
 answers are saved with `PUT /api/v1/attempts/{id}/answers/{question_id}/` (or the batch
@@ -163,6 +166,20 @@ answers are saved with `PUT /api/v1/attempts/{id}/answers/{question_id}/` (or th
 Results (student token): `GET /api/v1/results/`, `/api/v1/results/{attempt_id}/`, answer review at
 `/api/v1/results/{attempt_id}/review/`, and `GET /api/v1/exams/{slug}/leaderboard/`. The public merit
 list is `GET /api/v1/public/exams/{slug}/leaderboard/` (masked names).
+
+Payments (student token): `POST /api/v1/payments/` with `{"package_id": …}` (optional
+`Idempotency-Key` header) returns the payment with a `checkout_url`; `GET /api/v1/payments/` and
+`GET /api/v1/payments/{payment_id}/` show history and status. The price always comes from the
+server. Only a **server-to-server verification** with the provider marks a payment successful
+and creates/extends the subscription — callbacks alone never grant access. Development uses
+`PAYMENT_PROVIDER=mock`: open the `checkout_url` with `?result=success` (or `fail` / `cancel`)
+to simulate the provider. For the SSLCommerz sandbox set `PAYMENT_PROVIDER=sslcommerz`,
+`SSLCOMMERZ_STORE_ID`, `SSLCOMMERZ_STORE_PASSWORD` and a public `PAYMENT_CALLBACK_BASE_URL`
+(e.g. a tunnel) in `.env` — never commit them. Admins: `GET /api/v1/admin/payments/`,
+`GET /api/v1/admin/payments/{payment_id}/` (with events) and
+`POST /api/v1/admin/payments/{payment_id}/reverify/` (asks the provider again; audited) — there is
+no way to set a payment status by hand. `celery-beat` reconciles stuck payments every 10 minutes
+and marks expired subscriptions hourly.
 
 Question images are uploaded with `POST /api/v1/admin/questions/{id}/image/` (multipart field
 `image`, JPEG/PNG/WebP, max 2 MB). They are stored under `MEDIA_ROOT` (default `backend/media/`,
