@@ -1252,3 +1252,186 @@ msgstr "পেমেন্ট ইভেন্ট"
 
 msgid "payment events"
 msgstr "পেমেন্ট ইভেন্টসমূহ"
+
+msgid "Enter a phone number or an e-mail address so we can reply."
+msgstr "উত্তর দেওয়ার জন্য একটি ফোন নম্বর বা ই-মেইল ঠিকানা দিন।"
+
+msgid "This field may not be blank."
+msgstr "এই ঘরটি ফাঁকা রাখা যাবে না।"
+
+msgid "Content"
+msgstr "কনটেন্ট"
+
+#, python-format
+msgid ""
+"Fill in both %(first)s and %(second)s in at least one language (Bangla or "
+"English)."
+msgstr ""
+"অন্তত একটি ভাষায় (বাংলা বা ইংরেজি) %(first)s ও %(second)s দুটোই লিখুন।"
+
+#, python-format
+msgid "Fill in both %(first)s and %(second)s for this language, or neither."
+msgstr "এই ভাষার জন্য %(first)s ও %(second)s দুটোই লিখুন, অথবা কোনোটিই নয়।"
+
+msgid "A page with this slug already exists."
+msgstr "এই স্লাগ দিয়ে একটি পেজ আগে থেকেই আছে।"
+
+msgid "The end time must be after the publish time."
+msgstr "শেষের সময় প্রকাশের সময়ের পরে হতে হবে।"
+
+msgid "Enter a full https:// address."
+msgstr "একটি পূর্ণ https:// ঠিকানা লিখুন।"
+
+msgid "Enter an https:// address or a link with this app's own scheme."
+msgstr "একটি https:// ঠিকানা অথবা এই অ্যাপের নিজস্ব স্কিমের একটি লিংক লিখুন।"
+
+msgid ""
+"Enter a phone number of 6 to 15 digits; only +, spaces, brackets and - may "
+"be added."
+msgstr ""
+"৬ থেকে ১৫ অঙ্কের একটি ফোন নম্বর লিখুন; শুধু +, স্পেস, বন্ধনী ও - যোগ করা "
+"যাবে।"
+
+msgid "Masked"
+msgstr "আংশিক লুকানো"
+
+msgid "Initials"
+msgstr "আদ্যক্ষর"
+
+msgid "Display name"
+msgstr "প্রদর্শিত নাম"
+
+msgid "Full name"
+msgstr "পূর্ণ নাম"
+
+msgid "platform name (Bangla)"
+msgstr "প্ল্যাটফর্মের নাম (বাংলা)"
+
+msgid "platform name (English)"
+msgstr "প্ল্যাটফর্মের নাম (ইংরেজি)"
+
+msgid "tagline (Bangla)"
+msgstr "ট্যাগলাইন (বাংলা)"
+
+msgid "tagline (English)"
+msgstr "ট্যাগলাইন (ইংরেজি)"
+
+msgid "address (Bangla)"
+msgstr "ঠিকানা (বাংলা)"
+
+msgid "address (English)"
+msgstr "ঠিকানা (ইংরেজি)"
+
+msgid "contact e-mail"
+msgstr "যোগাযোগের ই-মেইল"
+
+msgid "contact phone"
+msgstr "যোগাযোগের ফোন"
+
+msgid "app download link"
+msgstr "অ্যাপ ডাউনলোড লিংক"
+
+msgid "app open link"
+msgstr "অ্যাপ খোলার লিংক"
+
+msgid "default language"
+msgstr "ডিফল্ট ভাষা"
+
+msgid "website leaderboard names"
+msgstr "ওয়েবসাইটের লিডারবোর্ডে নাম"
+
+msgid "app leaderboard names"
+msgstr "অ্যাপের লিডারবোর্ডে নাম"
+
+msgid "site settings"
+msgstr "সাইট সেটিংস"
+
+msgid "title"
+msgstr "শিরোনাম"
+
+msgid "body"
+msgstr "বিবরণ"
+
+msgid "Website (public)"
+msgstr "ওয়েবসাইট (সবার জন্য)"
+
+msgid "Students (app)"
+msgstr "শিক্ষার্থী (অ্যাপ)"
+
+msgid "Everyone"
+msgstr "সবাই"
+
+msgid "text (Bangla)"
+msgstr "লেখা (বাংলা)"
+
+msgid "text (English)"
+msgstr "লেখা (ইংরেজি)"
+
+msgid "audience"
+msgstr "যাদের জন্য"
+
+msgid "pinned"
+msgstr "পিন করা"
+
+msgid "published at"
+msgstr "প্রকাশের সময়"
+
+msgid "announcement"
+msgstr "ঘোষণা"
+
+msgid "announcements"
+msgstr "ঘোষণাসমূহ"
+
+msgid "answer"
+msgstr "উত্তর"
+
+msgid "answer (Bangla)"
+msgstr "উত্তর (বাংলা)"
+
+msgid "answer (English)"
+msgstr "উত্তর (ইংরেজি)"
+
+msgid "FAQ entry"
+msgstr "প্রশ্নোত্তর"
+
+msgid "FAQ"
+msgstr "সাধারণ প্রশ্নোত্তর"
+
+msgid "Used in web addresses, e.g. about, terms, privacy."
+msgstr "ওয়েব ঠিকানায় ব্যবহৃত হয়, যেমন: about, terms, privacy।"
+
+msgid "page"
+msgstr "পেজ"
+
+msgid "pages"
+msgstr "পেজসমূহ"
+
+msgid "New"
+msgstr "নতুন"
+
+msgid "Read"
+msgstr "পড়া হয়েছে"
+
+msgid "Resolved"
+msgstr "সমাধান হয়েছে"
+
+msgid "name"
+msgstr "নাম"
+
+msgid "phone"
+msgstr "ফোন"
+
+msgid "e-mail"
+msgstr "ই-মেইল"
+
+msgid "message"
+msgstr "বার্তা"
+
+msgid "handled by"
+msgstr "যিনি দেখেছেন"
+
+msgid "contact message"
+msgstr "যোগাযোগ বার্তা"
+
+msgid "contact messages"
+msgstr "যোগাযোগ বার্তাসমূহ"

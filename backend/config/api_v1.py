@@ -8,6 +8,9 @@ from apps.attempts.api.urls import student_urlpatterns as attempt_student_urlpat
 from apps.audit.api.urls import admin_urlpatterns as audit_admin_urlpatterns
 from apps.catalog.api.urls import admin_urlpatterns as catalog_admin_urlpatterns
 from apps.catalog.api.urls import public_urlpatterns as catalog_public_urlpatterns
+from apps.cms.api.urls import admin_urlpatterns as cms_admin_urlpatterns
+from apps.cms.api.urls import public_urlpatterns as cms_public_urlpatterns
+from apps.cms.api.urls import student_urlpatterns as cms_student_urlpatterns
 from apps.core.views import HealthView
 from apps.exams.api.urls import admin_urlpatterns as exam_admin_urlpatterns
 from apps.exams.api.urls import public_urlpatterns as exam_public_urlpatterns
@@ -31,6 +34,7 @@ admin_urlpatterns = [
     *subscription_admin_urlpatterns,
     *result_admin_urlpatterns,
     *payment_admin_urlpatterns,
+    *cms_admin_urlpatterns,
     *audit_admin_urlpatterns,
 ]
 
@@ -47,6 +51,8 @@ urlpatterns = [
     # Payments: student JWT for initiate/status/history; provider callbacks need no login
     # and can only trigger a server-side verification.
     path("", include((payment_student_urlpatterns, "payments"))),
+    # Notices for logged-in students (student JWT).
+    path("", include((cms_student_urlpatterns, "cms"))),
     # Public (no login): website & app. Only published, safe fields — no questions.
     path(
         "public/",
@@ -57,6 +63,7 @@ urlpatterns = [
                     *exam_public_urlpatterns,
                     *subscription_public_urlpatterns,
                     *result_public_urlpatterns,
+                    *cms_public_urlpatterns,
                 ],
                 "public",
             )

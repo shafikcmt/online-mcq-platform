@@ -1209,3 +1209,183 @@ msgstr ""
 
 msgid "payment events"
 msgstr ""
+
+msgid "Enter a phone number or an e-mail address so we can reply."
+msgstr ""
+
+msgid "This field may not be blank."
+msgstr ""
+
+msgid "Content"
+msgstr ""
+
+#, python-format
+msgid ""
+"Fill in both %(first)s and %(second)s in at least one language (Bangla or "
+"English)."
+msgstr ""
+
+#, python-format
+msgid "Fill in both %(first)s and %(second)s for this language, or neither."
+msgstr ""
+
+msgid "A page with this slug already exists."
+msgstr ""
+
+msgid "The end time must be after the publish time."
+msgstr ""
+
+msgid "Enter a full https:// address."
+msgstr ""
+
+msgid "Enter an https:// address or a link with this app's own scheme."
+msgstr ""
+
+msgid ""
+"Enter a phone number of 6 to 15 digits; only +, spaces, brackets and - may "
+"be added."
+msgstr ""
+
+msgid "Masked"
+msgstr ""
+
+msgid "Initials"
+msgstr ""
+
+msgid "Display name"
+msgstr ""
+
+msgid "Full name"
+msgstr ""
+
+msgid "platform name (Bangla)"
+msgstr ""
+
+msgid "platform name (English)"
+msgstr ""
+
+msgid "tagline (Bangla)"
+msgstr ""
+
+msgid "tagline (English)"
+msgstr ""
+
+msgid "address (Bangla)"
+msgstr ""
+
+msgid "address (English)"
+msgstr ""
+
+msgid "contact e-mail"
+msgstr ""
+
+msgid "contact phone"
+msgstr ""
+
+msgid "app download link"
+msgstr ""
+
+msgid "app open link"
+msgstr ""
+
+msgid "default language"
+msgstr ""
+
+msgid "website leaderboard names"
+msgstr ""
+
+msgid "app leaderboard names"
+msgstr ""
+
+msgid "site settings"
+msgstr ""
+
+msgid "title"
+msgstr ""
+
+msgid "body"
+msgstr ""
+
+msgid "Website (public)"
+msgstr ""
+
+msgid "Students (app)"
+msgstr ""
+
+msgid "Everyone"
+msgstr ""
+
+msgid "text (Bangla)"
+msgstr ""
+
+msgid "text (English)"
+msgstr ""
+
+msgid "audience"
+msgstr ""
+
+msgid "pinned"
+msgstr ""
+
+msgid "published at"
+msgstr ""
+
+msgid "announcement"
+msgstr ""
+
+msgid "announcements"
+msgstr ""
+
+msgid "answer"
+msgstr ""
+
+msgid "answer (Bangla)"
+msgstr ""
+
+msgid "answer (English)"
+msgstr ""
+
+msgid "FAQ entry"
+msgstr ""
+
+msgid "FAQ"
+msgstr ""
+
+msgid "Used in web addresses, e.g. about, terms, privacy."
+msgstr ""
+
+msgid "page"
+msgstr ""
+
+msgid "pages"
+msgstr ""
+
+msgid "New"
+msgstr ""
+
+msgid "Read"
+msgstr ""
+
+msgid "Resolved"
+msgstr ""
+
+msgid "name"
+msgstr ""
+
+msgid "phone"
+msgstr ""
+
+msgid "e-mail"
+msgstr ""
+
+msgid "message"
+msgstr ""
+
+msgid "handled by"
+msgstr ""
+
+msgid "contact message"
+msgstr ""
+
+msgid "contact messages"
+msgstr ""

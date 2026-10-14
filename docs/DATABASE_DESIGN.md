@@ -676,6 +676,38 @@ question🌐, answer🌐, sort_order, is_active.
 #### `pages` (optional, simple)
 slug (`about`, `terms`, `privacy`), title🌐, body🌐. Kept minimal — a full CMS is Phase-2.
 
+Implementation notes (Milestone 6A — app `cms`):
+- **`site_settings`**: one row, `id = 1` (CHECK). Built fields: `platform_name🌐`, `tagline🌐`,
+  `address🌐`, `contact_email`, `contact_phone`, `app_download_url` (`https://` only — CHECK),
+  `app_open_url` (allow-list: `https://…` or the project's own app scheme
+  `APP_DEEP_LINK_SCHEME://…` only — empty setting = `https://` only; any other scheme, incl.
+  `javascript:`, `data:`, `vbscript:`, `file:`, `blob:`, `about:`, `http:` and other apps'
+  schemes, is refused by validation; a CHECK guards the shape and the dangerous schemes),
+  `contact_phone` (same phone rule as the contact form), `default_language`
+  (`bn`/`en` — CHECK), `public_leaderboard_name_mode` / `app_leaderboard_name_mode` (the four
+  modes above — CHECK; the single list lives in `cms.LeaderboardNameMode` and `results` uses it).
+  Until an admin first saves, the values come from environment settings (`DEFAULT_LANGUAGE`,
+  `LEADERBOARD_*_NAME_MODE`). **Not built (deferred):** `logo` (needs the upload pipeline),
+  social links, `about_content` (the `about` page covers it) and the business-config jsonb —
+  OTP/grace/business values stay in environment settings (validated at startup), so no
+  security-relevant rule can be changed from the content screens.
+- **Bilingual pairs** (announcement title/body, FAQ question/answer, page title/body): CHECKs —
+  each language complete or empty, at least one language complete. All text is **plain text**
+  (NFC, control characters removed; never HTML — clients render it escaped).
+- **`announcements`**: + `created_at`/`updated_at`; `audience` default `all`; CHECK
+  `expires_at > published_at` when both set; index `(audience, published_at)`. Visible =
+  `published_at <= now` and (`expires_at` null or `> now`).
+- **`faqs`**: + `created_at`/`updated_at`; CHECK `sort_order >= 0`; index `(is_active, sort_order)`.
+- **`pages`**: + `is_active`, `created_at`/`updated_at`; `slug` unique + format CHECK (same ASCII
+  slug rule as catalog).
+- **Phone rule** (contact form, site settings): not country-specific and not E.164 — optional
+  leading `+`, digits with spaces, brackets or hyphens, 6–15 digits, ≤ 20 characters; Bangla
+  digits are converted; control/format characters are refused (not silently stripped).
+- **`contact_messages`**: + `created_at`/`updated_at`; CHECKs: phone or email present; name,
+  subject, message non-empty; message ≤ 5000 characters; valid `status`/`language`.
+  `handled_by` PROTECT (the admin who last changed the status). `ip_address` is for abuse
+  tracking only and is never returned by the API. Index `(status, created_at)`.
+
 ### 4.11 notifications (in-app only in Phase-1; push/SMS/email are future channels)
 
 #### `notifications` (in-app, per user)
