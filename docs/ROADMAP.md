@@ -200,7 +200,7 @@ Branch: `release/1.0`
 | 9 | Academic structure | Category → many Subjects → many Questions; one subject belongs to one category |
 | 10 | Packages | Can grant all paid exams, selected categories, selected exams |
 | 11 | Website | No exams, no login (Phase-1); basic contact form; Download App / Open App flow |
-| 12 | Leaderboard privacy | Display-name mode defaults to `masked` on both the public website and the app; phone/email are never exposed; the mode becomes configurable (separately for website and app) through the Milestone 6 site settings |
+| 12 | Leaderboard privacy | Display-name mode defaults to `masked` on both the public website and the app; phone/email are never exposed; the mode becomes configurable (separately for website and app) through the Milestone 6 site settings *(built in 6A: `GET/PATCH /admin/settings/`)* |
 | 13 | Reports | Phase-1 = basic operational dashboard statistics; advanced analytics = Phase-2 |
 | 14 | Answer saving | No full offline exam mode; local temporary state + server autosave + retry/sync after temporary disconnection; server is source of truth |
 | 15 | Server-side controls | Timer, eligibility, submission, scoring, negative marking, payment verification, subscription access |

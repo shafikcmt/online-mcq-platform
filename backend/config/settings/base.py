@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.attempts",
     "apps.results",
     "apps.payments",
+    "apps.cms",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -202,7 +203,8 @@ LANGUAGES = [
     ("bn", _("Bangla")),
     ("en", _("English")),
 ]
-# Platform default (Mobile App + Public Website default to Bangla).
+# Platform default (Mobile App + Public Website default to Bangla). Admin-editable in the
+# site settings (Milestone 6A); this value applies until they are first saved.
 LANGUAGE_CODE = env_str("DEFAULT_LANGUAGE", "bn")
 # Default for Admin Panel API requests (/api/v1/admin/...) when the client sends no language.
 ADMIN_DEFAULT_LANGUAGE = env_str("ADMIN_DEFAULT_LANGUAGE", "en")
@@ -281,6 +283,7 @@ AUTH_THROTTLE_RATES = {
     "token_refresh": env_str("THROTTLE_TOKEN_REFRESH", "120/hour"),
     "payment_init": env_str("THROTTLE_PAYMENT_INIT", "10/hour"),  # per student
     "payment_callback": env_str("THROTTLE_PAYMENT_CALLBACK", "120/minute"),  # per client IP
+    "contact_form": env_str("THROTTLE_CONTACT_FORM", "5/hour"),  # per client IP
 }
 
 SPECTACULAR_SETTINGS = {
@@ -301,6 +304,9 @@ SPECTACULAR_SETTINGS = {
         "PaymentStatusEnum": "apps.payments.models.PaymentStatus",
         "PaymentProviderEnum": "apps.payments.models.PaymentProvider",
         "PaymentEventTypeEnum": "apps.payments.models.PaymentEventType",
+        "ContactStatusEnum": "apps.cms.models.ContactStatus",
+        "LeaderboardNameModeEnum": "apps.cms.models.LeaderboardNameMode",
+        "AnnouncementAudienceEnum": "apps.cms.models.Audience",
     },
 }
 # API docs (/api/schema/, /api/docs/) are exposed only when enabled (on in dev, off in prod).
@@ -343,12 +349,17 @@ ATTEMPT_FINALIZE_BATCH_SIZE = env_int("ATTEMPT_FINALIZE_BATCH_SIZE", 200)
 ATTEMPT_FINALIZE_MAX_BATCHES = env_int("ATTEMPT_FINALIZE_MAX_BATCHES", 50)
 
 # Results & merit (Milestone 4C). Leaderboard name modes: masked (default) | initials |
-# display_name | full_name — never phone/email. Moved to the admin-editable site
-# settings in Milestone 6; these are the defaults until then.
+# display_name | full_name — never phone/email. Admin-editable in the site settings
+# (Milestone 6A, ``cms``); these are the defaults until the settings are first saved.
 LEADERBOARD_PUBLIC_NAME_MODE = env_str("LEADERBOARD_PUBLIC_NAME_MODE", "masked")
 LEADERBOARD_APP_NAME_MODE = env_str("LEADERBOARD_APP_NAME_MODE", "masked")
 # Rows on the public (website) leaderboard ("top N").
 LEADERBOARD_PUBLIC_SIZE = env_int("LEADERBOARD_PUBLIC_SIZE", 100)
+
+# The app's own URL scheme for the website's "Open App" link (e.g. "mcqapp" →
+# mcqapp://open). Site settings accept only https:// or this exact scheme for
+# app_open_url; empty = https:// only (no app scheme configured yet).
+APP_DEEP_LINK_SCHEME = env_str("APP_DEEP_LINK_SCHEME", "")
 
 # Subscription expiry job (Milestone 5): rows per transaction, transactions per run.
 SUBSCRIPTION_EXPIRY_BATCH_SIZE = env_int("SUBSCRIPTION_EXPIRY_BATCH_SIZE", 500)

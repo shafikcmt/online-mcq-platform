@@ -125,6 +125,17 @@ and a `field_errors` entry; nothing is saved. Other unknown fields are ignored.
 | POST | `/public/contact` | Basic contact form `{name, phone?, email?, subject, message}` — throttled + honeypot field; stored in `contact_messages` |
 | GET | `/public/app-links` | Play Store URL + app open URL for the "Download / Open App" flow (from site settings) |
 
+*(Milestone 6A — built: `/public/settings/` → `{platform_name, tagline, address, contact_email,
+contact_phone, app_download_url, app_open_url, default_language}` (text in the request language with
+fallback; leaderboard modes stay server-side). `/public/app-links/` → `{app_download_url,
+app_open_url}`. `/public/announcements/` (paginated) → `{title, body, is_pinned, published_at,
+expires_at}`, audience `public`/`all`, published and not expired, pinned first then newest.
+`/public/faqs/` (paginated) → `{question, answer}`, active, by `sort_order`. `/public/pages/{slug}/` →
+`{slug, title, body, updated_at}`; inactive or unknown → `404`. No ids or admin fields anywhere.
+`POST /public/contact/` → always `202 {"status": "received"}` for valid input (a filled honeypot field
+`website` stores nothing); `400` field errors for invalid input; `429` from the `contact_form` throttle.
+Only `name`, `phone`, `email`, `subject`, `message`, `website` are read; `language` = request language.)*
+
 The website has **no login** in Phase-1; all website endpoints are under `/public/*`.
 
 ### 3.3 Student — profile & dashboard
@@ -135,7 +146,7 @@ The website has **no login** in Phase-1; all website endpoints are under `/publi
 | GET | `/me/subscriptions` | Active and past subscriptions *(4A: own rows only; `package {slug, name}`, `status`, `effective_status` = `active`/`scheduled`/`expired`/`cancelled` computed from server time, `starts_at`, `expires_at`; no ids, no price)* |
 | GET | `/me/notifications` | Paginated **in-app** notifications, rendered in the user's language |
 | POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read |
-| GET | `/announcements` | Notices for students + public |
+| GET | `/announcements` | Notices for students + public *(6A: audience `students`/`all`, same shape and rules as `/public/announcements/`)* |
 
 ### 3.4 Student — exams & attempts (exam engine)
 | Method | Path | Purpose |
@@ -314,8 +325,8 @@ comes from the request); without it they answer that JSON. IPN always answers `2
 | Packages | `GET/POST /admin/packages`, `GET/PATCH/DELETE /admin/packages/{id}`, nested access rules *(4A: filters `status`, `is_featured`, `search`; `ordering` = `id`, `sort_order`, `price`, `validity_days`, `created_at`, `updated_at`. `DELETE` of a package with subscriptions → `409 in_use`. Rules: `GET/PATCH /admin/packages/{id}/access-rules` with `{"rules": [{"rule_type": "all_paid_exams"\|"category"\|"exam", "category"?, "exam"?}]}` — the **complete** list, replaced atomically; exam rules need a paid exam)* |
 | Subscriptions | `GET /admin/subscriptions` (filter active/expired, package, user), `POST /admin/subscriptions` (manual grant — audited) *(4A — manual grant approved for Phase-1, ROADMAP decisions log #16: support, testing and legitimate manual entitlements; admin session + CSRF + admin role; every grant/extension audited; no Payment row needed; never available to students or the public. `GET /admin/subscriptions` filters `status`, `active` (computed from server time), `package`, `user`; `GET /admin/subscriptions/{id}`; `POST /admin/subscriptions/grant` `{user, package, price_paid?, starts_at?}` → `201` new or `200` extension of the running subscription to the same package; `POST /admin/subscriptions/{id}/cancel` → `409 already_cancelled` / `subscription_expired` when not running. Status is read-only — no PATCH/PUT/DELETE.)* |
 | Payments | `GET /admin/payments` (filter status/provider/date), `GET /admin/payments/{id}` (with events), `POST /admin/payments/{id}/reverify` (re-query provider) *(M5 — built with `{id}` = the payment's `payment_id` UUID. List filters `status`, `provider`, `user`, `package`, `created_from`/`created_to` (UTC dates), `search` (exact merchant reference or transaction ID); `ordering` = `id`, `created_at`, `updated_at`, `amount`, `verified_at`. Detail adds the sanitized `raw_verification` and `events`. Re-verify queries the provider and applies its answer exactly like a callback (audited `payment.reverify`; `409 provider_disabled`); for a `failed`/`cancelled` payment that the provider proves was paid this performs the late-success recovery. No PATCH/PUT/DELETE and no "mark success".)* |
-| Contact messages | `GET /admin/contact-messages`, `PATCH /admin/contact-messages/{id}` (status) |
-| Content | `GET/PATCH /admin/settings` (incl. default language, leaderboard name modes, app links), CRUD `/admin/announcements`, CRUD `/admin/faqs`, CRUD `/admin/pages` |
+| Contact messages | `GET /admin/contact-messages`, `PATCH /admin/contact-messages/{id}` (status) *(6A — built: also `GET /admin/contact-messages/{id}`; filters `status`, `language`, `search` (name, e-mail, phone, subject); `ordering` = `id`, `created_at`, `updated_at`, `status`. PATCH accepts only `{status: new\|read\|resolved}`, records `handled_by`, audited `contact_message.status`. No create/delete/reply. The sender IP is never returned.)* |
+| Content | `GET/PATCH /admin/settings` (incl. default language, leaderboard name modes, app links), CRUD `/admin/announcements`, CRUD `/admin/faqs`, CRUD `/admin/pages` *(6A — built: `GET/PATCH /admin/settings/` returns environment defaults until first saved; announcements filters `audience`, `published`, `is_pinned`, `search`, with a computed `state` = `draft`/`scheduled`/`live`/`expired`; FAQ and pages filter `is_active`, `search`. Every create/update/delete is audited (`site_settings.update`, `announcement.*`, `faq.*`, `page.*`); unchanged updates write nothing.)* |
 | Uploads | `POST /admin/uploads/image` (type/size validated) |
 | Audit | `GET /admin/audit-logs` (read-only; filters `action`, `entity_type`, `entity_id`, `actor`) |
 

@@ -6,8 +6,9 @@ Order (docs/LOCALIZATION.md §3.2):
 3. the authenticated user's ``preferred_language`` — applied by the JWT
    authentication class (``apps.accounts.authentication``) when 1–2 are absent
 4. Default: ``ADMIN_DEFAULT_LANGUAGE`` (English) for Admin Panel API paths and the
-   internal Django admin, otherwise ``LANGUAGE_CODE`` (Bangla — Mobile App and
-   Public Website default).
+   internal Django admin, otherwise the platform default language from the site
+   settings (Milestone 6A; cached), falling back to ``LANGUAGE_CODE`` (Bangla — Mobile
+   App and Public Website default).
 """
 
 from django.conf import settings
@@ -54,4 +55,6 @@ class LanguageMiddleware:
         admin_prefixes = (settings.ADMIN_API_PATH_PREFIX, "/" + settings.DJANGO_ADMIN_URL)
         if request.path.startswith(admin_prefixes):
             return settings.ADMIN_DEFAULT_LANGUAGE
-        return settings.LANGUAGE_CODE
+        from apps.cms.selectors import platform_default_language
+
+        return platform_default_language(settings.LANGUAGE_CODE)

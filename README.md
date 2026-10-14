@@ -49,7 +49,8 @@ online-mcq-platform/
 │   │   ├── subscriptions/    packages, access rules, subscriptions, exam access check
 │   │   ├── attempts/         exam engine: start/resume, answers, submit, auto-finalize
 │   │   ├── results/          scoring, result visibility, answer review, merit, leaderboards
-│   │   └── payments/         payments + event log, gateways (mock, SSLCommerz), verification
+│   │   ├── payments/         payments + event log, gateways (mock, SSLCommerz), verification
+│   │   └── cms/              site settings, announcements, FAQ, pages, contact form inbox
 │   ├── locale/               translation files (bn, en)
 │   ├── tests/                automated tests (pytest)
 │   ├── requirements/         base.txt (runtime) and dev.txt (+ test/lint tools)
@@ -162,6 +163,14 @@ Exam engine (student token): `POST /api/v1/exams/{slug}/attempts/` starts or res
 answers are saved with `PUT /api/v1/attempts/{id}/answers/{question_id}/` (or the batch
 `PUT …/answers/`) and the attempt is submitted with `POST /api/v1/attempts/{id}/submit/`. The
 `celery-beat` service finalizes abandoned attempts every minute and generates merit lists.
+
+Content (Milestone 6A): admins edit `/api/v1/admin/settings/` (platform name, contact info, app
+links, default language, leaderboard name modes), `/api/v1/admin/announcements/`, `/api/v1/admin/faqs/`,
+`/api/v1/admin/pages/` and read the website contact inbox at `/api/v1/admin/contact-messages/` (status
+only; audited). Public: `/api/v1/public/settings/`, `/api/v1/public/app-links/`,
+`/api/v1/public/announcements/`, `/api/v1/public/faqs/`, `/api/v1/public/pages/{slug}/` and the contact
+form `POST /api/v1/public/contact/` (throttled, honeypot field `website`). Students see app notices at
+`GET /api/v1/announcements/`. All content is plain text in Bangla and English.
 
 Results (student token): `GET /api/v1/results/`, `/api/v1/results/{attempt_id}/`, answer review at
 `/api/v1/results/{attempt_id}/review/`, and `GET /api/v1/exams/{slug}/leaderboard/`. The public merit

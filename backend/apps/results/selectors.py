@@ -17,17 +17,19 @@ Answer review additionally needs ``exam.allow_answer_review``.
 import unicodedata
 from datetime import datetime
 
-from django.conf import settings
 from django.db.models import Prefetch, Q
 
 from apps.attempts.models import AttemptAnswer, ExamAttempt
+from apps.cms import selectors as cms
+from apps.cms.models import LeaderboardNameMode
 from apps.core.i18n import resolve_bilingual
 from apps.exams.models import ContentLanguage, Exam, ResultVisibility
 from apps.questions.models import QuestionOption
 
 from .models import Result
 
-NAME_MODES = ("masked", "initials", "display_name", "full_name")
+# The single list of modes lives with the site settings that choose between them.
+NAME_MODES = tuple(LeaderboardNameMode.values)
 
 
 # --------------------------------------------------------------------------------------
@@ -110,13 +112,9 @@ def display_name_for(user, mode: str) -> str:
 
 
 def leaderboard_name_mode(channel: str) -> str:
-    """``public`` (website) or ``app``. Read from settings until the site settings of
-    Milestone 6 exist; anything unknown falls back to the documented default."""
-    value = (
-        settings.LEADERBOARD_PUBLIC_NAME_MODE
-        if channel == "public"
-        else settings.LEADERBOARD_APP_NAME_MODE
-    )
+    """``public`` (website) or ``app``: the admin's choice in the site settings
+    (environment defaults until they are first saved); anything unknown → ``masked``."""
+    value = cms.leaderboard_name_mode(channel)
     return value if value in NAME_MODES else "masked"
 
 

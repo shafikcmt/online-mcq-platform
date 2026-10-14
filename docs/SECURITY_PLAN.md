@@ -123,6 +123,11 @@
   as HTML, always rendered escaped. A sanitizer is only needed if rich text is approved later.)*
 - Text is **Unicode NFC-normalized**; Bangla and Western digits normalized in numeric inputs on the server.
 - **Contact form:** throttled per IP, hidden honeypot field, length limits, stored as plain text (escaped on display in admin), no file attachments.
+  *(Milestone 6A: CMS text — announcements, FAQ, pages, site settings — is plain text too, never HTML.
+  App links accept only `https://` or the project's own configured app scheme
+  (`APP_DEEP_LINK_SCHEME`); every other scheme — `javascript:`/`data:`/`vbscript:`/`file:`/`http:`
+  and other apps' schemes — is refused by validation, and a database CHECK refuses the dangerous ones. Site settings hold no secrets; credentials and
+  business rules stay in environment settings.)*
 - File uploads (images): extension + MIME + real image check (Pillow), size limit (e.g. 2 MB), random file names, served as static files, never executed.
   *(Milestone 3B, question images: the filename and declared type are ignored; Pillow detects the format
   (JPEG/PNG/WebP only), size and pixel limits are settings, the image is **re-encoded** (drops EXIF/GPS and
@@ -200,7 +205,7 @@
 - [ ] Retake blocked when `allow_retake=false` or `max_attempts` reached; live exam allows only one attempt
 - [x] SSLCommerz success redirect without a valid Validation API response → no subscription *(M5 tests with mocked provider HTTP; live sandbox run pending credentials)*
 - [ ] Public leaderboard never returns full name when mode is `masked`, and never phone/email
-- [ ] Contact form throttling and honeypot work; HTML in messages is not rendered
+- [x] Contact form throttling and honeypot work; HTML in messages is not rendered *(6A tests: per-IP throttle counts invalid and honeypot posts too; spoofed X-Forwarded-For ignored; honeypot stores nothing and answers like a real submission; messages and CMS text stored as plain text; logs carry only the message id and language)*
 - [ ] Bangla-digit phone/OTP input is accepted and normalized
 
 ---

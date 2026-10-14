@@ -31,7 +31,7 @@ Students never see a database field name or a translation key — they only see 
 ### 3.1 Language preferences
 | Setting | Stored in | Default |
 |---|---|---|
-| Platform default language | `site_settings.default_language` (admin-configurable) | `bn` (proposal — confirm with owner) |
+| Platform default language | `site_settings.default_language` (admin-configurable) | `bn` (proposal — confirm with owner) *(6A: built. Cached for 5 minutes; saving clears the cache entry, but application instances that do not share that cache may use the old default until their entry expires — maximum propagation delay = the 5-minute TTL (accepted 6A limitation, no distributed invalidation). Until first saved, or if the cache/database fails, the environment `DEFAULT_LANGUAGE` is used.)* |
 | Student UI language | `student_profiles.preferred_language` (synced from app) | device language if `bn`/`en`, else platform default |
 | Admin UI language | `users.preferred_language` | `en` (proposal) |
 | Website visitor language | URL prefix `/bn/…` or `/en/…` + cookie | platform default |
