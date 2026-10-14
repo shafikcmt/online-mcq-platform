@@ -95,6 +95,25 @@
 - Reconciliation job re-queries pending payments.
 - Admin cannot silently mark a payment successful; "re-verify" calls the provider; any manual override (if ever allowed) is audited.
 - Provider keys (bKash app secret, Nagad private key, SSLCommerz store password) only in env/secret files with restricted permissions.
+- *(Milestone 5 — as built)* Callback/return URLs are built from server settings
+  (`PAYMENT_CALLBACK_BASE_URL`, `PAYMENT_RETURN_URL`), never from the request (no open redirect).
+  Fail/cancel callbacks also query the provider, so a forged "cancel" cannot end a paid payment;
+  a provider answer about another reference (e.g. a replayed `val_id`) changes nothing. Amount,
+  currency, reference and a non-reused provider transaction ID must all match before success;
+  SSLCommerz `risk_level = 1` is held (no activation). A `failed`/`cancelled` payment can
+  become `success` only through the provider-verified late-success path (all facts must match;
+  never from a callback parameter, an API or an admin edit). Provider authenticity is
+  established only by the server-side gateway verification service; a database trigger
+  additionally prevents accidental or ordinary direct status mutations that violate the payment
+  state machine (it guards the shape of transitions and, with CHECK constraints, success-row
+  integrity — not that a verification happened). A compromised database superuser is outside the
+  application's threat boundary (protected by database credentials and access control).
+  Payment events and `raw_verification`
+  store allow-listed provider fields only. Logs carry ids/references/statuses only (no contact
+  data, secrets or payloads). Production refuses `PAYMENT_PROVIDER=mock` (and forces the mock
+  gateway off), missing SSLCommerz credentials, the SSLCommerz sandbox (unless
+  `PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true` on a non-public test server), a non-https callback
+  base URL and an empty return URL.
 
 ### 3.6 Input validation & injection
 - All input passes through DRF serializers (types, lengths, choices, ranges).
@@ -170,16 +189,16 @@
 - [ ] Student A cannot read Student B's attempt/result/payment (IDOR tests)
 - [ ] Student token rejected on `/admin/*`
 - [ ] Paid exam without subscription → 403
-- [ ] Fake payment callback without provider verification → payment stays pending
-- [ ] Replayed success callback → no second subscription
-- [ ] Tampered amount → payment fails verification
+- [x] Fake payment callback without provider verification → payment stays pending *(M5 tests)*
+- [x] Replayed success callback → no second subscription *(M5 tests, incl. concurrent callback/IPN/reconciliation)*
+- [x] Tampered amount → payment fails verification *(M5 tests: amount, currency, reference, reused transaction ID)*
 - [ ] OTP brute-force → locked after N tries; OTP resend cooldown works
 - [ ] XSS payload in question text/announcement is neutralized *(3B: stored as plain text; clients must escape)*
 - [ ] Production settings check fails with placeholder secrets / DEBUG on
 - [ ] Deactivated user cannot log in or refresh
 - [ ] Late join on a live exam gets only time until global end
 - [ ] Retake blocked when `allow_retake=false` or `max_attempts` reached; live exam allows only one attempt
-- [ ] SSLCommerz success redirect without a valid Validation API response → no subscription
+- [x] SSLCommerz success redirect without a valid Validation API response → no subscription *(M5 tests with mocked provider HTTP; live sandbox run pending credentials)*
 - [ ] Public leaderboard never returns full name when mode is `masked`, and never phone/email
 - [ ] Contact form throttling and honeypot work; HTML in messages is not rendered
 - [ ] Bangla-digit phone/OTP input is accepted and normalized

@@ -225,6 +225,16 @@ Provider ──callback/IPN──► Django
   5. Idempotent: a repeated callback does nothing new
 App polls GET /api/v1/payments/{id}/ to show final status
 ```
+*(Milestone 5, as built: the payment row is created `initiated` and becomes `pending` once the
+provider session exists; the provider call runs outside any transaction. Fail/cancel callbacks
+also ask the provider (`query`) before closing a payment. Step 4 is
+`payments.services.apply_verification`: lock the payment row, re-read its status (already
+successful → nothing new), compare reference/amount/currency/transaction ID, then
+`subscriptions.services.grant_subscription` + `Payment=success` in one transaction. The same
+function serves callbacks, IPN, the reconciliation job and admin re-verify. A closed
+(`failed`/`cancelled`) payment that the provider later proves was paid is recovered there too —
+`late_provider_success`, never a manual grant.)*
+
 The `PaymentGateway` interface (`initiate`, `handle_callback`, `verify`, `query`) lets bKash and
 Nagad be added later as new gateway classes without changing the API, database or clients.
 
@@ -237,8 +247,8 @@ Nagad be added later as new gateway classes without changing the API, database o
 | Send OTP SMS | On OTP request | External HTTP call can be slow; retry on failure (SMS is used **only for OTP** in Phase-1) |
 | Create in-app notifications | Result published, payment success, subscription expiring | Notifications are **in-app only** in Phase-1 (push/SMS/email = future channels) |
 | Auto-finalize expired attempts | Celery beat, every 1 min | Student may have closed the app; result must still be produced |
-| Expire subscriptions | Celery beat, hourly | Change `active` → `expired` status for reporting (access checks also compare dates directly) |
-| Reconcile pending payments | Celery beat, every 10–15 min | Re-query provider for payments stuck in `pending` |
+| Expire subscriptions | Celery beat, hourly | Change `active` → `expired` status for reporting (access checks also compare dates directly) *(M5: `subscriptions.tasks.expire_subscriptions_task`; bounded batches, skips rows locked by a grant)* |
+| Reconcile pending payments | Celery beat, every 10–15 min | Re-query provider for payments stuck in `pending` *(M5: `payments.tasks.reconcile_payments_task`, every `PAYMENT_RECONCILE_INTERVAL_SECONDS` = 600 s; payments older than 15 min, least recently checked first, bounded; success only through the provider's answer; closed as `abandoned` only if the provider has no record after 24 h)* |
 | Generate merit positions | After exam window closes / on admin request | Ranking many results is heavier work; applies the exam's `merit_strategy` *(4C: Celery beat every 5 min re-ranks ended — or open-ended — exams with new counted results; open-ended leaderboards can lag by that interval)* |
 | Clean expired OTPs | Celery beat, daily | Keep tables small |
 

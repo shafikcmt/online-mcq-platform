@@ -1088,3 +1088,124 @@ msgstr ""
 
 msgid "Online MCQ administration"
 msgstr ""
+
+msgid "Enter a valid date (YYYY-MM-DD)."
+msgstr ""
+
+msgid "Payments"
+msgstr ""
+
+msgid "Only active student accounts can buy packages."
+msgstr ""
+
+msgid "This package is not on sale right now."
+msgstr ""
+
+msgid "This package is free and cannot be bought."
+msgstr ""
+
+msgid "The payment could not be started. Please try again in a few minutes."
+msgstr ""
+
+msgid ""
+"This Idempotency-Key was already used for a payment for another package."
+msgstr ""
+
+msgid "This payment provider is not enabled on this server."
+msgstr ""
+
+msgid "Initiated"
+msgstr ""
+
+msgid "Pending"
+msgstr ""
+
+msgid "Successful"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Mock (development)"
+msgstr ""
+
+msgid "SSLCommerz"
+msgstr ""
+
+msgid "bKash"
+msgstr ""
+
+msgid "Nagad"
+msgstr ""
+
+msgid "merchant reference"
+msgstr ""
+
+msgid "provider"
+msgstr ""
+
+msgid "amount"
+msgstr ""
+
+msgid "provider payment ID"
+msgstr ""
+
+msgid "provider transaction ID"
+msgstr ""
+
+msgid "checkout URL"
+msgstr ""
+
+msgid "verified at"
+msgstr ""
+
+msgid "failure reason"
+msgstr ""
+
+msgid "verification response"
+msgstr ""
+
+msgid "last checked at"
+msgstr ""
+
+msgid "payment"
+msgstr ""
+
+msgid "payments"
+msgstr ""
+
+msgid "Callback received"
+msgstr ""
+
+msgid "IPN received"
+msgstr ""
+
+msgid "Verification requested"
+msgstr ""
+
+msgid "Verification response"
+msgstr ""
+
+msgid "Status changed"
+msgstr ""
+
+msgid "Reconciliation"
+msgstr ""
+
+msgid "Admin re-verification"
+msgstr ""
+
+msgid "event type"
+msgstr ""
+
+msgid "payload"
+msgstr ""
+
+msgid "source IP"
+msgstr ""
+
+msgid "payment event"
+msgstr ""
+
+msgid "payment events"
+msgstr ""

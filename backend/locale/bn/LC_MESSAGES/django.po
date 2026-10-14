@@ -1130,3 +1130,125 @@ msgstr "অনলাইন MCQ — অভ্যন্তরীণ অ্যা�
 
 msgid "Online MCQ administration"
 msgstr "অনলাইন MCQ অ্যাডমিনিস্ট্রেশন"
+
+msgid "Enter a valid date (YYYY-MM-DD)."
+msgstr "একটি সঠিক তারিখ লিখুন (YYYY-MM-DD)।"
+
+msgid "Payments"
+msgstr "পেমেন্ট"
+
+msgid "Only active student accounts can buy packages."
+msgstr "শুধু সক্রিয় শিক্ষার্থী অ্যাকাউন্ট প্যাকেজ কিনতে পারে।"
+
+msgid "This package is not on sale right now."
+msgstr "এই প্যাকেজটি এখন বিক্রি হচ্ছে না।"
+
+msgid "This package is free and cannot be bought."
+msgstr "এই প্যাকেজটি বিনামূল্যের, তাই কেনা যায় না।"
+
+msgid "The payment could not be started. Please try again in a few minutes."
+msgstr "পেমেন্ট শুরু করা যায়নি। কয়েক মিনিট পর আবার চেষ্টা করুন।"
+
+msgid ""
+"This Idempotency-Key was already used for a payment for another package."
+msgstr ""
+"এই Idempotency-Key আগে অন্য একটি প্যাকেজের পেমেন্টে ব্যবহার করা হয়েছে।"
+
+msgid "This payment provider is not enabled on this server."
+msgstr "এই সার্ভারে এই পেমেন্ট প্রোভাইডার চালু নেই।"
+
+msgid "Initiated"
+msgstr "শুরু হয়েছে"
+
+msgid "Pending"
+msgstr "অপেক্ষমাণ"
+
+msgid "Successful"
+msgstr "সফল"
+
+msgid "Failed"
+msgstr "ব্যর্থ"
+
+msgid "Mock (development)"
+msgstr "মক (ডেভেলপমেন্ট)"
+
+msgid "SSLCommerz"
+msgstr "SSLCommerz"
+
+msgid "bKash"
+msgstr "বিকাশ"
+
+msgid "Nagad"
+msgstr "নগদ"
+
+msgid "merchant reference"
+msgstr "মার্চেন্ট রেফারেন্স"
+
+msgid "provider"
+msgstr "প্রোভাইডার"
+
+msgid "amount"
+msgstr "পরিমাণ"
+
+msgid "provider payment ID"
+msgstr "প্রোভাইডারের পেমেন্ট আইডি"
+
+msgid "provider transaction ID"
+msgstr "প্রোভাইডারের লেনদেন আইডি"
+
+msgid "checkout URL"
+msgstr "চেকআউট ইউআরএল"
+
+msgid "verified at"
+msgstr "যাচাইয়ের সময়"
+
+msgid "failure reason"
+msgstr "ব্যর্থতার কারণ"
+
+msgid "verification response"
+msgstr "যাচাইয়ের উত্তর"
+
+msgid "last checked at"
+msgstr "সর্বশেষ যাচাইয়ের সময়"
+
+msgid "payment"
+msgstr "পেমেন্ট"
+
+msgid "payments"
+msgstr "পেমেন্টসমূহ"
+
+msgid "Callback received"
+msgstr "কলব্যাক পাওয়া গেছে"
+
+msgid "IPN received"
+msgstr "IPN পাওয়া গেছে"
+
+msgid "Verification requested"
+msgstr "যাচাইয়ের অনুরোধ করা হয়েছে"
+
+msgid "Verification response"
+msgstr "যাচাইয়ের উত্তর"
+
+msgid "Status changed"
+msgstr "অবস্থা পরিবর্তিত হয়েছে"
+
+msgid "Reconciliation"
+msgstr "মিলিয়ে দেখা (রিকনসিলিয়েশন)"
+
+msgid "Admin re-verification"
+msgstr "অ্যাডমিনের পুনর্যাচাই"
+
+msgid "event type"
+msgstr "ইভেন্টের ধরন"
+
+msgid "payload"
+msgstr "ডেটা"
+
+msgid "source IP"
+msgstr "উৎস আইপি"
+
+msgid "payment event"
+msgstr "পেমেন্ট ইভেন্ট"
+
+msgid "payment events"
+msgstr "পেমেন্ট ইভেন্টসমূহ"

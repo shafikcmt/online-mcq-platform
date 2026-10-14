@@ -79,9 +79,17 @@ jobs:
           DJANGO_ALLOWED_HOSTS: api.example.com
           # No real SMS provider exists yet; explicitly allowed for this check only.
           SMS_ALLOW_MOCK_IN_PRODUCTION: "true"
+          # Payments: production refuses the mock provider. Placeholder (non-secret)
+          # SSLCommerz values and the sandbox are allowed for this check only.
+          PAYMENT_PROVIDER: sslcommerz
+          SSLCOMMERZ_STORE_ID: ci-config-check
+          PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION: "true"
+          PAYMENT_CALLBACK_BASE_URL: https://api.example.com
+          PAYMENT_RETURN_URL: https://example.com/payment-return
         run: |
           DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
           JWT_SIGNING_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+          SSLCOMMERZ_STORE_PASSWORD="$(python -c 'import secrets; print(secrets.token_urlsafe(16))')" \
             python manage.py check --deploy --fail-level WARNING
 
       - name: No missing migrations
