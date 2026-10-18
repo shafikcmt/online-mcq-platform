@@ -161,7 +161,7 @@ API returns `"title": "...", "title_lang": "en"` only where a fallback happened 
 - [ ] Fallback works when one content language is missing
 - [ ] Exam with `content_language=both` toggles question language without losing selected answers
 - [ ] Error messages localized; `code` unchanged across languages
-- [ ] Notifications re-render in the new language after switching
+- [x] Notifications re-render in the new language after switching *(6B: rendered from gettext templates + bilingual name snapshots at read time; tested with `Accept-Language` and `preferred_language`)*
 - [ ] OTP SMS correct in both languages and within the intended segment length
 - [ ] Website `hreflang`, `lang` attributes and localized metadata correct
 - [ ] Search finds Bangla questions (NFC-normalized, trigram)

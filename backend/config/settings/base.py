@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "apps.results",
     "apps.payments",
     "apps.cms",
+    "apps.notifications",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -183,6 +184,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.results.tasks.generate_due_merit_task",
         "schedule": 300.0,
     },
+    # docs/ARCHITECTURE.md §7: in-app "result published" notifications once results are
+    # visible (admin publication triggers it at once; this catches after_exam_end).
+    "notify-visible-results": {
+        "task": "apps.results.tasks.notify_visible_results_task",
+        "schedule": float(env_int("RESULT_NOTIFY_INTERVAL_SECONDS", 120)),
+    },
     # docs/ARCHITECTURE.md §7: mark subscriptions past expires_at as expired (bookkeeping;
     # access is computed from server time and never waits for this job).
     "expire-subscriptions": {
@@ -304,6 +311,7 @@ SPECTACULAR_SETTINGS = {
         "PaymentStatusEnum": "apps.payments.models.PaymentStatus",
         "PaymentProviderEnum": "apps.payments.models.PaymentProvider",
         "PaymentEventTypeEnum": "apps.payments.models.PaymentEventType",
+        "NotificationTypeEnum": "apps.notifications.models.NotificationType",
         "ContactStatusEnum": "apps.cms.models.ContactStatus",
         "LeaderboardNameModeEnum": "apps.cms.models.LeaderboardNameMode",
         "AnnouncementAudienceEnum": "apps.cms.models.Audience",
@@ -355,6 +363,12 @@ LEADERBOARD_PUBLIC_NAME_MODE = env_str("LEADERBOARD_PUBLIC_NAME_MODE", "masked")
 LEADERBOARD_APP_NAME_MODE = env_str("LEADERBOARD_APP_NAME_MODE", "masked")
 # Rows on the public (website) leaderboard ("top N").
 LEADERBOARD_PUBLIC_SIZE = env_int("LEADERBOARD_PUBLIC_SIZE", 100)
+
+# In-app "result published" notifications (Milestone 6B): only results that became
+# visible after the rollout boundary (``notifications.NotificationRollout``, recorded by
+# migration) are announced; rows per batch and batches per run keep each job bounded.
+RESULT_NOTIFY_BATCH_SIZE = env_int("RESULT_NOTIFY_BATCH_SIZE", 500)
+RESULT_NOTIFY_MAX_BATCHES = env_int("RESULT_NOTIFY_MAX_BATCHES", 20)
 
 # The app's own URL scheme for the website's "Open App" link (e.g. "mcqapp" →
 # mcqapp://open). Site settings accept only https:// or this exact scheme for

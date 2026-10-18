@@ -1389,3 +1389,47 @@ msgstr ""
 
 msgid "contact messages"
 msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Payment successful"
+msgstr ""
+
+msgid "Result published"
+msgstr ""
+
+msgid "type"
+msgstr ""
+
+msgid "source ID"
+msgstr ""
+
+msgid "parameters"
+msgstr ""
+
+msgid "read at"
+msgstr ""
+
+msgid "notification"
+msgstr ""
+
+msgid "notifications"
+msgstr ""
+
+#, python-format
+msgid ""
+"Your payment for “%(name)s” was successful. Your subscription is now active."
+msgstr ""
+
+#, python-format
+msgid "Your result for “%(name)s” is now available."
+msgstr ""
+
+#: apps/notifications/models.py
+msgid "notification rollout"
+msgstr "notification rollout"
+
+#: apps/notifications/models.py
+msgid "notification rollouts"
+msgstr "notification rollouts"

@@ -41,6 +41,7 @@ from django.utils import timezone
 
 from apps.audit import services as audit
 from apps.audit.services import AuditContext
+from apps.notifications.services import notify_payment_success
 from apps.subscriptions.models import Package, PackageStatus
 from apps.subscriptions.services import grant_subscription
 
@@ -332,6 +333,8 @@ def _succeed(payment: Payment, result: VerificationResult, now, ip, *, recovery=
                 recovery=recovery,
                 previous_reason=previous_reason if recovery else "",
             )
+            # Same savepoint: rolled back with the success; one per payment (DB guard).
+            notify_payment_success(payment)
             if recovery:
                 audit.record(
                     SYSTEM,

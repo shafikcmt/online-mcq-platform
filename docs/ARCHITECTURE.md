@@ -245,7 +245,7 @@ Nagad be added later as new gateway classes without changing the API, database o
 | Job | Trigger | Why it runs in background |
 |---|---|---|
 | Send OTP SMS | On OTP request | External HTTP call can be slow; retry on failure (SMS is used **only for OTP** in Phase-1) |
-| Create in-app notifications | Result published, payment success, subscription expiring | Notifications are **in-app only** in Phase-1 (push/SMS/email = future channels) |
+| Create in-app notifications | Result published, payment success, subscription expiring | Notifications are **in-app only** in Phase-1 (push/SMS/email = future channels) *(6B: payment success is written in the payment's success transaction; result published at scoring when already visible, by a task after admin publication, and by Celery beat `notify-visible-results` every 2 min for `after_exam_end` and as the catch-up for anything missed since the rollout boundary; subscription expiring not built yet)* |
 | Auto-finalize expired attempts | Celery beat, every 1 min | Student may have closed the app; result must still be produced |
 | Expire subscriptions | Celery beat, hourly | Change `active` → `expired` status for reporting (access checks also compare dates directly) *(M5: `subscriptions.tasks.expire_subscriptions_task`; bounded batches, skips rows locked by a grant)* |
 | Reconcile pending payments | Celery beat, every 10–15 min | Re-query provider for payments stuck in `pending` *(M5: `payments.tasks.reconcile_payments_task`, every `PAYMENT_RECONCILE_INTERVAL_SECONDS` = 600 s; payments older than 15 min, least recently checked first, bounded; success only through the provider's answer; closed as `abandoned` only if the provider has no record after 24 h)* |
