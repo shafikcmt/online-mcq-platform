@@ -41,3 +41,17 @@ class PasswordChangeThrottle(SecurityThrottle):
 
     def identity(self, request, view):
         return f"user-{request.user.pk}"
+
+
+class AdminLoginIpThrottle(SecurityThrottle):
+    """Admin Panel sign-in, per client IP. Its own bucket: student logins never use it up
+    (and admin sign-ins never use up the student ``login_ip`` budget)."""
+
+    scope = "admin_login_ip"
+
+
+class AdminLoginThrottle(LoginThrottle):
+    """Admin Panel sign-in: per client IP + mobile number (own bucket, separate from the
+    student ``login`` scope)."""
+
+    scope = "admin_login"

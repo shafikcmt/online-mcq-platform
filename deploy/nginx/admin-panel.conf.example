@@ -1,0 +1,45 @@
+# Admin Panel — production nginx (EXAMPLE; adapt names, certificates and upstreams).
+# Browser → https://admin.example.com/...      (one origin, no CORS)
+#   /api/*  → Django   (direct; real client IP in X-Forwarded-For)
+#   else    → Next.js  (the panel; its production build has no /api proxy)
+# Django must NOT be reachable from the internet except through this proxy, because it
+# trusts the right-most X-Forwarded-For entry (TRUSTED_PROXY_COUNT=1). See docs/DEPLOYMENT.md.
+
+upstream django_api   { server django:8000; }   # gunicorn
+upstream admin_panel  { server admin:3000; }    # `next start`
+
+server {
+    listen 80;
+    server_name admin.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name admin.example.com;
+
+    ssl_certificate     /etc/ssl/admin.example.com/fullchain.pem;
+    ssl_certificate_key /etc/ssl/admin.example.com/privkey.pem;
+
+    client_max_body_size 10m;   # question images
+
+    # ---- API: straight to Django -------------------------------------------------------
+    location /api/ {
+        proxy_pass http://django_api;          # no URI part → path, trailing slash and query unchanged
+        proxy_set_header Host              $host;                      # Django CSRF origin check + ALLOWED_HOSTS
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for; # appends the real client IP on the right
+        proxy_set_header X-Forwarded-Proto $scheme;                    # SECURE_PROXY_SSL_HEADER
+        proxy_read_timeout 60s;
+    }
+
+    # ---- Everything else: the Next.js panel --------------------------------------------
+    location / {
+        proxy_pass http://admin_panel;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

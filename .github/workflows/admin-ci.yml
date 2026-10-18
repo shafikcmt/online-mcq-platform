@@ -1,0 +1,57 @@
+name: Admin Panel CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "admin/**"
+      - ".github/workflows/admin-ci.yml"
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "admin/**"
+      - ".github/workflows/admin-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admin:
+    name: Lint, types, tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit and component tests (Vitest)
+        run: npm test
+
+      # Production build: no /api proxy is compiled in (nginx routes /api/* in production).
+      - name: Production build
+        run: npm run build
+
+      # Playwright end-to-end tests need the full stack (Django, PostgreSQL, Redis, nginx) and
+      # are run locally/full-stack — see admin/README.md.
