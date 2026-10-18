@@ -187,6 +187,7 @@
 
 ## 4. Security testing checklist (Phase-1)
 
+- [x] In-app notifications: created only by server events (verified payment success, result visible) — no API can create or edit one; per-type allow-listed params (no provider data, contact data or amounts); own rows only (IDOR → 404); one per event by a unique index *(6B tests)*
 - [ ] Student API responses never contain `is_correct`/`explanation` before submission (automated test)
 - [ ] Submit twice → one result; concurrent submit → one result
 - [ ] Save at/after `deadline_at` → rejected (also during grace); submit after `deadline_at + grace` → not accepted, server finalizes (`server_auto`); Celery finalizes abandoned attempts

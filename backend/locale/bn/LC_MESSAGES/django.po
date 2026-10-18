@@ -1435,3 +1435,49 @@ msgstr "যোগাযোগ বার্তা"
 
 msgid "contact messages"
 msgstr "যোগাযোগ বার্তাসমূহ"
+
+msgid "Notifications"
+msgstr "নোটিফিকেশন"
+
+msgid "Payment successful"
+msgstr "পেমেন্ট সফল হয়েছে"
+
+msgid "Result published"
+msgstr "ফলাফল প্রকাশিত হয়েছে"
+
+msgid "type"
+msgstr "ধরন"
+
+msgid "source ID"
+msgstr "উৎস আইডি"
+
+msgid "parameters"
+msgstr "প্যারামিটার"
+
+msgid "read at"
+msgstr "পড়ার সময়"
+
+msgid "notification"
+msgstr "নোটিফিকেশন"
+
+msgid "notifications"
+msgstr "নোটিফিকেশনসমূহ"
+
+#, python-format
+msgid ""
+"Your payment for “%(name)s” was successful. Your subscription is now active."
+msgstr ""
+"“%(name)s”-এর জন্য আপনার পেমেন্ট সফল হয়েছে। আপনার সাবস্ক্রিপশন এখন চালু "
+"আছে।"
+
+#, python-format
+msgid "Your result for “%(name)s” is now available."
+msgstr "“%(name)s”-এর ফলাফল এখন দেখা যাচ্ছে।"
+
+#: apps/notifications/models.py
+msgid "notification rollout"
+msgstr "নোটিফিকেশন চালুর সময়"
+
+#: apps/notifications/models.py
+msgid "notification rollouts"
+msgstr "নোটিফিকেশন চালুর সময়সমূহ"

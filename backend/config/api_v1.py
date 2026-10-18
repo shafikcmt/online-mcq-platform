@@ -14,6 +14,7 @@ from apps.cms.api.urls import student_urlpatterns as cms_student_urlpatterns
 from apps.core.views import HealthView
 from apps.exams.api.urls import admin_urlpatterns as exam_admin_urlpatterns
 from apps.exams.api.urls import public_urlpatterns as exam_public_urlpatterns
+from apps.notifications.api.urls import me_urlpatterns as notification_me_urlpatterns
 from apps.payments.api.urls import admin_urlpatterns as payment_admin_urlpatterns
 from apps.payments.api.urls import student_urlpatterns as payment_student_urlpatterns
 from apps.questions.api.urls import admin_urlpatterns as question_admin_urlpatterns
@@ -44,6 +45,7 @@ urlpatterns = [
     path("me/", MeView.as_view(), name="me"),
     # Student JWT; every query is filtered by request.user.
     path("me/", include((subscription_me_urlpatterns, "me"))),
+    path("me/", include((notification_me_urlpatterns, "notifications"))),
     path("admin/", include((admin_urlpatterns, "admin"))),
     # Student exam engine (student JWT; every query filtered by request.user).
     path("", include((attempt_student_urlpatterns, "attempts"))),

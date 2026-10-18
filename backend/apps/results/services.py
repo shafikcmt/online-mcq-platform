@@ -20,8 +20,9 @@ started_at`` in whole seconds. Decimal only.
 import logging
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 
+from django.conf import settings
 from django.db import connection, transaction
-from django.db.models import F, Window
+from django.db.models import Exists, F, OuterRef, Q, Window
 from django.db.models.functions import RowNumber
 from django.http import Http404
 from django.utils import timezone
@@ -29,10 +30,12 @@ from django.utils import timezone
 from apps.attempts.models import AttemptAnswer, ExamAttempt
 from apps.audit import services as audit
 from apps.audit.services import AuditContext
-from apps.exams.models import Exam, ExamType, MeritStrategy
+from apps.exams.models import Exam, ExamType, MeritStrategy, ResultVisibility
+from apps.notifications import services as notifications
 
 from .exceptions import MERIT_DISABLED_MESSAGE, RESULT_OUT_OF_RANGE_MESSAGE, ResultError
 from .models import COLUMN_LIMIT, Result
+from .selectors import results_visible, visible_results_filter
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +136,11 @@ def record_result(attempt: ExamAttempt) -> Result:
         calculated_at=timezone.now(),
     )
     update_merit_selection(exam, attempt.user_id)
+    if results_visible(exam, result.calculated_at):
+        # Visible at once (immediate mode, or the exam is already published/ended): the
+        # student is told in the same transaction. Otherwise the result is announced when
+        # it becomes visible (publication or the exam's end — ``notify_visible_results``).
+        notifications.notify_results([notifications.result_notification(result, attempt, exam)])
     logger.info(
         "Result recorded attempt=%s user=%s exam=%s correct=%s wrong=%s unanswered=%s",
         attempt.public_id,
@@ -249,3 +257,73 @@ def generate_due_merit(*, limit: int = 50) -> int:
     for exam_id in exam_ids:
         generate_merit(exam_id)
     return len(exam_ids)
+
+
+# --------------------------------------------------------------------------------------
+# "Result published" notifications
+# --------------------------------------------------------------------------------------
+def _unannounced(now, boundary):
+    """Visible results whose visibility began at or after the rollout ``boundary`` and
+    that have no ``result_published`` notification yet.
+
+    A result becomes visible at the latest of: its scoring (``calculated_at``), the
+    admin publication (``result_published_at``) and, for ``after_exam_end``, the exam's
+    end. If any of those is at/after the boundary, visibility began after the rollout.
+    There is no look-back window: a result missed while workers were down is found on
+    the next run, however long the outage. Results visible before the rollout never
+    match, so they are never announced in bulk."""
+    from apps.notifications.models import Notification, NotificationType
+
+    announced = Notification.objects.filter(
+        type=NotificationType.RESULT_PUBLISHED, source_id=OuterRef("pk")
+    )
+    visible_since_rollout = (
+        Q(calculated_at__gte=boundary)
+        | Q(exam__result_published_at__gte=boundary)
+        | Q(exam__result_visibility=ResultVisibility.AFTER_EXAM_END, exam__end_at__gte=boundary)
+    )
+    return (
+        Result.objects.filter(visible_results_filter(now))
+        .filter(visible_since_rollout)
+        .exclude(Exists(announced))
+        .select_related("attempt", "exam")
+        .order_by("pk")
+    )
+
+
+def notify_visible_results(
+    *, exam_id: int | None = None, batch_size: int | None = None, max_batches: int | None = None
+) -> int:
+    """Tell students about results that have become visible (admin publication, or the
+    exam's end for ``after_exam_end``; also a safety net for anything missed). At most
+    ``max_batches × batch_size`` per run; the rest is picked up by the next run.
+    Idempotent — the unique ``(user, type, source_id)`` makes repeats and concurrent runs
+    harmless. One notification per result, ever: hiding and re-publishing does not
+    announce again."""
+    from apps.notifications.models import NotificationType
+
+    boundary = notifications.rollout_start(NotificationType.RESULT_PUBLISHED)
+    if boundary is None:  # fail closed: never announce history without a boundary
+        logger.warning("Result notification rollout boundary missing; nothing sent")
+        return 0
+    batch_size = batch_size or settings.RESULT_NOTIFY_BATCH_SIZE
+    max_batches = max_batches or settings.RESULT_NOTIFY_MAX_BATCHES
+    queryset = _unannounced(timezone.now(), boundary)
+    if exam_id is not None:
+        queryset = queryset.filter(exam_id=exam_id)
+    total = last_pk = 0
+    for _batch in range(max_batches):
+        rows = list(queryset.filter(pk__gt=last_pk)[:batch_size])
+        if not rows:
+            break
+        with transaction.atomic():
+            notifications.notify_results(
+                [notifications.result_notification(r, r.attempt, r.exam) for r in rows]
+            )
+        total += len(rows)
+        last_pk = rows[-1].pk
+        if len(rows) < batch_size:
+            break
+    if total:
+        logger.info("Result notifications sent exam=%s count=%s", exam_id or "-", total)
+    return total

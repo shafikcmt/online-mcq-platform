@@ -146,6 +146,23 @@ The website has **no login** in Phase-1; all website endpoints are under `/publi
 | GET | `/me/subscriptions` | Active and past subscriptions *(4A: own rows only; `package {slug, name}`, `status`, `effective_status` = `active`/`scheduled`/`expired`/`cancelled` computed from server time, `starts_at`, `expires_at`; no ids, no price)* |
 | GET | `/me/notifications` | Paginated **in-app** notifications, rendered in the user's language |
 | POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read |
+
+*(Milestone 6B — built: `GET /me/notifications/` (newest first, paginated, `?is_read=true|false`) and
+`GET /me/notifications/{id}/` → `{id, type, title, message, target, is_read, created_at, read_at}`;
+`{id}` = the notification's UUID; `title`/`message` rendered in the request language (else the
+student's preferred language) at read time; `target` = navigation ids only (`{type: "payment",
+payment_id}` or `{type: "result", attempt_id}`, or `null`) — never a URL. `POST
+/me/notifications/{id}/read/` → the notification (idempotent: the first `read_at` is kept; the client
+cannot set it). `POST /me/notifications/read-all/` → `{updated: n}` (only the caller's unread rows).
+Student JWT only; another student's notification → `404`. No create/edit/delete endpoint —
+notifications come only from server events: **payment verified success** (incl. the late-success
+recovery) and **result published** = the result became visible to its student: at scoring when
+already visible (immediate mode, or an exam already published/ended), on admin publication (task
+after commit), or when an `after_exam_end` exam ends (Celery beat every 2 minutes, bounded). One per
+result, ever: hiding and re-publishing does not announce again. The beat job is also the catch-up:
+any visible result without its notification whose visibility began after the notifications rollout
+boundary is announced on the next run, however long workers were down; results visible before the
+rollout are never announced. Responses carry public UUIDs only — never internal ids or `source_id`.)*
 | GET | `/announcements` | Notices for students + public *(6A: audience `students`/`all`, same shape and rules as `/public/announcements/`)* |
 
 ### 3.4 Student — exams & attempts (exam engine)

@@ -13,6 +13,7 @@ Lock order (avoids deadlocks): exam row first, then question rows in id order.
   PROTECT reference (→ 409).
 """
 
+import logging
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -53,6 +54,8 @@ from .models import (
     MeritStrategy,
     ResultVisibility,
 )
+
+logger = logging.getLogger(__name__)
 
 SLUG_REQUIRED_MESSAGE = _(
     "Enter a slug (English letters, digits and hyphens), or an English title to generate it."
@@ -598,6 +601,8 @@ def publish_results(exam_id: int, *, ctx: AuditContext) -> Exam:
         return exam
     exam.result_published_at = timezone.now()
     exam.save(update_fields=["result_published_at", "updated_at"])
+    # Announce the now-visible results after commit (bounded, idempotent task).
+    transaction.on_commit(lambda: _notify_published_results(exam.pk))
     _audit(
         ctx,
         "exam.results_publish",
@@ -605,6 +610,15 @@ def publish_results(exam_id: int, *, ctx: AuditContext) -> Exam:
         {"changes": {"results_published": {"from": False, "to": True}}},
     )
     return exam
+
+
+def _notify_published_results(exam_id: int) -> None:
+    from apps.results.tasks import notify_visible_results_task
+
+    try:
+        notify_visible_results_task.delay(exam_id)
+    except Exception:  # noqa: BLE001 — the beat job sends them later; never fail the publish
+        logger.warning("Could not queue result notifications exam=%s", exam_id)
 
 
 @transaction.atomic

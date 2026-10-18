@@ -724,6 +724,32 @@ Index: `(user_id, read_at, created_at DESC)`.
 Phase-1 decision: **in-app notifications only**. Push/SMS/email delivery can be added later as
 extra channels that read the same `notifications` rows — no schema redesign.
 
+Implementation notes (Milestone 6B — app `notifications`):
+- Columns: `public_id` (UUID, used in URLs), `user_id` (PROTECT), `type`, `source_id` (bigint —
+  the payment/result the notification is about; **no FK**, so history survives the source row),
+  `params` (jsonb), `read_at`, `created_at`.
+- **Built types:** `payment_success`, `result_published`. `subscription_expiring` and
+  `announcement` are **not built yet** — they need decisions (expiry lead time; fan-out of
+  announcements to all students) before they can be added (no schema change needed).
+- **`params` is allow-listed per type** (anything else is refused in code):
+  `payment_success` → `payment_id` (public UUID), `package_slug`, `package_name_bn/en`,
+  `verified_at`; `result_published` → `attempt_id` (public UUID), `exam_slug`,
+  `exam_title_bn/en`. Never provider data, amounts, contact data or internal ids.
+- **Idempotency:** `UNIQUE (user_id, type, source_id)`; rows are inserted with
+  `INSERT … ON CONFLICT DO NOTHING`, so retries, replays and concurrent workers cannot duplicate.
+- CHECKs: valid `type`; `source_id > 0`; `read_at >= created_at` when set.
+- Indexes: `(user_id, created_at DESC)`; partial `(user_id, created_at) WHERE read_at IS NULL`
+  (unread lists, read-all); `(type, source_id)` (the result-announcement scan).
+- Title/message come from gettext templates rendered in the request/user language at read time.
+- `source_id` is internal (dedupe only) and is never returned by the API; responses expose only
+  `public_id` and the public UUIDs in `params`.
+- **`notifications_rollout`** (`type` UNIQUE, `starts_at`): when each type started. Migration
+  `notifications.0002` records `result_published` at migrate time. The result catch-up job announces
+  only visible results without a notification whose visibility began at/after `starts_at` (the
+  latest of scoring, admin publication, or the exam end for `after_exam_end`) — no look-back window,
+  so long outages are caught up, and pre-rollout history is never announced. No row → the job sends
+  nothing (fails closed).
+
 ### 4.12 audit
 
 #### `audit_logs` (append-only) *(implemented in Milestone 3A — model `audit.AuditLog`)*
