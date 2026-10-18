@@ -19,6 +19,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent  # .../backend
 SECRET_KEY = env_str("DJANGO_SECRET_KEY", "")
 DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+# Extra origins allowed to send CSRF-protected requests. Production (nginx serves the panel
+# and routes /api/ to Django on the SAME host, forwarding Host) needs none. Only needed when
+# the Host Django sees differs from the panel's origin — e.g. the local Next.js dev proxy
+# (http://localhost:3001). See docs/DEPLOYMENT.md.
+CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "")
+# Admin Panel session lifetime (set per session at admin sign-in; other sessions keep
+# Django's SESSION_COOKIE_AGE).
+ADMIN_SESSION_AGE_SECONDS = env_int("ADMIN_SESSION_AGE_SECONDS", 12 * 60 * 60)
 
 INSTALLED_APPS = [
     # Django. The Django admin is for internal operations only — the product Admin
@@ -284,6 +292,9 @@ SIMPLE_JWT = {
 AUTH_THROTTLE_RATES = {
     "login": env_str("THROTTLE_LOGIN", "10/hour"),  # per client IP + mobile number
     "login_ip": env_str("THROTTLE_LOGIN_IP", "60/hour"),
+    # Admin Panel sign-in: own buckets, never shared with the student login scopes.
+    "admin_login": env_str("THROTTLE_ADMIN_LOGIN", "10/hour"),  # per client IP + mobile
+    "admin_login_ip": env_str("THROTTLE_ADMIN_LOGIN_IP", "60/hour"),  # per client IP
     "otp_verify": env_str("THROTTLE_OTP_VERIFY", "30/hour"),
     "register": env_str("THROTTLE_REGISTER", "10/hour"),
     "password_reset": env_str("THROTTLE_PASSWORD_RESET", "10/hour"),

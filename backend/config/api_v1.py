@@ -2,7 +2,7 @@
 
 from django.urls import include, path
 
-from apps.accounts.api.urls import auth_urlpatterns
+from apps.accounts.api.urls import admin_auth_urlpatterns, auth_urlpatterns
 from apps.accounts.api.views import MeView
 from apps.attempts.api.urls import student_urlpatterns as attempt_student_urlpatterns
 from apps.audit.api.urls import admin_urlpatterns as audit_admin_urlpatterns
@@ -31,6 +31,7 @@ app_name = "api_v1"
 
 # Admin API: admin session + CSRF + admin role (apps.core.admin_api.AdminAPIMixin).
 admin_urlpatterns = [
+    path("auth/", include((admin_auth_urlpatterns, "auth"))),
     *catalog_admin_urlpatterns,
     *question_admin_urlpatterns,
     *exam_admin_urlpatterns,

@@ -353,6 +353,18 @@ comes from the request); without it they answer that JSON. IPN always answers `2
 `/payments/mock/checkout/{reference}/?result=success|fail|cancel` (404 in production).)*
 
 ### 3.8 Admin (`/admin/`) — role `admin` required
+
+*(Milestone 7 — Admin Panel sign-in built, session cookie + CSRF (§1): `GET /admin/auth/csrf/` sets
+the `csrftoken` cookie (no login needed); `POST /admin/auth/login/` `{mobile_number, password}` →
+`{full_name, mobile_number (masked), preferred_language, role}` and an httpOnly session cookie —
+CSRF-checked, throttled with admin-only buckets (`admin_login` per IP + number 10/hour, `admin_login_ip`
+per IP 60/hour — never shared with student logins), **admin role only**, the same generic `401
+invalid_credentials` for every failure, session id rotated, session lifetime 12 h
+(`ADMIN_SESSION_AGE_SECONDS`), audited `admin.login`;
+`POST /admin/auth/logout/` → `204`; `GET /admin/auth/me/` → the signed-in admin or `401`. Student JWTs
+are not accepted here and the admin session is not accepted by the student API. Production: nginx serves
+the panel and routes `/api/*` on the same origin to Django (no CORS, no `CSRF_TRUSTED_ORIGINS`) —
+`docs/DEPLOYMENT.md`.)*
 | Area | Endpoints |
 |---|---|
 | Dashboard (basic reports) | `GET /admin/dashboard` — basic operational statistics only: student count, exam count, attempts today, payments/revenue summary, recent activity. Advanced analytics & exports are Phase-2 *(6C — built as `/admin/dashboard/`: admin session + admin role, read-only, counts and sums only, no lists of people. `period` = today / this month in `DASHBOARD_TIME_ZONE` (Asia/Dhaka) as UTC `[start, end)`. `users {students_total, students_active}` (role student; active = `is_active`); `exams {total, draft, published, unpublished, archived, open_now, upcoming}` (`open_now`/`upcoming` = published with the window open now / `start_at` > now); `attempts {started_today, submitted_today, in_progress}` (`in_progress` = open and not past deadline + grace); `subscriptions {active_now, students_with_active}` (effectively active now); `payments {by_status, success_this_month, revenue_this_month: [{currency, amount}]}` (`by_status` lifetime; month figures = `success` payments by `verified_at`, verified amounts). "Recent activity" is served by the existing `GET /admin/audit-logs/`, not repeated here.)* |

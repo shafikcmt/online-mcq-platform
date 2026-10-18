@@ -1,0 +1,72 @@
+import {
+  BarChart3,
+  BookOpenCheck,
+  CreditCard,
+  FileText,
+  FolderTree,
+  HelpCircle,
+  LayoutDashboard,
+  Megaphone,
+  Package,
+  ScrollText,
+  Settings,
+  ShieldCheck,
+  Trophy,
+  Users,
+  Mail,
+  ListChecks,
+  type LucideIcon,
+} from "lucide-react";
+
+import type { MessageKey } from "@/lib/i18n/messages";
+
+export type NavItem = {
+  key: MessageKey;
+  href: string;
+  icon: LucideIcon;
+  /** false = the screen is not built yet (shown, but not a link). */
+  ready: boolean;
+};
+export type NavGroup = { key: MessageKey; items: NavItem[] };
+
+/** Information architecture (docs/UI_UX_GUIDELINES.md admin navigation groups). Every item
+ * maps to an existing /api/v1/admin/* endpoint; only built screens are links. */
+export const NAV: NavGroup[] = [
+  { key: "nav.overview", items: [{ key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard, ready: true }] },
+  {
+    key: "nav.people",
+    items: [
+      { key: "nav.users", href: "/users", icon: Users, ready: false },
+      { key: "nav.subscriptions", href: "/subscriptions", icon: ShieldCheck, ready: false },
+    ],
+  },
+  {
+    key: "nav.content",
+    items: [
+      { key: "nav.categories", href: "/categories", icon: FolderTree, ready: false },
+      { key: "nav.questions", href: "/questions", icon: ListChecks, ready: false },
+      { key: "nav.exams", href: "/exams", icon: BookOpenCheck, ready: false },
+      { key: "nav.results", href: "/results", icon: Trophy, ready: false },
+    ],
+  },
+  {
+    key: "nav.commerce",
+    items: [
+      { key: "nav.packages", href: "/packages", icon: Package, ready: false },
+      { key: "nav.payments", href: "/payments", icon: CreditCard, ready: false },
+    ],
+  },
+  {
+    key: "nav.site",
+    items: [
+      { key: "nav.announcements", href: "/announcements", icon: Megaphone, ready: false },
+      { key: "nav.faq", href: "/faqs", icon: HelpCircle, ready: false },
+      { key: "nav.pages", href: "/pages", icon: FileText, ready: false },
+      { key: "nav.contact", href: "/contact-messages", icon: Mail, ready: false },
+      { key: "nav.settings", href: "/settings", icon: Settings, ready: false },
+    ],
+  },
+  { key: "nav.system", items: [{ key: "nav.audit", href: "/audit-log", icon: ScrollText, ready: false }] },
+];
+
+export const NAV_ICON_FALLBACK = BarChart3;
