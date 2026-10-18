@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.payments",
     "apps.cms",
     "apps.notifications",
+    "apps.dashboard",
 ]
 
 # Custom user model: the mobile number is the login identity (docs/DATABASE_DESIGN.md §4.1).
@@ -369,6 +370,11 @@ LEADERBOARD_PUBLIC_SIZE = env_int("LEADERBOARD_PUBLIC_SIZE", 100)
 # migration) are announced; rows per batch and batches per run keep each job bounded.
 RESULT_NOTIFY_BATCH_SIZE = env_int("RESULT_NOTIFY_BATCH_SIZE", 500)
 RESULT_NOTIFY_MAX_BATCHES = env_int("RESULT_NOTIFY_MAX_BATCHES", 20)
+
+# Dashboards (Milestone 6C): "today" / "this month" are calendar periods in this time zone
+# (the platform's display time zone); rows per short list on the student dashboard.
+DASHBOARD_TIME_ZONE = env_str("DASHBOARD_TIME_ZONE", "Asia/Dhaka")
+DASHBOARD_LIST_SIZE = env_int("DASHBOARD_LIST_SIZE", 5)
 
 # The app's own URL scheme for the website's "Open App" link (e.g. "mcqapp" →
 # mcqapp://open). Site settings accept only https:// or this exact scheme for

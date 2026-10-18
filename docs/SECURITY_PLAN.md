@@ -188,6 +188,7 @@
 ## 4. Security testing checklist (Phase-1)
 
 - [x] In-app notifications: created only by server events (verified payment success, result visible) — no API can create or edit one; per-type allow-listed params (no provider data, contact data or amounts); own rows only (IDOR → 404); one per event by a unique index *(6B tests)*
+- [x] Dashboards: `/me/dashboard/` student JWT, own rows only, public ids only (no answers, prices, contact or payment data); `/admin/dashboard/` admin session + role only (student JWT/anonymous rejected), counts and sums only — no lists of people, contact messages, provider data or audit metadata *(6C tests)*
 - [ ] Student API responses never contain `is_correct`/`explanation` before submission (automated test)
 - [ ] Submit twice → one result; concurrent submit → one result
 - [ ] Save at/after `deadline_at` → rejected (also during grace); submit after `deadline_at + grace` → not accepted, server finalizes (`server_auto`); Celery finalizes abandoned attempts

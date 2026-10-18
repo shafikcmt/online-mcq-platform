@@ -32,7 +32,7 @@ from apps.core.public_api import PublicAPIMixin
 from .. import services
 from ..exceptions import ExamStateError
 from ..models import AccessType, ContentLanguage, Exam, ExamQuestion, ExamStatus, ExamType
-from ..selectors import with_question_totals
+from ..selectors import listable_exams, with_question_totals
 from .serializers import (
     ExamAdminSerializer,
     ExamQuestionAdminSerializer,
@@ -224,11 +224,7 @@ class ExamDuplicateView(_ExamActionView):
 # --------------------------------------------------------------------------------------
 def public_exams():
     """Only published exams whose category (and subject, if any) are active."""
-    return with_question_totals(
-        Exam.objects.filter(status=ExamStatus.PUBLISHED, category__is_active=True)
-        .filter(Q(subject__isnull=True) | Q(subject__is_active=True))
-        .select_related("category", "subject")
-    )
+    return with_question_totals(listable_exams())
 
 
 @extend_schema_view(

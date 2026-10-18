@@ -122,7 +122,7 @@ online-mcq-platform/
 │   │   ├── cms/             # site settings, announcements, FAQ, pages, contact form (bilingual)
 │   │   ├── notifications/   # in-app notifications (Phase-1 channel)
 │   │   ├── audit/           # audit log of important admin/system actions
-│   │   └── dashboard/       # read-only basic operational statistics
+│   │   └── dashboard/       # read-only basic operational statistics + student home aggregation (6C, no tables)
 │   ├── tests/
 │   ├── manage.py
 │   └── Dockerfile
