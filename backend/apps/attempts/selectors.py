@@ -12,7 +12,7 @@ from django.conf import settings
 from django.db.models import Prefetch
 
 from apps.core.i18n import resolve_bilingual
-from apps.exams.models import ContentLanguage
+from apps.exams.models import ContentLanguage, ExamType
 from apps.questions.models import QuestionOption
 
 from .models import AttemptAnswer, AttemptStatus, ExamAttempt
@@ -46,9 +46,64 @@ def can_submit(attempt: ExamAttempt, now: datetime) -> bool:
     return attempt.status == AttemptStatus.IN_PROGRESS and now <= attempt.deadline_at + grace()
 
 
+def past_grace(deadline_at: datetime, now: datetime) -> bool:
+    return now > deadline_at + grace()
+
+
 def is_overdue(attempt: ExamAttempt, now: datetime) -> bool:
     """Past deadline + grace and still open: the server finalizes it."""
-    return attempt.status == AttemptStatus.IN_PROGRESS and now > attempt.deadline_at + grace()
+    return attempt.status == AttemptStatus.IN_PROGRESS and past_grace(attempt.deadline_at, now)
+
+
+# --------------------------------------------------------------------------------------
+# Start rules (the exam engine's own checks; also read by the student dashboard)
+# --------------------------------------------------------------------------------------
+NOT_STARTED, ENDED = "exam_not_started", "exam_ended"
+RETAKE_NOT_ALLOWED, LIMIT_REACHED = "retake_not_allowed", "attempt_limit_reached"
+
+
+def schedule_blocker(exam, now: datetime) -> str | None:
+    """Why a new attempt cannot start now because of the schedule (``None`` = open).
+    The window includes ``start_at`` and excludes ``end_at``."""
+    if exam.start_at and now < exam.start_at:
+        return NOT_STARTED
+    if exam.end_at and now >= exam.end_at:
+        return ENDED
+    return None
+
+
+def retake_blocker(exam, previous_attempts: int) -> str | None:
+    """Why another attempt is not allowed after ``previous_attempts`` finished ones:
+    live exams and exams without retake allow exactly one; ``max_attempts`` caps the
+    rest (``None`` = unlimited)."""
+    if previous_attempts == 0:
+        return None
+    if exam.exam_type == ExamType.LIVE or not exam.allow_retake:
+        return RETAKE_NOT_ALLOWED
+    if exam.max_attempts is not None and previous_attempts >= exam.max_attempts:
+        return LIMIT_REACHED
+    return None
+
+
+def start_options(
+    exam, now: datetime, *, entitled: bool, attempts: int, open_deadline: datetime | None
+) -> tuple[bool, bool]:
+    """``(can_start, can_resume)`` for a student and an available (published, listable)
+    exam, in the order ``attempts.services.start_attempt`` decides:
+
+    1. an open attempt not yet past deadline + grace is **resumed** (no new attempt, no
+       access re-check at this step) → ``(False, True)``;
+    2. an overdue open attempt is finalized first, so it counts as a finished attempt;
+    3. a new attempt needs access, an open schedule and the retake rules.
+
+    ``attempts`` = all of the student's attempts of this exam (including an open one);
+    ``open_deadline`` = the open attempt's deadline, if there is one."""
+    if open_deadline is not None and not past_grace(open_deadline, now):
+        return False, True
+    can_start = (
+        entitled and schedule_blocker(exam, now) is None and retake_blocker(exam, attempts) is None
+    )
+    return can_start, False
 
 
 # --------------------------------------------------------------------------------------

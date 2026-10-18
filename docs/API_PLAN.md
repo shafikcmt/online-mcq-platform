@@ -142,7 +142,7 @@ The website has **no login** in Phase-1; all website endpoints are under `/publi
 | Method | Path | Purpose |
 |---|---|---|
 | GET / PATCH | `/me` | View/update basic profile & settings (name, optional email, optional `display_name`, `preferred_language`); other fields are ignored |
-| GET | `/me/dashboard` | One call for home screen: available/upcoming/practice exams (short lists), active subscription, recent results, unread notification count |
+| GET | `/me/dashboard` | One call for home screen: available/upcoming/practice exams (short lists), active subscription, recent results, unread notification count *(6C — built as `/me/dashboard/`, see below)* |
 | GET | `/me/subscriptions` | Active and past subscriptions *(4A: own rows only; `package {slug, name}`, `status`, `effective_status` = `active`/`scheduled`/`expired`/`cancelled` computed from server time, `starts_at`, `expires_at`; no ids, no price)* |
 | GET | `/me/notifications` | Paginated **in-app** notifications, rendered in the user's language |
 | POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | Mark read |
@@ -165,6 +165,30 @@ boundary is announced on the next run, however long workers were down; results v
 rollout are never announced. Responses carry public UUIDs only — never internal ids or `source_id`.)*
 | GET | `/announcements` | Notices for students + public *(6A: audience `students`/`all`, same shape and rules as `/public/announcements/`)* |
 
+
+*(Milestone 6C — `GET /me/dashboard/` built: student JWT, the caller's own data only, read-only,
+constant query count. Shape `{server_time, exams: {available, upcoming, practice}, subscription,
+results, notifications}`:
+- `exams.<section>` = `{count, items}` over exams students may see (published, active
+  category/subject). `available` = regular + live exams whose window is open now (`start_at` unset
+  or ≤ now, `end_at` unset or > now — the window the exam engine enforces), closing soonest first;
+  `upcoming` = `start_at` > now (any type), soonest first; `practice` = practice exams open now,
+  featured first. `items` (at most `DASHBOARD_LIST_SIZE`, default 5): `slug`, `title` (request
+  language, fallback), `exam_type`, `access_type`, `start_at`, `end_at`, `duration_minutes`,
+  `has_access` (entitlement only: free, or covered by a current subscription), `can_start` (the
+  exam engine would start a **new** attempt now: access + schedule window + live single attempt +
+  retake rules / `max_attempts`), `can_resume` (an open attempt, not past deadline + grace, would
+  be resumed — independent of current access, as in the engine), `attempt_state` (`in_progress` /
+  `finished` / `null`; an overdue open attempt counts as `finished`). Computed with
+  `attempts.selectors.start_options` — the same rules `start_attempt` enforces; no rejection
+  reasons are returned (the start endpoint still returns its `code`).
+- `subscription` = `{active_count, items}` — effectively active now (`active`, started, not
+  expired); items: `package {slug, name}`, `starts_at`, `expires_at`, soonest expiry first.
+- `results` = `{count, items}` — own results visible now, newest first; items: `attempt_id`,
+  `exam {slug, title, exam_type}`, `submitted_at`, `obtained_marks`, `total_marks`, `percentage`,
+  `is_passed`, `merit_position`. No answers, explanations or review data.
+- `notifications` = `{unread_count}`.
+No internal ids, prices, contact data or payment data. Profile data stays on `GET /me`.)*
 ### 3.4 Student — exams & attempts (exam engine)
 | Method | Path | Purpose |
 |---|---|---|
@@ -331,7 +355,7 @@ comes from the request); without it they answer that JSON. IPN always answers `2
 ### 3.8 Admin (`/admin/`) — role `admin` required
 | Area | Endpoints |
 |---|---|
-| Dashboard (basic reports) | `GET /admin/dashboard` — basic operational statistics only: student count, exam count, attempts today, payments/revenue summary, recent activity. Advanced analytics & exports are Phase-2 |
+| Dashboard (basic reports) | `GET /admin/dashboard` — basic operational statistics only: student count, exam count, attempts today, payments/revenue summary, recent activity. Advanced analytics & exports are Phase-2 *(6C — built as `/admin/dashboard/`: admin session + admin role, read-only, counts and sums only, no lists of people. `period` = today / this month in `DASHBOARD_TIME_ZONE` (Asia/Dhaka) as UTC `[start, end)`. `users {students_total, students_active}` (role student; active = `is_active`); `exams {total, draft, published, unpublished, archived, open_now, upcoming}` (`open_now`/`upcoming` = published with the window open now / `start_at` > now); `attempts {started_today, submitted_today, in_progress}` (`in_progress` = open and not past deadline + grace); `subscriptions {active_now, students_with_active}` (effectively active now); `payments {by_status, success_this_month, revenue_this_month: [{currency, amount}]}` (`by_status` lifetime; month figures = `success` payments by `verified_at`, verified amounts). "Recent activity" is served by the existing `GET /admin/audit-logs/`, not repeated here.)* |
 | Users | `GET /admin/users` (search by name/phone/email, filter active/role), `GET /admin/users/{id}` (profile, subscriptions, attempts, payments), `POST /admin/users/{id}/activate`, `POST /admin/users/{id}/deactivate` |
 | Categories | `GET/POST /admin/categories`, `GET/PATCH/DELETE /admin/categories/{id}` — filters `is_active`, `search` (Bangla/English name, slug), `ordering` (`sort_order`, `name_bn`, `name_en`, `created_at`, `updated_at`, `id`; `-` = descending). `DELETE` of a category that still has subjects → `409 in_use` |
 | Subjects | `GET/POST /admin/subjects`, `GET/PATCH/DELETE /admin/subjects/{id}` — same filters plus `category` |

@@ -45,7 +45,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.i18n import normalize_language
-from apps.exams.models import ContentLanguage, Exam, ExamQuestion, ExamStatus, ExamType
+from apps.exams.models import ContentLanguage, Exam, ExamQuestion, ExamStatus
 from apps.questions.models import QuestionOption
 from apps.results.services import record_result
 from apps.subscriptions.selectors import user_can_access_exam
@@ -67,7 +67,16 @@ from .models import (
     ExamAttempt,
     SubmitSource,
 )
-from .selectors import can_edit, is_overdue
+from .selectors import (
+    ENDED,
+    LIMIT_REACHED,
+    NOT_STARTED,
+    RETAKE_NOT_ALLOWED,
+    can_edit,
+    is_overdue,
+    retake_blocker,
+    schedule_blocker,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -178,23 +187,23 @@ def _attempt_language(exam: Exam, requested: str | None) -> str:
 
 def _ensure_schedule(exam: Exam, now: datetime) -> None:
     """The window includes ``start_at`` and excludes ``end_at``."""
-    if exam.start_at and now < exam.start_at:
+    blocker = schedule_blocker(exam, now)
+    if blocker == NOT_STARTED:
         raise AttemptError(
             "exam_not_started",
             EXAM_NOT_STARTED_MESSAGE,
             status=422,
             details={"start_at": exam.start_at.isoformat()},
         )
-    if exam.end_at and now >= exam.end_at:
+    if blocker == ENDED:
         raise AttemptError("exam_ended", EXAM_ENDED_MESSAGE, status=422)
 
 
 def _ensure_retake_allowed(exam: Exam, finished: int) -> None:
-    if finished == 0:
-        return
-    if exam.exam_type == ExamType.LIVE or not exam.allow_retake:
+    blocker = retake_blocker(exam, finished)
+    if blocker == RETAKE_NOT_ALLOWED:
         raise AttemptError("retake_not_allowed", RETAKE_NOT_ALLOWED_MESSAGE, status=422)
-    if exam.max_attempts is not None and finished >= exam.max_attempts:
+    if blocker == LIMIT_REACHED:
         raise AttemptError(
             "attempt_limit_reached",
             ATTEMPT_LIMIT_MESSAGE,
