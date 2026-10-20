@@ -1,6 +1,6 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -26,9 +26,10 @@ export const buttonVariants = cva(
 );
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants> & { asChild?: boolean };
+  VariantProps<typeof buttonVariants> & { asChild?: boolean; ref?: Ref<HTMLButtonElement> };
 
 export function Button({ className, variant, size, asChild = false, ...props }: Props) {
-  const Component = asChild ? Slot : "button";
-  return <Component className={cn(buttonVariants({ variant, size }), className)} {...props} />;
+  // Plain buttons never submit a surrounding form by accident; submit buttons say so.
+  if (asChild) return <Slot className={cn(buttonVariants({ variant, size }), className)} {...props} />;
+  return <button type="button" className={cn(buttonVariants({ variant, size }), className)} {...props} />;
 }

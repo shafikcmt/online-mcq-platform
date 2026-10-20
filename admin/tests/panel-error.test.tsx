@@ -29,8 +29,12 @@ describe("PanelError", () => {
     expect(screen.queryByText(/foo\.js/)).not.toBeInTheDocument();
   });
 
-  it("sends a lost client session to sign-in", () => {
+  it("sends a lost client session to sign-in, returning to the current page", () => {
     renderWithI18n(<PanelError error={new ApiError(401, "not_authenticated", "x")} reset={vi.fn()} />);
-    expect(replace).toHaveBeenCalledWith("/login?expired=1");
+    expect(replace).toHaveBeenLastCalledWith("/login?expired=1");
+    window.history.pushState({}, "", "/questions?search=light");
+    renderWithI18n(<PanelError error={new ApiError(401, "not_authenticated", "x")} reset={vi.fn()} />);
+    expect(replace).toHaveBeenLastCalledWith("/login?expired=1&next=%2Fquestions%3Fsearch%3Dlight");
+    window.history.pushState({}, "", "/");
   });
 });

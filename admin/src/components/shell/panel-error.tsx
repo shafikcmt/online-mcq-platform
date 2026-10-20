@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { ErrorState } from "@/components/ui/states";
 import { ApiError, describeError } from "@/lib/api/errors";
 import { useI18n } from "@/lib/i18n/provider";
+import { expiredLoginPath } from "@/lib/session";
 
 /** Route error boundary content. Server errors reach the browser without details in
  * production, so the message is generic; a lost session sends the admin to sign in. */
@@ -23,7 +24,7 @@ export function PanelError({ error, reset }: { error: Error & { digest?: string 
   const network = apiError?.isNetwork ?? false;
 
   useEffect(() => {
-    if (unauthenticated) router.replace("/login?expired=1");
+    if (unauthenticated) router.replace(expiredLoginPath(window.location.pathname + window.location.search));
   }, [unauthenticated, router]);
 
   return (

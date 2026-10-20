@@ -1,6 +1,7 @@
 # Admin Panel — production nginx (EXAMPLE; adapt names, certificates and upstreams).
 # Browser → https://admin.example.com/...      (one origin, no CORS)
 #   /api/*  → Django   (direct; real client IP in X-Forwarded-For)
+#   /media/ → uploaded files — TODO Milestone 10 (commented out below; storage not decided)
 #   else    → Next.js  (the panel; its production build has no /api proxy)
 # Django must NOT be reachable from the internet except through this proxy, because it
 # trusts the right-most X-Forwarded-For entry (TRUSTED_PROXY_COUNT=1). See docs/DEPLOYMENT.md.
@@ -33,6 +34,25 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;                    # SECURE_PROXY_SSL_HEADER
         proxy_read_timeout 60s;
     }
+
+    # ---- Uploaded media (question images) — TODO (Milestone 10), NOT production-ready ----
+    # API responses link question images as /media/<path>. Django serves media only with
+    # DEBUG on and must NOT serve it in production. There is no production storage contract
+    # yet: no shared, persistent media volume is defined, and object storage (S3-compatible)
+    # may replace local files in Milestone 10. Until then this block stays commented out.
+    # If local storage is chosen, enable it ONLY when:
+    #   - the backend's MEDIA_ROOT is a persistent volume shared with this nginx (read-only);
+    #   - the alias points at that dedicated media directory (never the app, a home
+    #     directory or /) and keeps the trailing slash on both location and alias;
+    #   - nothing but uploaded files lives in that directory.
+    # location /media/ {
+    #     alias /srv/mcq/media/;                         # placeholder: the shared MEDIA_ROOT mount
+    #     limit_except GET HEAD { deny all; }           # read-only
+    #     autoindex off;                                 # no directory listings
+    #     add_header X-Content-Type-Options nosniff always;
+    #     add_header Content-Security-Policy "default-src 'none'; img-src 'self'; sandbox" always;
+    #     expires 7d;
+    # }
 
     # ---- Everything else: the Next.js panel --------------------------------------------
     location / {

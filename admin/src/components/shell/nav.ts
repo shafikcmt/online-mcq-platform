@@ -15,6 +15,7 @@ import {
   Users,
   Mail,
   ListChecks,
+  Library,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,8 +44,9 @@ export const NAV: NavGroup[] = [
   {
     key: "nav.content",
     items: [
-      { key: "nav.categories", href: "/categories", icon: FolderTree, ready: false },
-      { key: "nav.questions", href: "/questions", icon: ListChecks, ready: false },
+      { key: "nav.categories", href: "/categories", icon: FolderTree, ready: true },
+      { key: "nav.subjects", href: "/subjects", icon: Library, ready: true },
+      { key: "nav.questions", href: "/questions", icon: ListChecks, ready: true },
       { key: "nav.exams", href: "/exams", icon: BookOpenCheck, ready: false },
       { key: "nav.results", href: "/results", icon: Trophy, ready: false },
     ],

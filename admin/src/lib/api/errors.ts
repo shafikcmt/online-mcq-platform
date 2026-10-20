@@ -66,11 +66,16 @@ export function timeoutError(): ApiError {
   return new ApiError(0, "timeout", "The server took too long to respond.");
 }
 
+const SESSION_CODES = new Set(["not_authenticated", "authentication_failed"]);
+
 /** Translated, user-safe text for any error (the caller passes its `t`). */
 export function describeError(error: unknown, t: (key: "error.network" | "error.timeout" | "error.server" | "error.unauthenticated" | "error.forbidden" | "error.rateLimited" | "error.generic") => string): string {
   if (!(error instanceof ApiError)) return t("error.generic");
   if (error.code === "network_error") return t("error.network");
   if (error.code === "timeout") return t("error.timeout");
+  // A lost session reads the same everywhere (DRF's own wording is technical); a wrong
+  // password at sign-in (401 invalid_credentials) keeps the server's message.
+  if (error.status === 401 && SESSION_CODES.has(error.code)) return t("error.unauthenticated");
   if (error.fromServer) return error.message; // the backend localizes its own messages
   if (error.status === 401) return t("error.unauthenticated");
   if (error.status === 403) return t("error.forbidden");
