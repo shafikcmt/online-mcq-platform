@@ -3,6 +3,8 @@
 /** Browser-side API calls through the same-origin /api proxy.
  * The session cookie is httpOnly (never readable here); unsafe methods send the CSRF token
  * from the `csrftoken` cookie in `X-CSRFToken`. Nothing is kept in localStorage. */
+import { SESSION_EXPIRED_EVENT, isAuthEndpoint } from "../session";
+
 import { ApiError, networkError, timeoutError, toApiError } from "./errors";
 
 const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -35,7 +37,9 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
     // The backend localizes its messages from this (the panel's current UI language).
     "Accept-Language": document.documentElement.lang || "en",
   };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  // FormData (file uploads): the browser sets the multipart boundary itself.
+  const isForm = typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (options.body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   if (!SAFE.has(method)) headers["X-CSRFToken"] = await ensureCsrfToken();
 
   const timeout = AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS);
@@ -46,7 +50,7 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
       method,
       headers,
       credentials: "same-origin",
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
       signal,
     });
   } catch (error) {
@@ -62,6 +66,11 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
   if (error.status === 403 && !SAFE.has(method) && !options.retried && /csrf/i.test(error.message)) {
     document.cookie = "csrftoken=; Max-Age=0; path=/";
     return apiFetch<T>(path, { ...options, retried: true });
+  }
+  // The admin session ended (expired, signed out elsewhere): tell the panel shell, which
+  // offers sign-in. The caller still gets the error and keeps its form state.
+  if (error.status === 401 && !isAuthEndpoint(path)) {
+    window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
   }
   throw error;
 }

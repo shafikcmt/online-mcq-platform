@@ -8,6 +8,7 @@
 ```
 Browser ──https──▶ nginx (admin.example.com)
                     ├── /api/*  ──▶ Django (gunicorn)      session cookie + CSRF, real client IP
+                    ├── /media/ ──▶ uploaded files — NOT configured yet (see §4a, Milestone 10)
                     └── /*      ──▶ Next.js (`next start`) panel pages (server-rendered)
 Next.js server ──▶ https://admin.example.com/api/…  (its own server-side reads, through nginx)
 ```
@@ -59,6 +60,30 @@ for login throttles or recorded in the audit log.
   student, inactive admin) gives the same `401 invalid_credentials`; `429` looks the same for every
   number.
 
+## 4a. Uploaded media (open item — Milestone 10)
+
+Question images are uploaded through the API (`POST /api/v1/admin/questions/{id}/image/`,
+multipart) and API responses link them as `/media/<path>` on the same origin. **Production
+media serving is not designed yet**; this section records the constraints, not a solution.
+
+- **Django must not serve media in production.** It serves `/media/` only when `DEBUG` is on
+  (local development and QA).
+- **Local storage needs a shared, persistent volume.** Files are written to the backend's
+  `MEDIA_ROOT`. If local storage is kept, that directory must be a persistent volume (not the
+  container filesystem) mounted read-only into nginx, which then serves it at `/media/`. No such
+  volume exists in the current Compose files, so the `location /media/` block in
+  `deploy/nginx/admin-panel.conf.example` is **commented out as a TODO**.
+- **Object storage may replace it.** Milestone 10 may move uploads to S3-compatible storage
+  (Django storage API); the API would then return that storage's URLs and nginx needs no
+  `/media/` route at all.
+- **Whatever is chosen:** expose only the dedicated upload directory (never the app or a
+  parent directory), read-only (`GET`/`HEAD`), no directory listings, `nosniff`, and a
+  restrictive `Content-Security-Policy`. Images are already re-encoded by the backend (JPEG/PNG/
+  WebP only). `client_max_body_size` must stay above `QUESTION_IMAGE_MAX_BYTES`.
+
+Until this is settled, image previews in the Admin Panel work in development/QA (Django with
+`DEBUG`) but not behind the production nginx example.
+
 ## 5. CSRF and CORS
 
 - **CORS: not needed** — same origin.
@@ -90,3 +115,15 @@ Admin Panel (`admin` service, runtime):
 `npm run dev` (port 3001) proxies `/api/*` to `API_ORIGIN` (default `http://127.0.0.1:8000`);
 the backend then needs `CSRF_TRUSTED_ORIGINS=http://localhost:3001` because the proxy rewrites
 `Host`. This proxy adds no `X-Forwarded-For` — fine for development, never for production.
+
+## 8. Full-stack (Playwright) test runs
+
+The E2E suites (`admin/e2e/*.spec.ts`) sign in with a real admin account, so they count toward
+the production admin sign-in throttles (`admin_login` 10/hour per IP + number). The throttles
+are **not** relaxed for tests and there is no test-only behaviour in authentication. Instead:
+
+- run full-stack tests against an **isolated test stack** (its own database and its own Redis),
+  never against a shared or production Redis;
+- reset that test Redis between suites when needed (`redis-cli FLUSHALL` on the test instance
+  only) — the 7A shell suite and the 7B content suite together sign in more than ten times;
+- a sign-in that fails during a run with `429` means the throttle worked, not that the code broke.

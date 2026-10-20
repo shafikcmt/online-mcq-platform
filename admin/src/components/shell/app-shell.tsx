@@ -5,9 +5,11 @@ import { Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ToastProvider } from "@/components/ui/toast";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 
+import { SessionExpiredDialog } from "./session-expired";
 import { SidebarBrand, SidebarNav } from "./sidebar";
 import { Topbar, type AdminProfile } from "./topbar";
 
@@ -38,6 +40,7 @@ export function AppShell({ profile, children }: { profile: AdminProfile; childre
   }
 
   return (
+    <ToastProvider>
     <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
     <div className="min-h-dvh">
       <a
@@ -108,5 +111,7 @@ export function AppShell({ profile, children }: { profile: AdminProfile; childre
       </div>
     </div>
     </Dialog.Root>
+    <SessionExpiredDialog />
+    </ToastProvider>
   );
 }

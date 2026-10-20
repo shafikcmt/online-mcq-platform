@@ -1,7 +1,9 @@
 /** Admin Panel UI strings. English is the default (docs/LOCALIZATION.md); Bangla is kept
  * complete so the panel can switch languages. Keys are stable; never build strings by
  * concatenating translated fragments. */
-export const en = {
+import { contentBn, contentEn } from "./content-messages";
+
+const coreEn = {
   "brand.name": "Live Model Test",
   "brand.area": "Admin",
   "nav.overview": "Overview",
@@ -10,7 +12,7 @@ export const en = {
   "nav.users": "Users",
   "nav.subscriptions": "Subscriptions",
   "nav.content": "Content",
-  "nav.categories": "Categories & subjects",
+  "nav.categories": "Categories",
   "nav.questions": "Questions",
   "nav.exams": "Exams",
   "nav.results": "Results",
@@ -42,6 +44,10 @@ export const en = {
   "error.unauthenticated": "Your session has ended. Please sign in again.",
   "error.rateLimited": "Too many attempts. Please wait a while and try again.",
   "error.generic": "Something went wrong. Please try again.",
+  "session.expiredTitle": "Your session has ended",
+  "session.expiredBody": "For your security you were signed out. Sign in again to continue — you'll come back to this page. Changes you haven't saved here will be lost, so copy anything you need first.",
+  "session.signIn": "Sign in again",
+  "session.stay": "Stay on this page",
   "user.menu": "Account menu",
   "user.signOut": "Sign out",
   "user.signingOut": "Signing out…",
@@ -91,10 +97,12 @@ export const en = {
   "status.cancelled": "Cancelled",
 };
 
+export const en = { ...coreEn, ...contentEn };
+
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
 
-export const bn: Messages = {
+const coreBn: Record<keyof typeof coreEn, string> = {
   "brand.name": "লাইভ মডেল টেস্ট",
   "brand.area": "অ্যাডমিন",
   "nav.overview": "সারসংক্ষেপ",
@@ -103,7 +111,7 @@ export const bn: Messages = {
   "nav.users": "ব্যবহারকারীরা",
   "nav.subscriptions": "সাবস্ক্রিপশন",
   "nav.content": "কনটেন্ট",
-  "nav.categories": "ক্যাটাগরি ও বিষয়",
+  "nav.categories": "ক্যাটাগরি",
   "nav.questions": "প্রশ্ন",
   "nav.exams": "পরীক্ষা",
   "nav.results": "ফলাফল",
@@ -135,6 +143,10 @@ export const bn: Messages = {
   "error.unauthenticated": "আপনার সেশন শেষ হয়েছে। আবার সাইন ইন করুন।",
   "error.rateLimited": "অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।",
   "error.generic": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+  "session.expiredTitle": "আপনার সেশন শেষ হয়েছে",
+  "session.expiredBody": "নিরাপত্তার জন্য আপনাকে সাইন আউট করা হয়েছে। চালিয়ে যেতে আবার সাইন ইন করুন — আপনি এই পেজেই ফিরে আসবেন। এখানে সংরক্ষণ না করা পরিবর্তনগুলো হারিয়ে যাবে, তাই দরকারি কিছু থাকলে আগে কপি করে নিন।",
+  "session.signIn": "আবার সাইন ইন করুন",
+  "session.stay": "এই পেজেই থাকুন",
   "user.menu": "অ্যাকাউন্ট মেনু",
   "user.signOut": "সাইন আউট",
   "user.signingOut": "সাইন আউট হচ্ছে…",
@@ -183,6 +195,8 @@ export const bn: Messages = {
   "status.failed": "ব্যর্থ",
   "status.cancelled": "বাতিল",
 };
+
+export const bn: Messages = { ...coreBn, ...contentBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];
