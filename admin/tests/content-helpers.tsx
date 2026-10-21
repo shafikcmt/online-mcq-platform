@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { I18nProvider } from "@/lib/i18n/provider";
 import type { Locale } from "@/lib/i18n/messages";
 import type { Category, Paginated, Question, Subject } from "@/types/content";
+import type { Exam, ExamQuestionRow } from "@/types/exams";
 
 /** Render inside the providers the panel layout supplies (language + toasts). */
 export function renderPanel(ui: ReactElement, locale: Locale = "en") {
@@ -118,4 +119,62 @@ export function question(overrides: Partial<Question> = {}): Question {
 export async function findToast() {
   const { screen, within } = await import("@testing-library/react");
   return within(screen.getByRole("region", { name: "Notification", hidden: true })).findByRole("status", { hidden: true });
+}
+
+export function exam(overrides: Partial<Exam> = {}): Exam {
+  return {
+    id: 7,
+    public_id: "00000000-0000-0000-0000-000000000007",
+    slug: "model-test",
+    status: "draft",
+    title_bn: "মডেল টেস্ট",
+    title_en: "Model test",
+    description_bn: "",
+    description_en: "",
+    instructions_bn: "",
+    instructions_en: "",
+    content_language: "bn",
+    category: 1,
+    subject: 10,
+    exam_type: "regular",
+    access_type: "free",
+    duration_minutes: 30,
+    total_questions: 3,
+    default_marks: "1.00",
+    negative_marks: "0.00",
+    pass_marks: null,
+    start_at: null,
+    end_at: null,
+    shuffle_questions: false,
+    shuffle_options: false,
+    allow_retake: false,
+    max_attempts: 1,
+    merit_enabled: true,
+    merit_strategy: "first_attempt",
+    result_visibility: "immediate",
+    allow_answer_review: true,
+    is_featured: false,
+    result_published_at: null,
+    question_count: 2,
+    total_marks: "2.00",
+    created_by: 1,
+    created_at: STAMP,
+    updated_at: STAMP,
+    ...overrides,
+  };
+}
+
+export function examRow(id: number, sortOrder: number, overrides: Partial<ExamQuestionRow> = {}): ExamQuestionRow {
+  return {
+    question: id,
+    sort_order: sortOrder,
+    marks: null,
+    effective_marks: "1.00",
+    subject: 10,
+    available_languages: "both",
+    is_active: true,
+    text_bn: `প্রশ্ন ${id}`,
+    text_en: `Question ${id}`,
+    ...overrides,
+  };
 }

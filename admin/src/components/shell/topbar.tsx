@@ -9,6 +9,7 @@ import { LogoMark } from "@/components/brand/logo";
 import { apiFetch } from "@/lib/api/client";
 import { LOCALES, type Locale } from "@/lib/i18n/messages";
 import { useI18n } from "@/lib/i18n/provider";
+import { useConfirmLeave } from "@/lib/use-unsaved-guard";
 
 export type AdminProfile = {
   full_name: string;
@@ -36,6 +37,7 @@ export function Topbar({ profile, menuButton }: { profile: AdminProfile; menuBut
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [, startTransition] = useTransition();
+  const confirmLeave = useConfirmLeave();
 
   function setLocale(next: Locale) {
     document.cookie = `admin_lang=${next}; path=/; max-age=31536000; samesite=lax`;
@@ -106,7 +108,12 @@ export function Topbar({ profile, menuButton }: { profile: AdminProfile; menuBut
                 <p className="text-xs text-ink-subtle">{profile.mobile_number}</p>
               </div>
               <Dropdown.Separator className="my-1 h-px bg-line" />
-              <Dropdown.Item className={MENU_ITEM} onSelect={signOut} disabled={signingOut}>
+              <Dropdown.Item
+                className={MENU_ITEM}
+                // A page with unsaved changes (the exam editor) asks first; otherwise at once.
+                onSelect={() => confirmLeave("signOut", signOut)}
+                disabled={signingOut}
+              >
                 <LogOut className="size-4 text-ink-subtle" aria-hidden />
                 {signingOut ? t("user.signingOut") : t("user.signOut")}
               </Dropdown.Item>

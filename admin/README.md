@@ -42,10 +42,23 @@ The backend needs `CSRF_TRUSTED_ORIGINS=http://localhost:3001` (see the root `.e
 | `npm run lint` · `npm run typecheck` | ESLint · TypeScript |
 | `npm test` | Unit/component tests (Vitest + Testing Library) |
 | `npm run build` | Production build |
-| `npm run e2e` | Playwright against a running full stack — local/manual, not in CI (`E2E_BASE_URL` = the nginx or dev-server URL, `E2E_ADMIN_MOBILE`, `E2E_ADMIN_PASSWORD`; screenshots → `SCREENSHOT_DIR`) |
+| `e2e/stack/run.sh <suites…>` | Playwright against the full stack on a **disposable** database, re-created for every suite and dropped afterwards — local/manual, not in CI (`docs/DEPLOYMENT.md` §8: required variables and safety guards; screenshots → `SCREENSHOT_DIR`) |
 
 CI (`.github/workflows/admin-ci.yml`) runs `npm ci`, lint, typecheck, Vitest and the production
 build on every change under `admin/`.
+
+## Known limitations
+
+- **Unsaved exam edits and the browser's Back/Forward buttons.** The exam editor warns before
+  leaving with unsaved changes: the browser's own prompt on reload, closing the tab or typing
+  another address (`beforeunload`), and the panel's "Discard unsaved changes?" dialog for every
+  link inside the panel — the Back link, Cancel, the sidebar and the top bar — and for **Sign
+  out** (a button: it asks through the shell's leave guard, offering "Keep editing" or "Discard
+  and sign out"; `src/lib/use-unsaved-guard.ts`). The browser's Back/Forward buttons are **not** intercepted:
+  the Next.js 15 App Router has no navigation-blocking API, and the workarounds (patching
+  `popstate`, inserting fake history entries, forcing reloads) rewrite browser history, which
+  this panel deliberately avoids. Pressing Back with unsaved changes therefore leaves the editor
+  without asking.
 
 ## Structure
 

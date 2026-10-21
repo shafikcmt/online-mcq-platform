@@ -35,6 +35,7 @@ from ..models import AccessType, ContentLanguage, Exam, ExamQuestion, ExamStatus
 from ..selectors import listable_exams, with_question_totals
 from .serializers import (
     ExamAdminSerializer,
+    ExamQuestionAdminListSerializer,
     ExamQuestionAdminSerializer,
     ExamQuestionListSerializer,
     PublicExamSerializer,
@@ -168,12 +169,12 @@ class ExamQuestionsView(AdminAPIMixin, APIView):
         )
         return {"questions": ExamQuestionAdminSerializer(items, many=True).data}
 
-    @extend_schema(responses=ExamQuestionListSerializer)
+    @extend_schema(responses=ExamQuestionAdminListSerializer)
     def get(self, request, pk):
         generics.get_object_or_404(Exam.objects.all(), pk=pk)
         return Response(self._items(pk))
 
-    @extend_schema(request=ExamQuestionListSerializer, responses=ExamQuestionListSerializer)
+    @extend_schema(request=ExamQuestionListSerializer, responses=ExamQuestionAdminListSerializer)
     def patch(self, request, pk):
         generics.get_object_or_404(Exam.objects.all(), pk=pk)
         serializer = ExamQuestionListSerializer(data=request.data)

@@ -148,8 +148,11 @@ class ExamQuestionListSerializer(serializers.Serializer):
 
 
 class ExamQuestionAdminSerializer(serializers.Serializer):
-    """Assignment row for admins: ids and metadata only (question content lives in the
-    question bank API)."""
+    """Assignment row for admins: ids, metadata and the question's bilingual text, so
+    the Admin Panel exam builder can show the assigned list without one request per
+    question (Milestone 7C). Never options, correct answers or explanations — the full
+    question stays in the question bank API. Output only: the list is written through
+    ``ExamQuestionListSerializer``."""
 
     question = serializers.IntegerField(source="question_id")
     sort_order = serializers.IntegerField()
@@ -158,6 +161,14 @@ class ExamQuestionAdminSerializer(serializers.Serializer):
     subject = serializers.IntegerField(source="question.subject_id")
     available_languages = serializers.CharField(source="question.available_languages")
     is_active = serializers.BooleanField(source="question.is_active")
+    text_bn = serializers.CharField(source="question.text_bn", read_only=True)
+    text_en = serializers.CharField(source="question.text_en", read_only=True)
+
+
+class ExamQuestionAdminListSerializer(serializers.Serializer):
+    """Response of ``GET``/``PATCH /admin/exams/{id}/questions/`` (schema only)."""
+
+    questions = ExamQuestionAdminSerializer(many=True)
 
 
 # --------------------------------------------------------------------------------------
