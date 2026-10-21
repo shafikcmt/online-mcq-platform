@@ -140,8 +140,10 @@ database:
    Results suite — two published exams with five results submitted by four students without
    passwords, merit not generated; for the Users suite, one inactive student with an
    email; for the Attempts suite, one open attempt started through the exam engine and not
-   submitted; all created through the normal services, students submitting through the
-   exam engine).
+   submitted; for the Packages and Subscriptions suites, a paid draft exam, three packages
+   (one unused) with access rules and an active, a scheduled and a cancelled subscription
+   granted/cancelled by the subscription services; all created through the normal
+   services, students submitting through the exam engine).
 2. Before **each** suite, `e2e-db.sh fresh` re-creates `mcq_e2e` as a copy of the template, and
    Redis databases 14 (broker) and 15 (cache) are emptied with `FLUSHDB` (never `FLUSHALL`).
 3. `run.sh` starts its own Django server (development settings) on that database, with a new
@@ -154,7 +156,7 @@ E2E_DISPOSABLE_DB=destroy-and-recreate \
 POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=5432 POSTGRES_USER=… POSTGRES_PASSWORD=… \
 PYTHON=backend/.venv/bin/python E2E_BASE_URL=http://localhost:8088 \
 E2E_ADMIN_MOBILE=… E2E_ADMIN_PASSWORD=… \
-admin/e2e/stack/run.sh attempts users results exams content admin-shell api-proxy
+admin/e2e/stack/run.sh packages subscriptions attempts users results exams content admin-shell api-proxy
 ```
 
 The panel (`next start`) and nginx must already run, with nginx sending `/api/` to

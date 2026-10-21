@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/modal";
 import { apiFetch } from "@/lib/api/client";
 import { describeError } from "@/lib/api/errors";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 import type { Paginated } from "@/types/content";
 import type { Exam } from "@/types/exams";
 
@@ -20,14 +21,40 @@ export const EXAM_PICKER_SIZE = 10;
 
 type Load = { status: "loading" | "idle" | "error"; rows: Exam[] | null; error?: string };
 
+/** Picker texts; the default is the Results screen's ("Show results of …"). */
+export type ExamPickerLabels = {
+  title: MessageKey;
+  description: MessageKey;
+  select: MessageKey;
+  /** With `{name}`. */
+  selectLabel: MessageKey;
+};
+
+const RESULTS_LABELS: ExamPickerLabels = {
+  title: "examPicker.title",
+  description: "examPicker.description",
+  select: "examPicker.select",
+  selectLabel: "examPicker.selectLabel",
+};
+
 export function ExamPicker({
   open,
   onOpenChange,
   onSelect,
+  accessType,
+  labels = RESULTS_LABELS,
+  isChosen,
+  chosenLabel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (exam: Exam) => void;
+  /** Server-side filter (e.g. only paid exams for a package's access rules). */
+  accessType?: "free" | "paid";
+  labels?: ExamPickerLabels;
+  /** Exams already chosen: shown, but not selectable again. */
+  isChosen?: (exam: Exam) => boolean;
+  chosenLabel?: string;
 }) {
   const { locale, t } = useI18n();
   const [search, setSearch] = useState("");
@@ -41,6 +68,7 @@ export function ExamPicker({
     const controller = new AbortController();
     const query = new URLSearchParams({ page_size: String(EXAM_PICKER_SIZE), ordering: "-updated_at" });
     if (search) query.set("search", search);
+    if (accessType) query.set("access_type", accessType);
     setLoad((current) => ({ status: "loading", rows: current.rows }));
     apiFetch<Paginated<Exam>>(`/admin/exams/?${query.toString()}`, { signal: controller.signal })
       .then((page) => {
@@ -51,12 +79,12 @@ export function ExamPicker({
         setLoad((current) => ({ status: "error", rows: current.rows, error: describeError(error, t) }));
       });
     return () => controller.abort();
-  }, [open, search, retry, t]);
+  }, [open, search, retry, accessType, t]);
 
   const busy = load.status === "loading";
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title={t("examPicker.title")} description={t("examPicker.description")} size="md">
+    <Modal open={open} onOpenChange={onOpenChange} title={t(labels.title)} description={t(labels.description)} size="md">
       <div className="space-y-4">
         <SearchInput id="exam-picker-search" label={t("examPicker.search")} placeholder={t("examPicker.search")} value={search} onChange={setSearch} />
         {load.status === "error" && (
@@ -95,15 +123,19 @@ export function ExamPicker({
                         <ExamStatusBadge status={exam.status} />
                       </div>
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="shrink-0"
-                      aria-label={t("examPicker.selectLabel", { name })}
-                      onClick={() => onSelect(exam)}
-                    >
-                      {t("examPicker.select")}
-                    </Button>
+                    {isChosen?.(exam) ? (
+                      <span className="shrink-0 text-[13px] text-ink-muted">{chosenLabel}</span>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="shrink-0"
+                        aria-label={t(labels.selectLabel, { name })}
+                        onClick={() => onSelect(exam)}
+                      >
+                        {t(labels.select)}
+                      </Button>
+                    )}
                   </li>
                 );
               })}

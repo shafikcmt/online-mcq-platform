@@ -4,13 +4,15 @@
 Kept minimal and deterministic: the admin account the suites sign in with, one
 published exam so the 7B suite can check that a question used by a published exam is
 locked, and (7D) two published exams with submitted results from four students, merit
-NOT yet generated, plus (7E) one inactive student with an email and (7F) one open
-attempt. Everything goes through the normal services (students submit through the exam
-engine) — no shortcuts around the rules. Suites create their own throwaway data on top
-of this.
+NOT yet generated, plus (7E) one inactive student with an email, (7F) one open
+attempt and (7G) three packages (one unused) with an active, a scheduled and a cancelled
+subscription. Everything goes through the normal services (students submit through the
+exam engine, subscriptions are granted and cancelled by the subscription services) — no
+shortcuts around the rules. Suites create their own throwaway data on top of this.
 """
 
 import os
+from datetime import timedelta
 from decimal import Decimal
 
 from django.utils import timezone
@@ -24,6 +26,8 @@ from apps.exams import services as exams
 from apps.exams.models import Exam
 from apps.questions import services as questions
 from apps.questions.models import Question
+from apps.subscriptions import services as subscriptions
+from apps.subscriptions.models import Package
 
 ctx = AuditContext()
 User.objects.create_user(
@@ -165,9 +169,81 @@ User.objects.create_user(
     email="nusrat.jahan@example.org",
     is_active=False,
 )
+
+# --- 7G: packages and subscriptions -----------------------------------------------------
+# A paid exam (draft) so a package can have an exam rule; three packages; subscriptions
+# granted (and one cancelled) through the services. An expired subscription would need
+# a start in the past, which the services do not allow: the backend tests cover it.
+paid_exam = exams.create_exam(
+    Exam(
+        title_en="E2E Paid Mock",
+        title_bn="ই২ই পেইড মক",
+        slug="e2e-paid-mock",
+        category=category,
+        subject=subject,
+        content_language="both",
+        exam_type="regular",
+        access_type="paid",
+        duration_minutes=30,
+        total_questions=3,
+    ),
+    ctx=ctx,
+    provided={"access_type"},
+)
+
+
+def package(slug, name_en, name_bn, price, validity_days, rules, **extra):
+    created = subscriptions.create_package(
+        Package(
+            slug=slug,
+            name_en=name_en,
+            name_bn=name_bn,
+            price=Decimal(price),
+            validity_days=validity_days,
+            **extra,
+        ),
+        ctx=ctx,
+    )
+    subscriptions.set_access_rules(created.pk, rules, ctx=ctx)
+    return created
+
+
+gold = package(
+    "e2e-gold",
+    "E2E Gold",
+    "ই২ই গোল্ড",
+    "500",
+    30,
+    [{"rule_type": "category", "category": category.pk}],
+    features_en=["Every exam of the seed category", "Merit lists"],
+    features_bn=["সিড ক্যাটাগরির সব পরীক্ষা", "মেধা তালিকা"],
+    is_featured=True,
+    sort_order=1,
+)
+silver = package(
+    "e2e-silver",
+    "E2E Silver",
+    "ই২ই সিলভার",
+    "250",
+    60,
+    [{"rule_type": "exam", "exam": paid_exam.pk}],
+    sort_order=2,
+)
+package("e2e-unused", "E2E Unused", "ই২ই অব্যবহৃত", "100", 7, [], sort_order=3)
+subscriptions.grant_subscription(students["Tanvir Ahmed"].pk, gold.pk, ctx=ctx)
+subscriptions.grant_subscription(
+    students["মাহমুদা আক্তার"].pk,
+    silver.pk,
+    ctx=ctx,
+    starts_at=timezone.now() + timedelta(days=3),
+)
+cancelled = subscriptions.grant_subscription(students["Rafiq Islam"].pk, gold.pk, ctx=ctx)
+subscriptions.cancel_subscription(cancelled.subscription.pk, ctx=ctx)
+
 print(
     "e2e seed: admin + 1 category, 1 subject, 3 questions, 1 published exam; "
     "results: 2 exams, 4 students, 5 submitted results (merit not generated), "
     "1 open attempt; "
-    "users: 1 inactive student with an email"
+    "users: 1 inactive student with an email; "
+    "packages: 3 (1 unused), subscriptions: active, scheduled, cancelled"
 )
