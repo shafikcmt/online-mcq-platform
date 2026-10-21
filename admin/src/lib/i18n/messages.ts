@@ -2,6 +2,7 @@
  * complete so the panel can switch languages. Keys are stable; never build strings by
  * concatenating translated fragments. */
 import { contentBn, contentEn } from "./content-messages";
+import { examBn, examEn } from "./exam-messages";
 
 const coreEn = {
   "brand.name": "Live Model Test",
@@ -97,7 +98,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn };
+export const en = { ...coreEn, ...contentEn, ...examEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -196,7 +197,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

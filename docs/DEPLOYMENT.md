@@ -124,6 +124,46 @@ are **not** relaxed for tests and there is no test-only behaviour in authenticat
 
 - run full-stack tests against an **isolated test stack** (its own database and its own Redis),
   never against a shared or production Redis;
-- reset that test Redis between suites when needed (`redis-cli FLUSHALL` on the test instance
-  only) — the 7A shell suite and the 7B content suite together sign in more than ten times;
+- reset that test Redis between suites — the 7A shell suite and the 7B content suite together
+  sign in more than ten times;
 - a sign-in that fails during a run with `429` means the throttle worked, not that the code broke.
+
+### Disposable database (`admin/e2e/stack/run.sh`)
+
+The suites exercise the full exam lifecycle. A published exam, the questions it locks and the
+audit log can never be deleted — by design, and there is **no** test-only endpoint or force-delete
+to get around it. So instead of cleaning up record by record, the suites run on a throwaway
+database:
+
+1. `e2e-db.sh template` creates `mcq_e2e_template`, migrates it and runs `seed.py` (the admin
+   account from `E2E_ADMIN_MOBILE`/`E2E_ADMIN_PASSWORD` and one published exam, created through
+   the normal services).
+2. Before **each** suite, `e2e-db.sh fresh` re-creates `mcq_e2e` as a copy of the template, and
+   Redis databases 14 (broker) and 15 (cache) are emptied with `FLUSHDB` (never `FLUSHALL`).
+3. `run.sh` starts its own Django server (development settings) on that database, with a new
+   empty `MEDIA_ROOT`, and prints what each suite added above the seed.
+4. At the end — also after a failure — both databases are dropped, the media folder deleted and
+   the two Redis databases emptied; the script then verifies that none of them remain.
+
+```bash
+E2E_DISPOSABLE_DB=destroy-and-recreate \
+POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=5432 POSTGRES_USER=… POSTGRES_PASSWORD=… \
+PYTHON=backend/.venv/bin/python E2E_BASE_URL=http://localhost:8088 \
+E2E_ADMIN_MOBILE=… E2E_ADMIN_PASSWORD=… \
+admin/e2e/stack/run.sh exams content admin-shell api-proxy
+```
+
+The panel (`next start`) and nginx must already run, with nginx sending `/api/` to
+`127.0.0.1:8000` (`E2E_DJANGO_PORT`); the port must be free, since the script starts Django there.
+
+**Safety guards** — `e2e-db.sh` refuses to create or drop anything unless all of these hold:
+
+- `E2E_DISPOSABLE_DB=destroy-and-recreate` is set (explicit opt-in; any other value refuses);
+- `POSTGRES_HOST` is the local machine (`localhost`, `127.0.0.1`, `::1`);
+- the database name matches `^mcq_e2e[a-z0-9_]*$`, is not `online_mcq` and is not the
+  `POSTGRES_DB` configured in the repository's `.env`;
+- an **existing** database is dropped only if it carries the marker comment this tool writes
+  when it creates one — a database that merely has a matching name is never touched.
+
+`exams.spec.ts` refuses to start without `E2E_DISPOSABLE_DB=destroy-and-recreate`, so it cannot
+be run by accident against a database whose records it could not remove.

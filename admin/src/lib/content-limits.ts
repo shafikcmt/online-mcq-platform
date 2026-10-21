@@ -9,3 +9,5 @@ export const QUESTION_TEXT_MAX_LENGTH = 5000; // apps/questions/models.py
 export const EXPLANATION_MAX_LENGTH = 5000;
 export const OPTION_TEXT_MAX_LENGTH = 1000;
 export const MAX_SORT_ORDER = 2_147_483_647;
+export const EXAM_TITLE_MAX_LENGTH = 200; // apps/exams/models.py
+export const EXAM_TEXT_MAX_LENGTH = 5000;

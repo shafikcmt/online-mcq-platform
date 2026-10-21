@@ -507,6 +507,101 @@ class TestQuestionList:
         assert response.status_code == 400
 
 
+class TestQuestionListText:
+    """Milestone 7C approved contract repair: assigned exam questions include their
+    bilingual text (read-only) so the Admin Panel exam builder needs no per-question
+    requests. Nothing else of the question is exposed."""
+
+    def url(self, exam):
+        return f"{EXAMS}{exam.pk}/questions/"
+
+    def test_rows_include_bilingual_text_and_keep_metadata(self, api, subject):
+        bilingual = make_question(subject, text_bn="আলোর বেগ কত?", text_en="Speed of light?")
+        english = make_question(subject, langs=("en",), text_en="Only English")
+        exam = make_exam(subject, questions=[bilingual, english])
+        rows = api.get(self.url(exam)).json()["questions"]
+        assert [(r["question"], r["text_bn"], r["text_en"]) for r in rows] == [
+            (bilingual.pk, "আলোর বেগ কত?", "Speed of light?"),
+            (english.pk, "", "Only English"),
+        ]
+        first = rows[0]
+        assert first["sort_order"] == 0 and first["marks"] is None
+        assert first["effective_marks"] == "1.00" and first["subject"] == subject.pk
+        assert first["available_languages"] == "both" and first["is_active"] is True
+        assert rows[1]["available_languages"] == "en"
+
+    def test_exposes_exactly_the_documented_fields(self, api, subject):
+        exam = make_exam(subject)
+        rows = api.get(self.url(exam)).json()["questions"]
+        allowed = {
+            "question",
+            "sort_order",
+            "marks",
+            "effective_marks",
+            "subject",
+            "available_languages",
+            "is_active",
+            "text_bn",
+            "text_en",
+        }
+        assert rows and all(set(row) == allowed for row in rows)
+        # No answer data in any form (field names or option text).
+        body = json.dumps(rows)
+        for leak in ("is_correct", "options", "explanation", "Option 0"):
+            assert leak not in body
+
+    def test_text_is_read_only_and_not_required_on_patch(self, api, subject):
+        exam = make_exam(subject)
+        q = make_question(subject, text_en="Original text")
+        before = (q.text_bn, q.text_en)
+        body = {"questions": [{"question": q.pk, "text_en": "Changed", "text_bn": "x"}]}
+        response = api.patch(self.url(exam), body, format="json")
+        assert response.status_code == 200, response.content
+        assert response.json()["questions"][0]["text_en"] == "Original text"
+        q.refresh_from_db()
+        assert (q.text_bn, q.text_en) == before  # extra keys are ignored, never written
+
+    def test_complete_replacement_returns_text_for_the_new_list(self, api, subject):
+        exam = make_exam(subject)
+        new = [make_question(subject, text_en=f"New {i}") for i in range(3)]
+        body = {
+            "questions": [
+                {"question": new[2].pk, "sort_order": 0, "marks": "2.00"},
+                {"question": new[0].pk, "sort_order": 1},
+            ]
+        }
+        response = api.patch(self.url(exam), body, format="json")
+        assert response.status_code == 200
+        rows = response.json()["questions"]
+        assert [(r["question"], r["text_en"], r["marks"]) for r in rows] == [
+            (new[2].pk, "New 2", "2.00"),
+            (new[0].pk, "New 0", None),
+        ]
+        assert exam.exam_questions.count() == 2
+
+    def test_query_count_does_not_grow_with_the_list(self, api, subject):
+        from django.test.utils import CaptureQueriesContext
+
+        small = make_exam(subject, questions=[make_question(subject) for _ in range(2)])
+        large = make_exam(subject, questions=[make_question(subject) for _ in range(12)])
+        counts = []
+        for exam in (small, large):
+            with CaptureQueriesContext(connection) as queries:
+                response = api.get(self.url(exam))
+            assert response.status_code == 200
+            counts.append(len(queries))
+        assert len(api.get(self.url(large)).json()["questions"]) == 12
+        assert counts[0] == counts[1], counts  # no per-row query (no N+1)
+
+    def test_still_admin_only(self, subject):
+        exam = make_exam(subject)
+        assert APIClient().get(self.url(exam)).status_code == 401
+        student = User.objects.create_user("01698765432", password=PW, full_name="Student")
+        client = APIClient()
+        client.force_login(student)
+        assert client.get(self.url(exam)).status_code == 403
+
+
 # ======================================================================================
 # Publish / unpublish / archive
 # ======================================================================================
