@@ -1004,3 +1004,221 @@ def test_after_exam_end_message_in_bangla(subject, admin_client):
         "পরীক্ষা শেষ হওয়ার পর ফলাফল দেখাতে হলে শেষ সময় দিতে হবে। শেষ সময় দিন অথবা অন্য "
         "ফলাফল প্রদর্শনের নিয়ম বেছে নিন।"
     ]
+
+
+# ======================================================================================
+# Admin results list — Milestone 7D contract extension
+# ======================================================================================
+ADMIN_RESULTS = "/api/v1/admin/results/"
+ADMIN_RESULT_FIELDS = {
+    "attempt_id",
+    "attempt_no",
+    "exam_id",
+    "exam_title_bn",
+    "exam_title_en",
+    "user_id",
+    "user_full_name",
+    "status",
+    "submit_source",
+    "submitted_at",
+    "correct_count",
+    "wrong_count",
+    "unanswered_count",
+    "obtained_marks",
+    "total_marks",
+    "percentage",
+    "is_passed",
+    "time_used_seconds",
+    "is_merit_counted",
+    "merit_position",
+}
+
+
+class TestAdminResultList:
+    @pytest.fixture
+    def board(self, subject):
+        """Exam A (pass mark 2): Karim 3/3, Rahima 1/3, Jamal 2/3, submitted in that order,
+        merit generated. Exam B (no pass mark, no merit): one result."""
+        exam_a = published(
+            subject, title_en="Physics Final", title_bn="পদার্থবিজ্ঞান ফাইনাল", pass_marks=Decimal("2")
+        )
+        exam_b = published(subject, title_en="Chemistry Quiz", title_bn="রসায়ন কুইজ")
+        karim = make_student(full_name="Karim Uddin")
+        rahima = make_student(full_name="Rahima Begum")
+        jamal = make_student(full_name="Jamal Khan")
+        attempts_by_name = {
+            "karim": take(karim, exam_a, "ccc"),
+            "rahima": take(rahima, exam_a, "c--"),
+            "jamal": take(jamal, exam_a, "cc-"),
+            "other": take(karim, exam_b, "c--"),
+        }
+        services.generate_merit(exam_a.pk)
+        return exam_a, exam_b, attempts_by_name
+
+    def names(self, response):
+        assert response.status_code == 200, response.content
+        return [row["user_full_name"] for row in response.json()["results"]]
+
+    def test_rows_carry_bilingual_exam_titles_and_nothing_else(self, admin_client, board):
+        exam_a, exam_b, _ = board
+        body = admin_client.get(ADMIN_RESULTS).json()
+        assert body["count"] == 4
+        for row in body["results"]:
+            assert set(row) == ADMIN_RESULT_FIELDS
+        titles = {(r["exam_id"], r["exam_title_en"], r["exam_title_bn"]) for r in body["results"]}
+        assert titles == {
+            (exam_a.pk, "Physics Final", "পদার্থবিজ্ঞান ফাইনাল"),
+            (exam_b.pk, "Chemistry Quiz", "রসায়ন কুইজ"),
+        }
+        text = json_text(body)
+        for leak in ("is_correct", "options", "explanation", "selected_option", "answers"):
+            assert leak not in text
+
+    def test_attempt_filter_returns_exactly_that_result(self, admin_client, board):
+        _, _, by_name = board
+        rows = admin_client.get(f"{ADMIN_RESULTS}?attempt={by_name['jamal'].public_id}").json()
+        assert rows["count"] == 1
+        assert rows["results"][0]["attempt_id"] == str(by_name["jamal"].public_id)
+        assert rows["results"][0]["user_full_name"] == "Jamal Khan"
+        unknown = admin_client.get(f"{ADMIN_RESULTS}?attempt=00000000-0000-4000-8000-000000000000")
+        assert unknown.status_code == 200 and unknown.json()["count"] == 0
+        invalid = admin_client.get(f"{ADMIN_RESULTS}?attempt=not-a-uuid")
+        assert invalid.status_code == 400
+        assert invalid.json()["error"]["field_errors"] == {"attempt": ["Enter a valid ID."]}
+
+    def test_pass_fail_filter(self, admin_client, board):
+        exam_a, _, _ = board
+        base = f"{ADMIN_RESULTS}?exam={exam_a.pk}&ordering=submitted_at"
+        assert self.names(admin_client.get(f"{base}&is_passed=true")) == [
+            "Karim Uddin",
+            "Jamal Khan",
+        ]
+        assert self.names(admin_client.get(f"{base}&is_passed=false")) == ["Rahima Begum"]
+        # No pass mark → is_passed is null: neither passed nor failed.
+        assert admin_client.get(f"{ADMIN_RESULTS}?is_passed=true").json()["count"] == 2
+        assert admin_client.get(f"{ADMIN_RESULTS}?is_passed=false").json()["count"] == 1
+        assert admin_client.get(f"{ADMIN_RESULTS}?is_passed=maybe").status_code == 400
+
+    def test_student_name_search(self, admin_client, board):
+        assert self.names(admin_client.get(f"{ADMIN_RESULTS}?search=rahima")) == ["Rahima Begum"]
+        assert sorted(self.names(admin_client.get(f"{ADMIN_RESULTS}?search=  KARIM "))) == [
+            "Karim Uddin",
+            "Karim Uddin",
+        ]
+        assert admin_client.get(f"{ADMIN_RESULTS}?search=nobody").json()["count"] == 0
+        assert admin_client.get(f"{ADMIN_RESULTS}?search={'x' * 101}").status_code == 400
+
+    def test_ordering(self, admin_client, board):
+        exam_a, _, _ = board
+        base = f"{ADMIN_RESULTS}?exam={exam_a.pk}&ordering="
+        submitted = ["Karim Uddin", "Rahima Begum", "Jamal Khan"]
+        assert self.names(admin_client.get(base + "submitted_at")) == submitted
+        assert self.names(admin_client.get(base + "-submitted_at")) == submitted[::-1]
+        by_score = ["Rahima Begum", "Jamal Khan", "Karim Uddin"]
+        assert self.names(admin_client.get(base + "percentage")) == by_score
+        assert self.names(admin_client.get(base + "-percentage")) == by_score[::-1]
+        ranked = ["Karim Uddin", "Jamal Khan", "Rahima Begum"]
+        assert self.names(admin_client.get(base + "merit_position")) == ranked
+        assert self.names(admin_client.get(base + "-merit_position")) == ranked[::-1]
+
+    def test_unranked_results_sort_after_ranked_ones(self, admin_client, board):
+        _, exam_b, _ = board
+        rows = admin_client.get(f"{ADMIN_RESULTS}?ordering=merit_position").json()["results"]
+        assert [r["merit_position"] for r in rows] == [1, 2, 3, None]
+        assert rows[-1]["exam_id"] == exam_b.pk
+
+    def test_unknown_ordering_is_rejected(self, admin_client, board):
+        for value in ("obtained_marks", "user__password", "-id,percentage"):
+            response = admin_client.get(f"{ADMIN_RESULTS}?ordering={value}")
+            assert response.status_code == 400
+            assert response.json()["error"]["field_errors"] == {
+                "ordering": ["Unknown ordering field."]
+            }
+
+    def test_default_order_and_existing_filters_unchanged(self, admin_client, board):
+        exam_a, exam_b, by_name = board
+        rows = admin_client.get(ADMIN_RESULTS).json()["results"]
+        assert [(r["exam_id"], r["merit_position"]) for r in rows] == sorted(
+            [(r["exam_id"], r["merit_position"]) for r in rows],
+            key=lambda pair: (pair[0], pair[1] is None, pair[1] or 0),
+        )
+        assert self.names(admin_client.get(f"{ADMIN_RESULTS}?exam={exam_b.pk}")) == ["Karim Uddin"]
+        karim_id = by_name["karim"].user_id
+        assert admin_client.get(f"{ADMIN_RESULTS}?user={karim_id}").json()["count"] == 2
+        for flag in (True, False):
+            rows = admin_client.get(f"{ADMIN_RESULTS}?merit_counted={str(flag).lower()}").json()
+            assert rows["count"] == Result.objects.filter(is_merit_counted=flag).count()
+            assert all(row["is_merit_counted"] is flag for row in rows["results"])
+        both = admin_client.get(f"{ADMIN_RESULTS}?exam={exam_a.pk}&search=khan&is_passed=true")
+        assert self.names(both) == ["Jamal Khan"]
+
+    def test_pagination(self, admin_client, board):
+        first = admin_client.get(f"{ADMIN_RESULTS}?page_size=3&ordering=submitted_at").json()
+        assert first["count"] == 4 and len(first["results"]) == 3 and first["next"]
+        second = admin_client.get(f"{ADMIN_RESULTS}?page_size=3&ordering=submitted_at&page=2")
+        assert len(second.json()["results"]) == 1
+
+    def test_query_count_does_not_grow_with_rows(self, admin_client, board):
+        with CaptureQueriesContext(connection) as one:
+            assert admin_client.get(f"{ADMIN_RESULTS}?page_size=1").status_code == 200
+        with CaptureQueriesContext(connection) as four:
+            assert admin_client.get(f"{ADMIN_RESULTS}?page_size=4").status_code == 200
+        assert len(four.captured_queries) == len(one.captured_queries)
+
+    def test_still_admin_only(self, board, student):
+        assert APIClient().get(ADMIN_RESULTS).status_code == 401
+        assert jwt_client(student).get(ADMIN_RESULTS).status_code == 401
+        session = APIClient()
+        session.force_login(student)
+        assert session.get(ADMIN_RESULTS).status_code == 403
+
+
+def json_text(body) -> str:
+    import json
+
+    return json.dumps(body)
+
+
+class TestAdminExamResultsVisible:
+    """``results_visible`` on the admin exam = the results app's own rule, evaluated now."""
+
+    def visible(self, admin_client, exam):
+        detail = admin_client.get(f"/api/v1/admin/exams/{exam.pk}/").json()["results_visible"]
+        listed = admin_client.get(f"/api/v1/admin/exams/?search={exam.title_en}").json()
+        assert [row["results_visible"] for row in listed["results"]] == [detail]
+        return detail
+
+    def test_immediate(self, admin_client, subject):
+        assert self.visible(admin_client, published(subject, title_en="Immediate")) is True
+
+    def test_after_exam_end(self, admin_client, subject):
+        now = timezone.now()
+        exam = published(
+            subject,
+            title_en="After end",
+            result_visibility="after_exam_end",
+            end_at=now + timedelta(hours=1),
+        )
+        assert self.visible(admin_client, exam) is False  # before the end
+        type(exam).objects.filter(pk=exam.pk).update(end_at=now - timedelta(minutes=1))
+        assert self.visible(admin_client, exam) is True  # after the end
+
+    def test_manual_hidden_then_published_then_hidden(self, admin_client, subject):
+        exam = published(subject, title_en="Manual", result_visibility="manual")
+        assert self.visible(admin_client, exam) is False
+        published_now = admin_client.post(f"/api/v1/admin/exams/{exam.pk}/results/publish/")
+        assert published_now.json()["results_visible"] is True
+        assert self.visible(admin_client, exam) is True
+        hidden = admin_client.post(f"/api/v1/admin/exams/{exam.pk}/results/hide/")
+        assert hidden.json()["results_visible"] is False
+
+    def test_matches_the_results_rule_and_is_read_only(self, admin_client, subject):
+        exam = published(subject, title_en="Read only", result_visibility="manual")
+        exam_services.unpublish_exam(exam.pk, ctx=exam_services_ctx())
+        response = admin_client.patch(
+            f"/api/v1/admin/exams/{exam.pk}/", {"results_visible": True}, format="json"
+        )
+        assert response.status_code == 200
+        exam.refresh_from_db()
+        assert response.json()["results_visible"] is False
+        assert response.json()["results_visible"] == selectors.results_visible(exam, timezone.now())

@@ -9,9 +9,12 @@ the attempt's UUID):
 
 Public (no login): ``GET /public/exams/{slug}/leaderboard/`` — top N, masked names.
 
-Admin (session + CSRF + admin role): ``GET /admin/results/``,
+Admin (session + CSRF + admin role): ``GET /admin/results/`` (filters ``exam``, ``user``,
+``merit_counted``, ``attempt``, ``is_passed``; ``search`` = student name; ``ordering``),
 ``POST /admin/exams/{id}/merit/generate/``.
 """
+
+import uuid
 
 from django.conf import settings
 from django.db.models import Q
@@ -29,7 +32,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.services import AuditContext
-from apps.core.admin_api import AdminAPIMixin, query_bool, query_int
+from apps.core.admin_api import (
+    INVALID_ID_MESSAGE,
+    AdminAPIMixin,
+    query_bool,
+    query_int,
+    query_ordering,
+    query_search,
+)
 from apps.core.exceptions import ApiError
 from apps.core.i18n import resolve_bilingual
 from apps.core.public_api import PublicAPIMixin
@@ -259,29 +269,70 @@ class PublicLeaderboardView(PublicAPIMixin, APIView):
 # --------------------------------------------------------------------------------------
 # Admin
 # --------------------------------------------------------------------------------------
+# Default: grouped by exam, ranked first (unranked last), newest first.
+ADMIN_RESULT_DEFAULT_ORDERING = ("exam_id", "merit_position", "-submitted_at", "-id")
+ADMIN_RESULT_ORDERING_FIELDS = ("submitted_at", "percentage", "merit_position")
+
+
+def _query_uuid(request, name: str) -> uuid.UUID | None:
+    raw = request.query_params.get(name)
+    if raw is None or raw == "":
+        return None
+    try:
+        return uuid.UUID(raw.strip())
+    except ValueError:
+        raise serializers.ValidationError({name: [INVALID_ID_MESSAGE]}) from None
+
+
 @extend_schema_view(
     get=extend_schema(
         parameters=[
             OpenApiParameter("exam", OpenApiTypes.INT),
             OpenApiParameter("user", OpenApiTypes.INT),
             OpenApiParameter("merit_counted", OpenApiTypes.BOOL),
+            OpenApiParameter(
+                "attempt", OpenApiTypes.UUID, description="The attempt's public id (0 or 1 row)."
+            ),
+            OpenApiParameter("is_passed", OpenApiTypes.BOOL),
+            OpenApiParameter("search", OpenApiTypes.STR, description="Student name."),
+            OpenApiParameter(
+                "ordering",
+                OpenApiTypes.STR,
+                description="Comma-separated; '-' = descending. Fields: "
+                + ", ".join(ADMIN_RESULT_ORDERING_FIELDS)
+                + ". Default: exam, merit position, newest.",
+            ),
         ]
     )
 )
 class AdminResultListView(AdminAPIMixin, generics.ListAPIView):
+    """Results for admins: scores, merit and the exam's bilingual title per row (joined,
+    no per-row queries). Never answers, options or explanations."""
+
     serializer_class = AdminResultSerializer
 
     def get_queryset(self):
         request = self.request
-        queryset = Result.objects.select_related("attempt", "user")
+        queryset = Result.objects.select_related("attempt", "user", "exam")
         for name in ("exam", "user"):
             value = query_int(request, name)
             if value is not None:
                 queryset = queryset.filter(**{f"{name}_id": value})
-        counted = query_bool(request, "merit_counted")
-        if counted is not None:
-            queryset = queryset.filter(is_merit_counted=counted)
-        return queryset.order_by("exam_id", "merit_position", "-submitted_at", "-id")
+        attempt = _query_uuid(request, "attempt")
+        if attempt is not None:
+            queryset = queryset.filter(attempt__public_id=attempt)
+        for name, field in (("merit_counted", "is_merit_counted"), ("is_passed", "is_passed")):
+            value = query_bool(request, name)
+            if value is not None:
+                queryset = queryset.filter(**{field: value})
+        search = query_search(request)
+        if search:
+            queryset = queryset.filter(user__full_name__icontains=search)
+        if request.query_params.get("ordering", ""):
+            ordering = query_ordering(request, ADMIN_RESULT_ORDERING_FIELDS, ())
+        else:
+            ordering = list(ADMIN_RESULT_DEFAULT_ORDERING)
+        return queryset.order_by(*ordering)
 
     def list(self, request, *args, **kwargs):
         page = self.paginate_queryset(self.get_queryset())
@@ -290,6 +341,8 @@ class AdminResultListView(AdminAPIMixin, generics.ListAPIView):
                 "attempt_id": r.attempt.public_id,
                 "attempt_no": r.attempt.attempt_no,
                 "exam_id": r.exam_id,
+                "exam_title_bn": r.exam.title_bn,
+                "exam_title_en": r.exam.title_en,
                 "user_id": r.user_id,
                 "user_full_name": r.user.full_name,
                 "status": r.attempt.status,

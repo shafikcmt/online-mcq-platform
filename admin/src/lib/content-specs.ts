@@ -46,3 +46,11 @@ export const EXAM_LIST: ListSpec = {
   orderings: ["id", "created_at", "updated_at", "start_at"],
   defaultOrdering: "-created_at",
 };
+
+/** Admin results: filters, search (student name) and orderings of GET /admin/results/.
+ * The panel's default is newest first; ordering by merit position gives the merit view. */
+export const RESULT_LIST: ListSpec = {
+  filters: { exam: "id", user: "id", is_passed: "bool", merit_counted: "bool" },
+  orderings: ["submitted_at", "percentage", "merit_position"],
+  defaultOrdering: "-submitted_at",
+};

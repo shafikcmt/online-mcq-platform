@@ -519,7 +519,20 @@ export function ExamEditor({
         </FormSection>
       </SectionAnchor>
 
-      {exam && exam.status !== "draft" && <ExamResults exam={exam} onExamChange={setExam} />}
+      {exam && exam.status !== "draft" && (
+        <ExamResults
+          exam={exam}
+          onExamChange={setExam}
+          link={
+            <Link
+              href={`/results?exam=${exam.id}`}
+              className="rounded-control text-sm font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
+            >
+              {t("resultsExam.viewResults")}
+            </Link>
+          }
+        />
+      )}
 
       <p className="sr-only" aria-live="polite">
         {announcement}

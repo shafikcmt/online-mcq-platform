@@ -50,6 +50,9 @@ export type Exam = {
   allow_answer_review: boolean;
   is_featured: boolean;
   result_published_at: string | null;
+  /** Read-only: whether students can see the results right now — computed by the server's
+   * visibility rule (never derived in the panel). */
+  results_visible: boolean;
   /** Read-only: questions currently assigned. */
   question_count: number;
   /** Read-only: sum of effective marks of the assigned questions. */
