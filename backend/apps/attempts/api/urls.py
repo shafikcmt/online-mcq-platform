@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .admin_views import AdminAttemptDetailView, AdminAttemptListView
 from .views import (
     AnswerBatchView,
     AnswerView,
@@ -24,4 +25,9 @@ student_urlpatterns = [
         name="attempt-answer",
     ),
     path("attempts/<uuid:public_id>/submit/", SubmitView.as_view(), name="attempt-submit"),
+]
+
+admin_urlpatterns = [
+    path("attempts/", AdminAttemptListView.as_view(), name="attempt-list"),
+    path("attempts/<uuid:public_id>/", AdminAttemptDetailView.as_view(), name="attempt-detail"),
 ]

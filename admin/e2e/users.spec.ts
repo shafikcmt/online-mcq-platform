@@ -169,11 +169,12 @@ test("detail: fields, masked contact, counts and the Results link", async () => 
   await expect(card("Attempts")).toContainText("2");
   await expect(card("Active subscriptions")).toContainText("0");
   await expect(card("Payments")).toContainText("0");
-  for (const label of ["Attempts", "Active subscriptions", "Payments"]) {
+  for (const label of ["Active subscriptions", "Payments"]) {
     await expect(card(label)).toContainText("Screen not available yet");
     await expect(card(label).getByRole("link")).toHaveCount(0);
   }
-  await expect(activity.getByRole("link")).toHaveCount(1);
+  await expect(card("Attempts").getByRole("link", { name: "View attempts" })).toHaveAttribute("href", `/attempts?user=${ids.ayesha}`);
+  await expect(activity.getByRole("link")).toHaveCount(2);
   await expectNoRawContact(page);
   await page.screenshot({ path: `${SHOTS}/user-detail-1440.png`, fullPage: true });
   await activity.getByRole("link", { name: "View results" }).click();

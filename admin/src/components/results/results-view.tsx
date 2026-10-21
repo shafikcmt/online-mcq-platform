@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenCheck, ExternalLink, Trophy, UserRound, X } from "lucide-react";
+import { BookOpenCheck, ExternalLink, Trophy, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
@@ -11,6 +11,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { FilterChip } from "@/components/ui/filter-chip";
 import { FilterBar, FilterSelect, SearchInput } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
@@ -377,33 +378,6 @@ function ExamContext({ exam: initial, onMeritGenerated }: { exam: Exam; onMeritG
         </Link>
       }
     />
-  );
-}
-
-function FilterChip({
-  prefix,
-  label,
-  clearLabel,
-  onClear,
-  extra,
-}: {
-  prefix: string;
-  label: string;
-  clearLabel: string;
-  onClear: () => void;
-  extra?: React.ReactNode;
-}) {
-  return (
-    <span className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-brand-600/40 bg-brand-50 py-0.5 pr-1 pl-3 text-sm text-ink">
-      <span className="min-w-0 truncate">
-        <span className="text-ink-muted">{prefix}: </span>
-        <span className="font-medium">{label}</span>
-      </span>
-      {extra}
-      <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={onClear} aria-label={clearLabel} title={clearLabel}>
-        <X aria-hidden />
-      </Button>
-    </span>
   );
 }
 

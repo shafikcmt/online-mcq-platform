@@ -8,6 +8,7 @@ from apps.accounts.api.urls import (
     auth_urlpatterns,
 )
 from apps.accounts.api.views import MeView
+from apps.attempts.api.urls import admin_urlpatterns as attempt_admin_urlpatterns
 from apps.attempts.api.urls import student_urlpatterns as attempt_student_urlpatterns
 from apps.audit.api.urls import admin_urlpatterns as audit_admin_urlpatterns
 from apps.catalog.api.urls import admin_urlpatterns as catalog_admin_urlpatterns
@@ -40,6 +41,7 @@ admin_urlpatterns = [
     *catalog_admin_urlpatterns,
     *question_admin_urlpatterns,
     *exam_admin_urlpatterns,
+    *attempt_admin_urlpatterns,
     *subscription_admin_urlpatterns,
     *result_admin_urlpatterns,
     *payment_admin_urlpatterns,

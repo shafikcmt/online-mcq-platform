@@ -9,7 +9,7 @@ The payload is built field by field from an explicit allow-list: it never touche
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 
 from apps.core.i18n import resolve_bilingual
 from apps.exams.models import ContentLanguage, ExamType
@@ -53,6 +53,18 @@ def past_grace(deadline_at: datetime, now: datetime) -> bool:
 def is_overdue(attempt: ExamAttempt, now: datetime) -> bool:
     """Past deadline + grace and still open: the server finalizes it."""
     return attempt.status == AttemptStatus.IN_PROGRESS and past_grace(attempt.deadline_at, now)
+
+
+def overdue_filter(now: datetime) -> Q:
+    """``is_overdue`` as a query: still open and past deadline + grace."""
+    return Q(status=AttemptStatus.IN_PROGRESS, deadline_at__lt=now - grace())
+
+
+def remaining_seconds(attempt: ExamAttempt, now: datetime) -> int:
+    """Seconds until the deadline while open (0 once finished or past it)."""
+    if attempt.status != AttemptStatus.IN_PROGRESS:
+        return 0
+    return max(0, int((attempt.deadline_at - now).total_seconds()))
 
 
 # --------------------------------------------------------------------------------------
@@ -141,7 +153,6 @@ def _image_url(question, request) -> str | None:
 
 def attempt_summary(attempt: ExamAttempt, now: datetime) -> dict:
     """Status and timing only (submit responses, history)."""
-    remaining = max(0, int((attempt.deadline_at - now).total_seconds()))
     return {
         "attempt_id": str(attempt.public_id),
         "attempt_no": attempt.attempt_no,
@@ -149,7 +160,7 @@ def attempt_summary(attempt: ExamAttempt, now: datetime) -> dict:
         "server_time": now,
         "started_at": attempt.started_at,
         "deadline_at": attempt.deadline_at,
-        "remaining_seconds": remaining if attempt.status == AttemptStatus.IN_PROGRESS else 0,
+        "remaining_seconds": remaining_seconds(attempt, now),
         "can_edit": can_edit(attempt, now),
         "can_submit": can_submit(attempt, now),
         "submitted_at": attempt.submitted_at,

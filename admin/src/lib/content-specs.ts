@@ -1,5 +1,6 @@
 import { CONTENT_LANGUAGES, DIFFICULTIES } from "@/types/content";
 import { ACCESS_TYPES, EXAM_STATUSES, EXAM_TYPES } from "@/types/exams";
+import { ATTEMPT_STATUSES } from "@/types/attempts";
 import { USER_ROLES } from "@/types/users";
 
 import type { ListSpec } from "./list-params";
@@ -62,4 +63,13 @@ export const USER_LIST: ListSpec = {
   filters: { role: USER_ROLES, is_active: "bool" },
   orderings: ["date_joined", "full_name"],
   defaultOrdering: "-date_joined",
+};
+
+/** Admin attempts (read-only monitoring): exam/student/status/overdue/result filters and
+ * the orderings of GET /admin/attempts/. No free-text search: exams and students are
+ * chosen with the bounded pickers. */
+export const ATTEMPT_LIST: ListSpec = {
+  filters: { exam: "id", user: "id", status: ATTEMPT_STATUSES, overdue: "bool", has_result: "bool" },
+  orderings: ["started_at", "deadline_at", "submitted_at"],
+  defaultOrdering: "-started_at",
 };

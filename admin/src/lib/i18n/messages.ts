@@ -1,6 +1,7 @@
 /** Admin Panel UI strings. English is the default (docs/LOCALIZATION.md); Bangla is kept
  * complete so the panel can switch languages. Keys are stable; never build strings by
  * concatenating translated fragments. */
+import { attemptBn, attemptEn } from "./attempt-messages";
 import { contentBn, contentEn } from "./content-messages";
 import { examBn, examEn } from "./exam-messages";
 import { resultBn, resultEn } from "./result-messages";
@@ -18,6 +19,7 @@ const coreEn = {
   "nav.categories": "Categories",
   "nav.questions": "Questions",
   "nav.exams": "Exams",
+  "nav.attempts": "Attempts",
   "nav.results": "Results",
   "nav.commerce": "Commerce",
   "nav.packages": "Packages",
@@ -100,7 +102,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn };
+export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -117,6 +119,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "nav.categories": "ক্যাটাগরি",
   "nav.questions": "প্রশ্ন",
   "nav.exams": "পরীক্ষা",
+  "nav.attempts": "প্রচেষ্টা",
   "nav.results": "ফলাফল",
   "nav.commerce": "বিক্রয়",
   "nav.packages": "প্যাকেজ",
@@ -199,7 +202,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

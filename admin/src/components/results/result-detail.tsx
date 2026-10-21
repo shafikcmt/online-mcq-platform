@@ -109,12 +109,20 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
           <Info className="size-4" aria-hidden />
           {t("resultDetail.noAnswers")}
         </p>
-        <Link
-          href={`/results?user=${result.user_id}`}
-          className="rounded-control font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
-        >
-          {t("resultDetail.studentResults")}
-        </Link>
+        <span className="flex flex-wrap gap-x-4 gap-y-2">
+          <Link
+            href={`/attempts/${result.attempt_id}`}
+            className="rounded-control font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
+          >
+            {t("resultDetail.openAttempt")}
+          </Link>
+          <Link
+            href={`/results?user=${result.user_id}`}
+            className="rounded-control font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
+          >
+            {t("resultDetail.studentResults")}
+          </Link>
+        </span>
       </div>
     </div>
   );
