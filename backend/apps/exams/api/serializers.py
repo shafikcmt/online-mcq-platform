@@ -72,6 +72,7 @@ class ExamAdminSerializer(serializers.ModelSerializer):
     start_at = AwareDateTimeField(allow_null=True, required=False)
     end_at = AwareDateTimeField(allow_null=True, required=False)
     question_count = serializers.SerializerMethodField()
+    results_visible = serializers.SerializerMethodField()
     total_marks = serializers.SerializerMethodField()
 
     class Meta:
@@ -109,6 +110,7 @@ class ExamAdminSerializer(serializers.ModelSerializer):
             "allow_answer_review",
             "is_featured",
             "result_published_at",
+            "results_visible",
             "question_count",
             "total_marks",
             "created_by",
@@ -129,6 +131,13 @@ class ExamAdminSerializer(serializers.ModelSerializer):
     def get_question_count(self, exam) -> int:
         value = getattr(exam, "question_count", None)
         return exam.exam_questions.count() if value is None else value
+
+    def get_results_visible(self, exam) -> bool:
+        """Whether students can see this exam's results right now — the results app's
+        own rule (``results.selectors.results_visible``), not a copy of it."""
+        from apps.results.selectors import results_visible
+
+        return results_visible(exam, timezone.now())
 
     def get_total_marks(self, exam) -> str:
         value = getattr(exam, "total_marks", None)

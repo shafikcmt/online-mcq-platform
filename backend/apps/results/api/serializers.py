@@ -91,6 +91,8 @@ class AdminResultSerializer(serializers.Serializer):
     attempt_id = serializers.UUIDField()
     attempt_no = serializers.IntegerField()
     exam_id = serializers.IntegerField()
+    exam_title_bn = serializers.CharField()
+    exam_title_en = serializers.CharField()
     user_id = serializers.IntegerField()
     user_full_name = serializers.CharField()
     status = serializers.CharField()

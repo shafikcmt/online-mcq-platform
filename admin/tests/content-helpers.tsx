@@ -7,6 +7,7 @@ import { I18nProvider } from "@/lib/i18n/provider";
 import type { Locale } from "@/lib/i18n/messages";
 import type { Category, Paginated, Question, Subject } from "@/types/content";
 import type { Exam, ExamQuestionRow } from "@/types/exams";
+import type { AdminResult } from "@/types/results";
 
 /** Render inside the providers the panel layout supplies (language + toasts). */
 export function renderPanel(ui: ReactElement, locale: Locale = "en") {
@@ -155,6 +156,7 @@ export function exam(overrides: Partial<Exam> = {}): Exam {
     allow_answer_review: true,
     is_featured: false,
     result_published_at: null,
+    results_visible: true,
     question_count: 2,
     total_marks: "2.00",
     created_by: 1,
@@ -175,6 +177,32 @@ export function examRow(id: number, sortOrder: number, overrides: Partial<ExamQu
     is_active: true,
     text_bn: `প্রশ্ন ${id}`,
     text_en: `Question ${id}`,
+    ...overrides,
+  };
+}
+
+export function adminResult(overrides: Partial<AdminResult> = {}): AdminResult {
+  return {
+    attempt_id: "6f1c2b9e-1d2a-4c3b-8e4f-5a6b7c8d9e01",
+    attempt_no: 1,
+    exam_id: 7,
+    exam_title_bn: "মডেল টেস্ট",
+    exam_title_en: "Model test",
+    user_id: 40,
+    user_full_name: "Ayesha Siddika",
+    status: "submitted",
+    submit_source: "manual",
+    submitted_at: "2026-10-01T08:00:00Z",
+    correct_count: 2,
+    wrong_count: 0,
+    unanswered_count: 1,
+    obtained_marks: "2.00",
+    total_marks: "3.00",
+    percentage: "66.67",
+    is_passed: true,
+    time_used_seconds: 754,
+    is_merit_counted: true,
+    merit_position: 2,
     ...overrides,
   };
 }

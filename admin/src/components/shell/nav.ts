@@ -48,7 +48,7 @@ export const NAV: NavGroup[] = [
       { key: "nav.subjects", href: "/subjects", icon: Library, ready: true },
       { key: "nav.questions", href: "/questions", icon: ListChecks, ready: true },
       { key: "nav.exams", href: "/exams", icon: BookOpenCheck, ready: true },
-      { key: "nav.results", href: "/results", icon: Trophy, ready: false },
+      { key: "nav.results", href: "/results", icon: Trophy, ready: true },
     ],
   },
   {

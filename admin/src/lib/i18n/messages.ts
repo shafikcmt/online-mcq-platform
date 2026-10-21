@@ -3,6 +3,7 @@
  * concatenating translated fragments. */
 import { contentBn, contentEn } from "./content-messages";
 import { examBn, examEn } from "./exam-messages";
+import { resultBn, resultEn } from "./result-messages";
 
 const coreEn = {
   "brand.name": "Live Model Test",
@@ -98,7 +99,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn, ...examEn };
+export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -197,7 +198,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn, ...examBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

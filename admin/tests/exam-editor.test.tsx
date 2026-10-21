@@ -426,6 +426,15 @@ describe("ExamEditor — results", () => {
     expect(screen.getByRole("button", { name: "Generate merit list" })).toHaveAccessibleDescription("The merit list is turned off for this exam.");
   });
 
+  it("shows the server's current visibility and links to the Results screen", () => {
+    editor({ status: "published", result_visibility: "after_exam_end", results_visible: false });
+    const results = screen.getByRole("region", { name: "Results" });
+    expect(results).toHaveTextContent("After the exam ends");
+    expect(results).toHaveTextContent("Students can't see the results now");
+    expect(results).toHaveTextContent("These actions apply to all results for this exam.");
+    expect(within(results).getByRole("link", { name: "View results" })).toHaveAttribute("href", "/results?exam=7");
+  });
+
   it("drafts show no results section", () => {
     editor();
     expect(screen.queryByRole("region", { name: "Results" })).not.toBeInTheDocument();

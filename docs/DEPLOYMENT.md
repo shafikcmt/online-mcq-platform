@@ -136,8 +136,10 @@ to get around it. So instead of cleaning up record by record, the suites run on 
 database:
 
 1. `e2e-db.sh template` creates `mcq_e2e_template`, migrates it and runs `seed.py` (the admin
-   account from `E2E_ADMIN_MOBILE`/`E2E_ADMIN_PASSWORD` and one published exam, created through
-   the normal services).
+   account from `E2E_ADMIN_MOBILE`/`E2E_ADMIN_PASSWORD`, one published exam, and — for the
+   Results suite — two published exams with five results submitted by four students without
+   passwords, merit not generated; all created through the normal services, students
+   submitting through the exam engine).
 2. Before **each** suite, `e2e-db.sh fresh` re-creates `mcq_e2e` as a copy of the template, and
    Redis databases 14 (broker) and 15 (cache) are emptied with `FLUSHDB` (never `FLUSHALL`).
 3. `run.sh` starts its own Django server (development settings) on that database, with a new

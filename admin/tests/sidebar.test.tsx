@@ -28,13 +28,14 @@ describe("SidebarNav", () => {
     expect(payments).toHaveTextContent("Payments (Soon)"); // announced, not just dimmed
   });
 
-  it("links the content screens built in Milestones 7B and 7C", () => {
+  it("links the content screens built in Milestones 7B, 7C and 7D", () => {
     renderWithI18n(<SidebarNav />);
     expect(screen.getByRole("link", { name: "Categories" })).toHaveAttribute("href", "/categories");
     expect(screen.getByRole("link", { name: "Subjects" })).toHaveAttribute("href", "/subjects");
     expect(screen.getByRole("link", { name: "Questions" })).toHaveAttribute("href", "/questions");
     expect(screen.getByRole("link", { name: "Exams" })).toHaveAttribute("href", "/exams");
-    expect(screen.queryByRole("link", { name: /Results/ })).not.toBeInTheDocument(); // not built yet
+    expect(screen.getByRole("link", { name: "Results" })).toHaveAttribute("href", "/results");
+    expect(screen.queryByRole("link", { name: /Packages/ })).not.toBeInTheDocument(); // not built yet
   });
 
   it("keeps labels for screen readers when collapsed", () => {
