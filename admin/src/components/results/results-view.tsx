@@ -26,12 +26,16 @@ import { useListUrl } from "@/lib/use-list-url";
 import type { Paginated } from "@/types/content";
 import type { Exam } from "@/types/exams";
 import type { AdminResult } from "@/types/results";
+import type { AdminUser } from "@/types/users";
 
 import { ExamPicker } from "./exam-picker";
+import { StudentPicker } from "./student-picker";
 import { Duration, Marks, MeritCell, OutcomeBadge } from "./result-cells";
 
 /** The exam named by `?exam=` as the server page read it: `null` = it does not exist. */
 export type ServerExam = { id: number; exam: Exam | null };
+/** The student named by `?user=` as the server page read it: `null` = no such user. */
+export type ServerStudent = { id: number; user: Pick<AdminUser, "id" | "full_name"> | null };
 
 /** Results list. Same URL-driven list state as the content and exam lists (7B/7C): the
  * server filters, searches (student name), sorts and pages; the URL is the identity.
@@ -42,10 +46,12 @@ export function ResultsView({
   data,
   state: serverState,
   exam: serverExam,
+  student: serverStudent = null,
 }: {
   data: Paginated<AdminResult>;
   state: ListState;
   exam: ServerExam | null;
+  student?: ServerStudent | null;
 }) {
   const { locale, t } = useI18n();
   const { state, key: urlKey, update, pending: navigating } = useListUrl(RESULT_LIST);
@@ -58,6 +64,7 @@ export function ResultsView({
     onPageGone: goToFirstPage,
   });
   const [picking, setPicking] = useState(false);
+  const [pickingStudent, setPickingStudent] = useState(false);
   const rows = list?.results ?? [];
   const pending = navigating || reloading;
   const filtered = Boolean(state.search) || activeFilterCount(state) > 0;
@@ -67,7 +74,9 @@ export function ResultsView({
   // the server page for a new one is on its way).
   const examContext = examId !== null && serverExam?.id === examId ? serverExam : null;
   const userId = state.filters.user ? Number(state.filters.user) : null;
-  const studentName = userId === null ? null : (rows.find((row) => row.user_id === userId)?.user_full_name ?? null);
+  // The name comes from the server's read of that user (GET /admin/users/{id}/), so it is
+  // right even when the page has no rows; until then (or for a missing user), the id.
+  const studentName = userId !== null && serverStudent?.id === userId ? (serverStudent.user?.full_name ?? null) : null;
   const meritView = state.filters.merit_counted === "true" && state.ordering === "merit_position";
 
   const examName = (row: Pick<AdminResult, "exam_title_bn" | "exam_title_en" | "exam_id">) => {
@@ -174,12 +183,22 @@ export function ResultsView({
             }
           />
         )}
-        {userId !== null && (
+        {userId === null ? (
+          <Button variant="secondary" onClick={() => setPickingStudent(true)} aria-haspopup="dialog">
+            <UserRound aria-hidden />
+            {t("results.chooseStudent")}
+          </Button>
+        ) : (
           <FilterChip
             label={studentName ?? t("results.studentUnknown", { id: userId })}
             prefix={t("results.studentFilter")}
             clearLabel={t("results.clearStudent")}
             onClear={() => update({ filters: { user: "" } })}
+            extra={
+              <Button variant="ghost" size="sm" onClick={() => setPickingStudent(true)} aria-haspopup="dialog">
+                {t("results.changeStudent")}
+              </Button>
+            }
           />
         )}
       </div>
@@ -323,6 +342,14 @@ export function ResultsView({
         onSelect={(exam) => {
           setPicking(false);
           update({ filters: { exam: String(exam.id) } });
+        }}
+      />
+      <StudentPicker
+        open={pickingStudent}
+        onOpenChange={setPickingStudent}
+        onSelect={(user) => {
+          setPickingStudent(false);
+          update({ filters: { user: String(user.id) } });
         }}
       />
     </div>

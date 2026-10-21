@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
-import { ResultsView, type ServerExam } from "@/components/results/results-view";
+import { ResultsView, type ServerExam, type ServerStudent } from "@/components/results/results-view";
 import { RESULT_LIST } from "@/lib/content-specs";
 import { parseListParams } from "@/lib/list-params";
 import type { AdminResult } from "@/types/results";
@@ -39,8 +39,14 @@ const rows: AdminResult[] = [
   adminResult({ attempt_id: "6f1c2b9e-1d2a-4c3b-8e4f-5a6b7c8d9e03", user_id: 42, user_full_name: "No Pass Mark", is_passed: null }),
 ];
 
-function view(query = "", serverExam: ServerExam | null = null, data = page(rows), locale: "en" | "bn" = "en") {
-  return renderPanel(<ResultsView data={data} state={state(query)} exam={serverExam} />, locale);
+function view(
+  query = "",
+  serverExam: ServerExam | null = null,
+  data = page(rows),
+  locale: "en" | "bn" = "en",
+  student: ServerStudent | null = null,
+) {
+  return renderPanel(<ResultsView data={data} state={state(query)} exam={serverExam} student={student} />, locale);
 }
 const table = () => screen.getByRole("table");
 const bodyRows = () => within(table()).getAllByRole("row").slice(1);
@@ -112,12 +118,20 @@ describe("ResultsView — list", () => {
     expect(router.push).toHaveBeenLastCalledWith("/results?exam=8&user=40", { scroll: false });
   });
 
-  it("student chip names the student from the rows (or the id) and clears", () => {
-    view("user=40");
+  it("student chip names the student the server resolved (even with no rows) and clears", () => {
+    const { unmount } = view("user=40", null, page([]), "en", { id: 40, user: { id: 40, full_name: "Ayesha Siddika" } });
     const filters = screen.getByRole("group", { name: "Filters" });
     expect(filters).toHaveTextContent("Student: Ayesha Siddika");
+    expect(within(filters).getByRole("button", { name: "Change student" })).toHaveAttribute("aria-haspopup", "dialog");
     fireEvent.click(screen.getByRole("button", { name: "Show all students" }));
     expect(router.push).toHaveBeenLastCalledWith("/results", { scroll: false });
+    unmount();
+    // A missing user, or a server read for another id (navigation in flight): the id only.
+    const missing = view("user=40", null, page(rows), "en", { id: 40, user: null });
+    expect(screen.getByRole("group", { name: "Filters" })).toHaveTextContent("Student: Student #40");
+    missing.unmount();
+    view("user=40", null, page(rows), "en", { id: 41, user: { id: 41, full_name: "মাহমুদা আক্তার" } });
+    expect(screen.getByRole("group", { name: "Filters" })).toHaveTextContent("Student: Student #40");
   });
 
   it("empty and no-match states", () => {
@@ -219,6 +233,62 @@ describe("ResultsView — exam context", () => {
     expect(calls.every((call) => call.url.includes("page_size=10"))).toBe(true); // never the whole catalogue
     fireEvent.click(within(dialog).getByRole("button", { name: "Show results of Biology final" }));
     expect(router.push).toHaveBeenLastCalledWith("/results?exam=12", { scroll: false });
+  });
+});
+
+describe("ResultsView — student picker", () => {
+  const student = (id: number, full_name: string) => ({
+    id,
+    full_name,
+    display_name: "",
+    role: "student" as const,
+    preferred_language: "bn",
+    is_active: true,
+    is_mobile_verified: true,
+    mobile_display: "+88017*****101",
+    email_display: null,
+    date_joined: "2026-10-01T08:00:00Z",
+    updated_at: "2026-10-01T08:00:00Z",
+  });
+
+  it("server search of students only, bounded, latest response wins, choosing sets the user filter", async () => {
+    let releaseOld: ((response: Response) => void) | null = null;
+    const { calls } = mockApi(({ url }) => {
+      const search = new URL(url, "http://x").searchParams.get("search");
+      if (!search) return new Promise<Response>((resolve) => (releaseOld = resolve));
+      return json(200, page([student(55, "Tanvir Ahmed")]));
+    });
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "Choose student" }));
+    const dialog = await screen.findByRole("dialog", { name: "Choose a student" });
+    fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "tanvir" } });
+    fireEvent.keyDown(within(dialog).getByRole("searchbox"), { key: "Enter" });
+    await within(dialog).findByText("Tanvir Ahmed");
+    expect(releaseOld).not.toBeNull();
+    await act(async () => releaseOld!(json(200, page([student(56, "Old answer")]))));
+    expect(within(dialog).queryByText("Old answer")).not.toBeInTheDocument();
+    for (const call of calls) {
+      const query = new URL(call.url, "http://x").searchParams;
+      expect(call.url).toContain("/admin/users/");
+      expect(query.get("page_size")).toBe("10"); // never the whole user list
+      expect(query.get("role")).toBe("student");
+    }
+    // Only the masked number is shown.
+    expect(within(dialog).getByText("+88017*****101")).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Show results of Tanvir Ahmed" }));
+    expect(router.push).toHaveBeenLastCalledWith("/results?user=55", { scroll: false });
+  });
+
+  it("an error can be retried", async () => {
+    let fail = true;
+    mockApi(() => (fail ? apiError(500, "server_error", "Boom") : json(200, page([student(55, "Tanvir Ahmed")]))));
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "Choose student" }));
+    const dialog = await screen.findByRole("dialog", { name: "Choose a student" });
+    const retry = await within(dialog).findByRole("button", { name: "Try again" });
+    fail = false;
+    fireEvent.click(retry);
+    expect(await within(dialog).findByText("Tanvir Ahmed")).toBeInTheDocument();
   });
 });
 

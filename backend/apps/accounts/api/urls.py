@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import admin_auth, views
+from . import admin_auth, admin_users, views
 
 auth_urlpatterns = [
     path("otp/request/", views.OtpRequestView.as_view(), name="otp-request"),
@@ -19,4 +19,10 @@ admin_auth_urlpatterns = [
     path("login/", admin_auth.AdminLoginView.as_view(), name="admin-auth-login"),
     path("logout/", admin_auth.AdminLogoutView.as_view(), name="admin-auth-logout"),
     path("me/", admin_auth.AdminMeView.as_view(), name="admin-auth-me"),
+]
+
+# Admin Panel: read-only user list and detail (Milestone 7E), mounted under /admin/.
+admin_users_urlpatterns = [
+    path("users/", admin_users.AdminUserListView.as_view(), name="user-list"),
+    path("users/<int:pk>/", admin_users.AdminUserDetailView.as_view(), name="user-detail"),
 ]
