@@ -153,7 +153,7 @@ describe("UserDetail", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument(); // read-only
   });
 
-  it("count cards: results link to the filtered list; the rest are plain 'not available' text", () => {
+  it("count cards: results and attempts link to their filtered lists; the rest are plain 'not available' text", () => {
     renderPanel(<UserDetail user={detail()} />);
     const activity = screen.getByRole("region", { name: "Activity" });
     const cards = within(activity).getAllByRole("listitem");
@@ -163,9 +163,10 @@ describe("UserDetail", () => {
       expect.stringContaining("Active subscriptions1"),
       expect.stringContaining("Payments4"),
     ]);
-    expect(within(activity).getAllByRole("link")).toHaveLength(1);
+    expect(within(activity).getAllByRole("link")).toHaveLength(2);
     expect(within(activity).getByRole("link", { name: "View results" })).toHaveAttribute("href", "/results?user=40");
-    for (const card of cards.slice(1)) {
+    expect(within(activity).getByRole("link", { name: "View attempts" })).toHaveAttribute("href", "/attempts?user=40");
+    for (const card of cards.slice(2)) {
       expect(card).toHaveTextContent("Screen not available yet");
       expect(within(card).queryByRole("link")).not.toBeInTheDocument();
       expect(within(card).queryByRole("button")).not.toBeInTheDocument();

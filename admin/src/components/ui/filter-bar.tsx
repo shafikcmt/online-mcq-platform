@@ -140,14 +140,15 @@ export function FilterSelect({
 
 /** Search + filters for a list. From `md` up the filters sit in a row; on phones they move
  * into a sheet behind a "Filters (n)" button so the list stays visible. `filters` is called
- * with an id prefix, because both layouts are rendered (ids must stay unique). */
+ * with an id prefix, because both layouts are rendered (ids must stay unique). `search` is
+ * optional (lists filtered only by pickers and selects have none). */
 export function FilterBar({
   search,
   filters,
   activeCount,
   onClear,
 }: {
-  search: ReactNode;
+  search?: ReactNode;
   filters?: (idPrefix: string) => ReactNode;
   activeCount: number;
   onClear: () => void;
@@ -156,7 +157,7 @@ export function FilterBar({
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-line px-4 py-3">
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center gap-2", !search && "md:hidden")}>
         {search}
         {filters && (
           <Button
@@ -171,7 +172,7 @@ export function FilterBar({
         )}
       </div>
       {filters && (
-        <div className="mt-3 hidden flex-wrap items-end gap-3 md:flex">
+        <div className={cn("hidden flex-wrap items-end gap-3 md:flex", search && "mt-3")}>
           {filters("filter")}
           {activeCount > 0 && (
             <Button variant="ghost" size="sm" className="mb-0.5" onClick={onClear}>

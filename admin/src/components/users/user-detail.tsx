@@ -12,8 +12,9 @@ import type { AdminUserDetail } from "@/types/users";
 import { MaskedValue, RoleBadge, VerifiedBadge, languageKey } from "./user-cells";
 
 /** One user, read-only: profile, account state and activity counts. Contact details are
- * shown exactly as the API masks them. Only the Results count links on — the attempts,
- * subscriptions and payments screens do not exist yet, and say so as plain text. */
+ * shown exactly as the API masks them. The Results and Attempts counts link to their
+ * filtered lists; the subscriptions and payments screens do not exist yet, and say so as
+ * plain text. */
 export function UserDetail({ user }: { user: AdminUserDetail }) {
   const { locale, t } = useI18n();
 
@@ -51,7 +52,7 @@ export function UserDetail({ user }: { user: AdminUserDetail }) {
         </h2>
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <CountCard label={t("userDetail.results")} value={user.results_count} href={`/results?user=${user.id}`} linkLabel={t("userDetail.viewResults")} />
-          <CountCard label={t("userDetail.attempts")} value={user.attempts_count} />
+          <CountCard label={t("userDetail.attempts")} value={user.attempts_count} href={`/attempts?user=${user.id}`} linkLabel={t("userDetail.viewAttempts")} />
           <CountCard label={t("userDetail.activeSubscriptions")} value={user.active_subscriptions_count} />
           <CountCard label={t("userDetail.payments")} value={user.payments_count} />
         </ul>

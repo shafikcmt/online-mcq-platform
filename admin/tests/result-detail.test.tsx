@@ -32,6 +32,10 @@ describe("ResultDetail", () => {
     expect(value(merit, "Merit position")).toHaveTextContent("2");
     expect(screen.getByText("Answers are not shown in the Admin Panel.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "All results of this student" })).toHaveAttribute("href", "/results?user=40");
+    expect(screen.getByRole("link", { name: "Open attempt" })).toHaveAttribute(
+      "href",
+      "/attempts/6f1c2b9e-1d2a-4c3b-8e4f-5a6b7c8d9e01",
+    );
     expect(screen.getByRole("link", { name: "Back to results" })).toHaveAttribute("href", "/results?exam=7");
   });
 
