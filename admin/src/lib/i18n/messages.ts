@@ -4,6 +4,7 @@
 import { contentBn, contentEn } from "./content-messages";
 import { examBn, examEn } from "./exam-messages";
 import { resultBn, resultEn } from "./result-messages";
+import { userBn, userEn } from "./user-messages";
 
 const coreEn = {
   "brand.name": "Live Model Test",
@@ -99,7 +100,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn };
+export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -198,7 +199,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

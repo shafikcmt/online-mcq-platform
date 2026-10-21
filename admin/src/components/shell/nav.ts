@@ -37,7 +37,7 @@ export const NAV: NavGroup[] = [
   {
     key: "nav.people",
     items: [
-      { key: "nav.users", href: "/users", icon: Users, ready: false },
+      { key: "nav.users", href: "/users", icon: Users, ready: true },
       { key: "nav.subscriptions", href: "/subscriptions", icon: ShieldCheck, ready: false },
     ],
   },

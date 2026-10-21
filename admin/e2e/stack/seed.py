@@ -4,9 +4,9 @@
 Kept minimal and deterministic: the admin account the suites sign in with, one
 published exam so the 7B suite can check that a question used by a published exam is
 locked, and (7D) two published exams with submitted results from four students, merit
-NOT yet generated. Everything goes through the normal services (students submit through
-the exam engine) — no shortcuts around the rules. Suites create their own throwaway data
-on top of this.
+NOT yet generated, plus (7E) one inactive student with an email. Everything goes
+through the normal services (students submit through the exam engine) — no shortcuts
+around the rules. Suites create their own throwaway data on top of this.
 """
 
 import os
@@ -151,7 +151,18 @@ for name, correct in (
 ):
     submit(students[name], physics, correct)
 submit(students["Ayesha Siddika"], manual, 1)
+
+# --- 7E: users ------------------------------------------------------------------------
+# One more student with an email and a deactivated account (no password, no results), so
+# the Users suite can check email masking and the active filter.
+User.objects.create_user(
+    "01700000105",
+    full_name="Nusrat Jahan",
+    email="nusrat.jahan@example.org",
+    is_active=False,
+)
 print(
     "e2e seed: admin + 1 category, 1 subject, 3 questions, 1 published exam; "
-    "results: 2 exams, 4 students, 5 submitted results (merit not generated)"
+    "results: 2 exams, 4 students, 5 submitted results (merit not generated); "
+    "users: 1 inactive student with an email"
 )

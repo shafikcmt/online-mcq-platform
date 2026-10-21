@@ -1,5 +1,6 @@
 import { CONTENT_LANGUAGES, DIFFICULTIES } from "@/types/content";
 import { ACCESS_TYPES, EXAM_STATUSES, EXAM_TYPES } from "@/types/exams";
+import { USER_ROLES } from "@/types/users";
 
 import type { ListSpec } from "./list-params";
 
@@ -53,4 +54,12 @@ export const RESULT_LIST: ListSpec = {
   filters: { exam: "id", user: "id", is_passed: "bool", merit_counted: "bool" },
   orderings: ["submitted_at", "percentage", "merit_position"],
   defaultOrdering: "-submitted_at",
+};
+
+/** Admin users (read-only): role and active filters, search (name, mobile, email) and
+ * orderings of GET /admin/users/. */
+export const USER_LIST: ListSpec = {
+  filters: { role: USER_ROLES, is_active: "bool" },
+  orderings: ["date_joined", "full_name"],
+  defaultOrdering: "-date_joined",
 };
