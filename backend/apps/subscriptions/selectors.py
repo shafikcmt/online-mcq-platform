@@ -62,6 +62,22 @@ def effective_status(subscription: Subscription, at: datetime | None = None) -> 
     return EffectiveStatus.ACTIVE
 
 
+def effective_status_filter(value: str, at: datetime | None = None) -> Q:
+    """``effective_status`` as a query: the rows whose effective status at ``at`` is
+    ``value`` (one of ``EffectiveStatus.values``). Same order of checks as
+    ``effective_status``: cancelled, then expired, then scheduled, else active."""
+    moment = _now(at)
+    cancelled = Q(status=SubscriptionStatus.CANCELLED)
+    expired = ~cancelled & (Q(status=SubscriptionStatus.EXPIRED) | Q(expires_at__lte=moment))
+    scheduled = ~cancelled & ~expired & Q(starts_at__gt=moment)
+    return {
+        EffectiveStatus.CANCELLED: cancelled,
+        EffectiveStatus.EXPIRED: expired,
+        EffectiveStatus.SCHEDULED: scheduled,
+        EffectiveStatus.ACTIVE: ~cancelled & ~expired & ~Q(starts_at__gt=moment),
+    }[value]
+
+
 def is_active(subscription: Subscription, at: datetime | None = None) -> bool:
     return effective_status(subscription, at) == EffectiveStatus.ACTIVE
 

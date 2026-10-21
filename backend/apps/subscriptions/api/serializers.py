@@ -12,6 +12,7 @@ from rest_framework import serializers
 
 from apps.catalog.models import SLUG_MAX_LENGTH
 from apps.core.i18n import normalize_language
+from apps.core.phone import mask_mobile
 from apps.core.public_api import LocalizedSerializer
 from apps.exams.api.serializers import AwareDateTimeField
 
@@ -150,9 +151,17 @@ class AccessRuleListResponseSerializer(serializers.Serializer):
 # Admin: subscriptions
 # --------------------------------------------------------------------------------------
 class _UserRefSerializer(serializers.Serializer):
+    """The student, with the mobile number masked on the server (as in the admin Users
+    API) — the raw number and the email are never sent."""
+
     id = serializers.IntegerField()
     full_name = serializers.CharField()
-    mobile_number = serializers.CharField()
+    mobile_display = serializers.SerializerMethodField(
+        help_text="Masked mobile number, e.g. +88017*****678."
+    )
+
+    def get_mobile_display(self, user) -> str:
+        return mask_mobile(user.mobile_number)
 
 
 class _PackageRefSerializer(serializers.Serializer):

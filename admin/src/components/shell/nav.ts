@@ -39,7 +39,7 @@ export const NAV: NavGroup[] = [
     key: "nav.people",
     items: [
       { key: "nav.users", href: "/users", icon: Users, ready: true },
-      { key: "nav.subscriptions", href: "/subscriptions", icon: ShieldCheck, ready: false },
+      { key: "nav.subscriptions", href: "/subscriptions", icon: ShieldCheck, ready: true },
     ],
   },
   {
@@ -56,7 +56,7 @@ export const NAV: NavGroup[] = [
   {
     key: "nav.commerce",
     items: [
-      { key: "nav.packages", href: "/packages", icon: Package, ready: false },
+      { key: "nav.packages", href: "/packages", icon: Package, ready: true },
       { key: "nav.payments", href: "/payments", icon: CreditCard, ready: false },
     ],
   },

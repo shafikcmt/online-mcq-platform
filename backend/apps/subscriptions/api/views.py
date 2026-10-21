@@ -35,7 +35,7 @@ from apps.core.public_api import PublicAPIMixin
 from .. import services
 from ..exceptions import SubscriptionError
 from ..models import Package, PackageAccessRule, PackageStatus, Subscription, SubscriptionStatus
-from ..selectors import active_window
+from ..selectors import EffectiveStatus, active_window, effective_status_filter
 from .serializers import (
     AccessRuleAdminSerializer,
     AccessRuleListResponseSerializer,
@@ -186,7 +186,19 @@ def _subscription_queryset():
 @extend_schema_view(
     get=extend_schema(
         parameters=[
-            OpenApiParameter("status", OpenApiTypes.STR, enum=SubscriptionStatus.values),
+            OpenApiParameter(
+                "status",
+                OpenApiTypes.STR,
+                enum=SubscriptionStatus.values,
+                description="Stored status (kept for compatibility; prefer effective_status).",
+            ),
+            OpenApiParameter(
+                "effective_status",
+                OpenApiTypes.STR,
+                enum=EffectiveStatus.values,
+                description="Computed from server time like each row's effective_status: "
+                "active (granting access now), scheduled (starts later), expired, cancelled.",
+            ),
             OpenApiParameter(
                 "active",
                 OpenApiTypes.BOOL,
@@ -206,8 +218,14 @@ def _subscription_queryset():
 class SubscriptionListView(AdminAPIMixin, generics.ListAPIView):
     serializer_class = SubscriptionAdminSerializer
 
+    def now(self):
+        # One server instant per request: the filters and each row's effective_status agree.
+        if not hasattr(self, "_now"):
+            self._now = timezone.now()
+        return self._now
+
     def get_serializer_context(self):
-        return {**super().get_serializer_context(), "now": timezone.now()}
+        return {**super().get_serializer_context(), "now": self.now()}
 
     def get_queryset(self):
         request = self.request
@@ -215,9 +233,12 @@ class SubscriptionListView(AdminAPIMixin, generics.ListAPIView):
         stored = query_choice(request, "status", SubscriptionStatus.values)
         if stored:
             queryset = queryset.filter(status=stored)
+        effective = query_choice(request, "effective_status", EffectiveStatus.values)
+        if effective:
+            queryset = queryset.filter(effective_status_filter(effective, self.now()))
         active = query_bool(request, "active")
         if active is not None:
-            window = active_window()
+            window = active_window(self.now())
             queryset = queryset.filter(window) if active else queryset.exclude(window)
         for name in ("package", "user"):
             value = query_int(request, name)

@@ -1,6 +1,8 @@
 import { CONTENT_LANGUAGES, DIFFICULTIES } from "@/types/content";
 import { ACCESS_TYPES, EXAM_STATUSES, EXAM_TYPES } from "@/types/exams";
 import { ATTEMPT_STATUSES } from "@/types/attempts";
+import { PACKAGE_STATUSES } from "@/types/packages";
+import { EFFECTIVE_SUBSCRIPTION_STATUSES } from "@/types/subscriptions";
 import { USER_ROLES } from "@/types/users";
 
 import type { ListSpec } from "./list-params";
@@ -72,4 +74,20 @@ export const ATTEMPT_LIST: ListSpec = {
   filters: { exam: "id", user: "id", status: ATTEMPT_STATUSES, overdue: "bool", has_result: "bool" },
   orderings: ["started_at", "deadline_at", "submitted_at"],
   defaultOrdering: "-started_at",
+};
+
+/** Admin packages: status/featured filters, search (names, slug) and the orderings of
+ * GET /admin/packages/. */
+export const PACKAGE_LIST: ListSpec = {
+  filters: { status: PACKAGE_STATUSES, is_featured: "bool" },
+  orderings: ["sort_order", "price", "validity_days", "created_at", "updated_at"],
+  defaultOrdering: "sort_order",
+};
+
+/** Admin subscriptions (read-only): student/package pickers and the server-computed
+ * effective status. No free-text search. */
+export const SUBSCRIPTION_LIST: ListSpec = {
+  filters: { user: "id", package: "id", effective_status: EFFECTIVE_SUBSCRIPTION_STATUSES },
+  orderings: ["created_at", "starts_at", "expires_at"],
+  defaultOrdering: "-created_at",
 };
