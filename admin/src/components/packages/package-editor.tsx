@@ -206,6 +206,16 @@ export function PackageEditor({
             </div>
           )}
         </header>
+        {pkg && (
+          <p className="text-sm">
+            <Link
+              href={`/payments?package=${pkg.id}`}
+              className="rounded-control font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
+            >
+              {t("package.viewPayments")}
+            </Link>
+          </p>
+        )}
         {pkg && pkg.subscription_count > 0 && (
           <p className="flex flex-wrap items-start gap-x-3 gap-y-1 text-sm text-ink-muted">
             <span className="inline-flex items-start gap-1.5">

@@ -1491,8 +1491,10 @@ class TestAdminApi:
         detail = admin_client.get(f"{ADMIN}{paid.public_id}/").json()
         assert detail["status"] == "success" and detail["subscription_id"] == paid.subscription_id
         assert [e["event_type"] for e in detail["events"]][0] == "initiated"
-        assert detail["raw_verification"]["status"] == "VALID"
-        assert "mobile" not in json.dumps(detail)
+        # 7H: an allow-listed summary instead of the stored provider answer.
+        assert "raw_verification" not in detail
+        assert detail["verification"]["provider_status"] == "VALID"
+        assert "mobile_number" not in json.dumps(detail)
 
     def test_admin_cannot_set_status(self, admin_client, student, package):
         payment = initiate(student, package)

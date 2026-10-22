@@ -12,9 +12,8 @@ import type { AdminUserDetail } from "@/types/users";
 import { MaskedValue, RoleBadge, VerifiedBadge, languageKey } from "./user-cells";
 
 /** One user, read-only: profile, account state and activity counts. Contact details are
- * shown exactly as the API masks them. The Results, Attempts and Subscriptions counts link
- * to their filtered lists; the payments screen does not exist yet, and says so as plain
- * text. */
+ * shown exactly as the API masks them. Every count links to its filtered list (results,
+ * attempts, subscriptions, payments). */
 export function UserDetail({ user }: { user: AdminUserDetail }) {
   const { locale, t } = useI18n();
 
@@ -59,7 +58,7 @@ export function UserDetail({ user }: { user: AdminUserDetail }) {
             href={`/subscriptions?user=${user.id}`}
             linkLabel={t("userDetail.viewSubscriptions")}
           />
-          <CountCard label={t("userDetail.payments")} value={user.payments_count} />
+          <CountCard label={t("userDetail.payments")} value={user.payments_count} href={`/payments?user=${user.id}`} linkLabel={t("userDetail.viewPayments")} />
         </ul>
       </section>
 

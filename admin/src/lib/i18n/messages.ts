@@ -4,6 +4,7 @@
 import { attemptBn, attemptEn } from "./attempt-messages";
 import { contentBn, contentEn } from "./content-messages";
 import { packageBn, packageEn } from "./package-messages";
+import { paymentBn, paymentEn } from "./payment-messages";
 import { examBn, examEn } from "./exam-messages";
 import { resultBn, resultEn } from "./result-messages";
 import { userBn, userEn } from "./user-messages";
@@ -103,7 +104,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn, ...packageEn };
+export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn, ...packageEn, ...paymentEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -203,7 +204,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn, ...packageBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn, ...packageBn, ...paymentBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

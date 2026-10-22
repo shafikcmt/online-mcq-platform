@@ -2,6 +2,7 @@ import { CONTENT_LANGUAGES, DIFFICULTIES } from "@/types/content";
 import { ACCESS_TYPES, EXAM_STATUSES, EXAM_TYPES } from "@/types/exams";
 import { ATTEMPT_STATUSES } from "@/types/attempts";
 import { PACKAGE_STATUSES } from "@/types/packages";
+import { PAYMENT_PROVIDERS, PAYMENT_STATUSES } from "@/types/payments";
 import { EFFECTIVE_SUBSCRIPTION_STATUSES } from "@/types/subscriptions";
 import { USER_ROLES } from "@/types/users";
 
@@ -89,5 +90,13 @@ export const PACKAGE_LIST: ListSpec = {
 export const SUBSCRIPTION_LIST: ListSpec = {
   filters: { user: "id", package: "id", effective_status: EFFECTIVE_SUBSCRIPTION_STATUSES },
   orderings: ["created_at", "starts_at", "expires_at"],
+  defaultOrdering: "-created_at",
+};
+
+/** Read-only payments (7H): exact reference/transaction-ID search; the UTC date filters
+ * the API also accepts are not used by the panel yet. */
+export const PAYMENT_LIST: ListSpec = {
+  filters: { user: "id", package: "id", subscription: "id", status: PAYMENT_STATUSES, provider: PAYMENT_PROVIDERS },
+  orderings: ["created_at", "amount", "verified_at"],
   defaultOrdering: "-created_at",
 };

@@ -197,6 +197,7 @@ describe("SubscriptionDetail", () => {
     expect(within(record).getByRole("link", { name: "Gold" })).toHaveAttribute("href", "/packages/5");
     expect(screen.getByRole("link", { name: "All subscriptions of this student" })).toHaveAttribute("href", "/subscriptions?user=40");
     expect(screen.getByRole("link", { name: "All subscriptions of this package" })).toHaveAttribute("href", "/subscriptions?package=5");
+    expect(screen.getByRole("link", { name: "View payments" })).toHaveAttribute("href", "/payments?subscription=7");
     expect(screen.queryByRole("button")).not.toBeInTheDocument(); // no grant/extend/cancel/payment actions
     expect(screen.getByText(/Granting, extending and cancelling are not available/)).toBeInTheDocument();
   });

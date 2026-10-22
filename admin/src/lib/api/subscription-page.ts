@@ -16,3 +16,13 @@ export async function readSubscription(rawId: string): Promise<AdminSubscription
     throw error;
   }
 }
+
+/** The subscription behind a payments filter; `null` when it does not exist. */
+export async function readSubscriptionOrNull(id: number): Promise<AdminSubscription | null> {
+  try {
+    return await adminRead<AdminSubscription>(`/admin/subscriptions/${id}/`);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}

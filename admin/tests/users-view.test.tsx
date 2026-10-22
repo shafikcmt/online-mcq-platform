@@ -153,7 +153,7 @@ describe("UserDetail", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument(); // read-only
   });
 
-  it("count cards: results, attempts and subscriptions link to their filtered lists; payments is plain 'not available' text", () => {
+  it("count cards link to their filtered lists: results, attempts, subscriptions and payments", () => {
     renderPanel(<UserDetail user={detail()} />);
     const activity = screen.getByRole("region", { name: "Activity" });
     const cards = within(activity).getAllByRole("listitem");
@@ -163,14 +163,13 @@ describe("UserDetail", () => {
       expect.stringContaining("Active subscriptions1"),
       expect.stringContaining("Payments4"),
     ]);
-    expect(within(activity).getAllByRole("link")).toHaveLength(3);
+    expect(within(activity).getAllByRole("link")).toHaveLength(4);
     expect(within(activity).getByRole("link", { name: "View results" })).toHaveAttribute("href", "/results?user=40");
     expect(within(activity).getByRole("link", { name: "View attempts" })).toHaveAttribute("href", "/attempts?user=40");
     expect(within(activity).getByRole("link", { name: "View subscriptions" })).toHaveAttribute("href", "/subscriptions?user=40");
-    const payments = cards[3];
-    expect(payments).toHaveTextContent("Screen not available yet");
-    expect(within(payments).queryByRole("link")).not.toBeInTheDocument();
-    expect(within(payments).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(cards[3]).getByRole("link", { name: "View payments" })).toHaveAttribute("href", "/payments?user=40");
+    expect(activity).not.toHaveTextContent("Screen not available yet");
+    expect(within(activity).queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("no display name or email; Bangla", () => {

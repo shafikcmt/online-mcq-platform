@@ -13,8 +13,9 @@ import type { AdminSubscription } from "@/types/subscriptions";
 import { EffectiveStatusBadge, SubscriptionState } from "./subscription-cells";
 
 /** One subscription, read-only: the server's effective status (and the stored one), the
- * period, what was paid, and links to the student and the package. No grant, extend,
- * cancel or payment actions. */
+ * period, what was paid, and links to the student, the package and the payments that
+ * created or extended it (none for a manual grant). No grant, extend, cancel or payment
+ * actions. */
 export function SubscriptionDetail({ subscription }: { subscription: AdminSubscription }) {
   const { locale, t } = useI18n();
   const pkgName = packageName(subscription.package, locale);
@@ -94,6 +95,9 @@ export function SubscriptionDetail({ subscription }: { subscription: AdminSubscr
         </Link>
         <Link href={`/subscriptions?package=${subscription.package.id}`} className="rounded-control font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600">
           {t("subscriptionDetail.packageSubscriptions")}
+        </Link>
+        <Link href={`/payments?subscription=${subscription.id}`} className="rounded-control font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600">
+          {t("subscriptionDetail.viewPayments")}
         </Link>
       </div>
     </div>

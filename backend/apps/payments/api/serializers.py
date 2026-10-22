@@ -1,14 +1,19 @@
 """Payment serializers. Each lists its fields explicitly.
 
 - Student: own payments only, no provider payloads, no internal ids, no events.
-- Admin: adds provider ids, failure reason, sanitized verification and the event log.
+- Admin (7H): allow-listed only — masked student, package names, our reason codes; the
+  detail adds the provider transaction ID, an allow-listed verification summary and a
+  bounded event timeline of short codes (``payments.selectors``).
 """
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.i18n import resolve_bilingual
+from apps.core.phone import mask_mobile
 
 from ..models import PaymentEventType, PaymentProvider, PaymentStatus
+from ..selectors import event_summary, verification_summary
 
 M = {"max_digits": 12, "decimal_places": 2}
 
@@ -56,34 +61,93 @@ class PaymentSerializer(serializers.Serializer):
         return None
 
 
-class PaymentEventSerializer(serializers.Serializer):
+# --------------------------------------------------------------------------------------
+# Admin (7H): allow-listed fields only. Never the stored provider answer
+# (``raw_verification``), event payloads, source IPs, the provider session key
+# (``provider_payment_id``), the checkout URL, the idempotency key or contact data.
+# --------------------------------------------------------------------------------------
+class _AdminUserRefSerializer(serializers.Serializer):
+    """The student, with the mobile number masked on the server (as in the admin Users
+    and Subscriptions APIs) — the raw number and the email are never sent."""
+
+    id = serializers.IntegerField()
+    full_name = serializers.CharField()
+    mobile_display = serializers.SerializerMethodField(
+        help_text="Masked mobile number, e.g. +88017*****678."
+    )
+
+    def get_mobile_display(self, user) -> str:
+        return mask_mobile(user.mobile_number)
+
+
+class _AdminPackageRefSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    slug = serializers.CharField()
+    name_bn = serializers.CharField()
+    name_en = serializers.CharField()
+
+
+class VerificationSummarySerializer(serializers.Serializer):
+    provider_status = serializers.CharField(allow_null=True)
+    risk_level = serializers.CharField(allow_null=True)
+    card_brand = serializers.CharField(allow_null=True)
+    validated_on = serializers.CharField(allow_null=True)
+
+
+class EventSummarySerializer(serializers.Serializer):
+    """Present keys only; each value is a short internal code (or a boolean)."""
+
+    to = serializers.CharField(required=False)
+    reason = serializers.CharField(required=False)
+    previous_reason = serializers.CharField(required=False)
+    outcome = serializers.CharField(required=False)
+    source = serializers.CharField(required=False)
+    kind = serializers.CharField(required=False)
+    signature_valid = serializers.BooleanField(required=False)
+    error = serializers.CharField(required=False)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields["from"] = serializers.CharField(required=False)  # a Python keyword
+        return fields
+
+
+class AdminPaymentEventSerializer(serializers.Serializer):
     event_type = serializers.ChoiceField(choices=PaymentEventType.choices)
-    payload = serializers.JSONField()
-    source_ip = serializers.IPAddressField(allow_null=True)
     created_at = serializers.DateTimeField()
+    summary = serializers.SerializerMethodField()
+
+    @extend_schema_field(EventSummarySerializer)
+    def get_summary(self, event) -> dict:
+        return event_summary(event.payload)
 
 
 class AdminPaymentSerializer(serializers.Serializer):
     payment_id = serializers.UUIDField(source="public_id")
     merchant_reference = serializers.CharField()
-    user_id = serializers.IntegerField()
-    user_full_name = serializers.CharField(source="user.full_name")
-    package_id = serializers.IntegerField()
-    package_slug = serializers.CharField(source="package.slug")
+    user = _AdminUserRefSerializer()
+    package = _AdminPackageRefSerializer()
     subscription_id = serializers.IntegerField(allow_null=True)
     provider = serializers.ChoiceField(choices=PaymentProvider.choices)
     amount = serializers.DecimalField(**M)
     currency = serializers.CharField()
     status = serializers.ChoiceField(choices=PaymentStatus.choices)
-    provider_payment_id = serializers.CharField()
-    provider_transaction_id = serializers.CharField(allow_null=True)
     failure_reason = serializers.CharField()
-    verified_at = serializers.DateTimeField(allow_null=True)
-    last_checked_at = serializers.DateTimeField(allow_null=True)
     created_at = serializers.DateTimeField()
-    updated_at = serializers.DateTimeField()
+    verified_at = serializers.DateTimeField(allow_null=True)
 
 
 class AdminPaymentDetailSerializer(AdminPaymentSerializer):
-    raw_verification = serializers.JSONField(allow_null=True)
-    events = PaymentEventSerializer(many=True, source="events.all")
+    """Adds the provider transaction ID (detail only), an allow-listed summary of the
+    provider's verification answer and the latest events (``admin_timeline``)."""
+
+    provider_transaction_id = serializers.CharField(allow_null=True)
+    updated_at = serializers.DateTimeField()
+    last_checked_at = serializers.DateTimeField(allow_null=True)
+    verification = serializers.SerializerMethodField()
+    events = AdminPaymentEventSerializer(many=True, source="timeline")
+    events_total = serializers.IntegerField()
+
+    @extend_schema_field(VerificationSummarySerializer(allow_null=True))
+    def get_verification(self, payment) -> dict | None:
+        return verification_summary(payment.raw_verification)

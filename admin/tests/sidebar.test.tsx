@@ -22,13 +22,13 @@ describe("SidebarNav", () => {
 
   it("does not link to screens that are not built yet", () => {
     renderWithI18n(<SidebarNav />);
-    expect(screen.queryByRole("link", { name: /Payments/ })).not.toBeInTheDocument();
-    const payments = screen.getByText("Payments").closest("[aria-disabled]");
-    expect(payments).toHaveAttribute("aria-disabled", "true");
-    expect(payments).toHaveTextContent("Payments (Soon)"); // announced, not just dimmed
+    expect(screen.queryByRole("link", { name: /Announcements/ })).not.toBeInTheDocument();
+    const announcements = screen.getByText("Announcements").closest("[aria-disabled]");
+    expect(announcements).toHaveAttribute("aria-disabled", "true");
+    expect(announcements).toHaveTextContent("Announcements (Soon)"); // announced, not just dimmed
   });
 
-  it("links the content screens built in Milestones 7B–7G", () => {
+  it("links the content screens built in Milestones 7B–7H", () => {
     renderWithI18n(<SidebarNav />);
     expect(screen.getByRole("link", { name: "Categories" })).toHaveAttribute("href", "/categories");
     expect(screen.getByRole("link", { name: "Subjects" })).toHaveAttribute("href", "/subjects");
@@ -39,6 +39,7 @@ describe("SidebarNav", () => {
     expect(screen.getByRole("link", { name: "Attempts" })).toHaveAttribute("href", "/attempts");
     expect(screen.getByRole("link", { name: "Packages" })).toHaveAttribute("href", "/packages");
     expect(screen.getByRole("link", { name: "Subscriptions" })).toHaveAttribute("href", "/subscriptions");
+    expect(screen.getByRole("link", { name: "Payments" })).toHaveAttribute("href", "/payments");
     expect(screen.queryByRole("link", { name: /Announcements/ })).not.toBeInTheDocument(); // not built yet
   });
 
