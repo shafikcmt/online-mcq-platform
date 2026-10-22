@@ -57,7 +57,7 @@ export const NAV: NavGroup[] = [
     key: "nav.commerce",
     items: [
       { key: "nav.packages", href: "/packages", icon: Package, ready: true },
-      { key: "nav.payments", href: "/payments", icon: CreditCard, ready: false },
+      { key: "nav.payments", href: "/payments", icon: CreditCard, ready: true },
     ],
   },
   {

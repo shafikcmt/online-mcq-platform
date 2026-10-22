@@ -249,6 +249,14 @@ describe("PackageEditor — status and delete", () => {
     expect(screen.getByRole("link", { name: "View subscriptions" })).toHaveAttribute("href", "/subscriptions?package=5");
   });
 
+  it("an existing package links to its payments (7H); a new one does not", () => {
+    const { unmount } = editor();
+    expect(screen.getByRole("link", { name: "View payments" })).toHaveAttribute("href", "/payments?package=5");
+    unmount();
+    renderPanel(<PackageEditor pkg={null} rules={[]} {...lookups} />);
+    expect(screen.queryByRole("link", { name: "View payments" })).not.toBeInTheDocument();
+  });
+
   it("actions wait while the settings are unsaved", () => {
     editor();
     fireEvent.change(priceInput(), { target: { value: "1" } });

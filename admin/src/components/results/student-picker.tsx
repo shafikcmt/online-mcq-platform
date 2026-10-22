@@ -24,10 +24,16 @@ export function StudentPicker({
   open,
   onOpenChange,
   onSelect,
+  selectText,
+  selectLabel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (user: AdminUser) => void;
+  /** Button text and accessible name for the screen using the picker (default: the
+   * results wording). */
+  selectText?: string;
+  selectLabel?: (name: string) => string;
 }) {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
@@ -93,10 +99,10 @@ export function StudentPicker({
                     variant="secondary"
                     size="sm"
                     className="shrink-0"
-                    aria-label={t("studentPicker.selectLabel", { name: user.full_name })}
+                    aria-label={selectLabel ? selectLabel(user.full_name) : t("studentPicker.selectLabel", { name: user.full_name })}
                     onClick={() => onSelect(user)}
                   >
-                    {t("studentPicker.select")}
+                    {selectText ?? t("studentPicker.select")}
                   </Button>
                 </li>
               ))}

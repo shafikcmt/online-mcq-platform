@@ -24,10 +24,16 @@ export function PackagePicker({
   open,
   onOpenChange,
   onSelect,
+  selectText,
+  selectLabel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (pkg: Package) => void;
+  /** Button text and accessible name for the screen using the picker (default: the
+   * subscriptions wording). */
+  selectText?: string;
+  selectLabel?: (name: string) => string;
 }) {
   const { locale, t } = useI18n();
   const [search, setSearch] = useState("");
@@ -99,10 +105,10 @@ export function PackagePicker({
                       variant="secondary"
                       size="sm"
                       className="shrink-0"
-                      aria-label={t("packagePicker.selectLabel", { name })}
+                      aria-label={selectLabel ? selectLabel(name) : t("packagePicker.selectLabel", { name })}
                       onClick={() => onSelect(pkg)}
                     >
-                      {t("packagePicker.select")}
+                      {selectText ?? t("packagePicker.select")}
                     </Button>
                   </li>
                 );

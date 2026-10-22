@@ -12,8 +12,11 @@ Provider-facing (no login; untrusted input — they only trigger a verification)
 - ``GET /payments/mock/checkout/{reference}/?result=…`` mock provider page (never in
   production)
 
-Admin (session + CSRF + admin role): list, detail with events, re-verify (audited).
-There is deliberately no endpoint that sets a payment status.
+Admin (session + CSRF + admin role): list, detail, re-verify (audited). Responses are
+allow-listed (7H): masked student, package names, our codes, a verification summary and
+the latest 50 events as short codes — never ``raw_verification``, event payloads, source
+IPs, the provider session key, the checkout URL or the idempotency key. There is
+deliberately no endpoint that sets a payment status.
 """
 
 import logging
@@ -22,6 +25,7 @@ import urllib.parse
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import F
 from django.http import Http404, HttpResponseRedirect
 from django.utils.dateparse import parse_date
 from django.utils.translation import gettext_lazy as _
@@ -51,6 +55,7 @@ from ..exceptions import PAYMENT_UNAVAILABLE_MESSAGE, PaymentError
 from ..gateways import CallbackKind, is_enabled
 from ..gateways import mock as mock_gateway
 from ..models import IDEMPOTENCY_KEY_MAX_LENGTH, Payment, PaymentProvider, PaymentStatus
+from ..selectors import with_timeline
 from .serializers import (
     AdminPaymentDetailSerializer,
     AdminPaymentSerializer,
@@ -287,6 +292,22 @@ def _admin_queryset():
     return Payment.objects.select_related("user", "package")
 
 
+def _ordering(request) -> list:
+    """Allowed fields only; ``verified_at`` sorts unverified payments (no time) last in
+    both directions; ``id`` keeps the order stable."""
+    ordering = []
+    for field in query_ordering(request, PAYMENT_ORDERING, ("-created_at",)):
+        if field.lstrip("-") == "verified_at":
+            expression = F("verified_at")
+            field = (
+                expression.desc(nulls_last=True)
+                if field.startswith("-")
+                else expression.asc(nulls_last=True)
+            )
+        ordering.append(field)
+    return ordering
+
+
 def _query_date(request, name):
     raw = request.query_params.get(name, "").strip()
     if not raw:
@@ -307,6 +328,11 @@ def _query_date(request, name):
             OpenApiParameter("provider", OpenApiTypes.STR, enum=PaymentProvider.values),
             OpenApiParameter("user", OpenApiTypes.INT),
             OpenApiParameter("package", OpenApiTypes.INT),
+            OpenApiParameter(
+                "subscription",
+                OpenApiTypes.INT,
+                description="Payments that created or extended this subscription",
+            ),
             OpenApiParameter("created_from", OpenApiTypes.DATE, description="UTC date, inclusive"),
             OpenApiParameter("created_to", OpenApiTypes.DATE, description="UTC date, inclusive"),
             OpenApiParameter(
@@ -316,7 +342,8 @@ def _query_date(request, name):
                 "ordering",
                 OpenApiTypes.STR,
                 description="Comma-separated; '-' = descending. Fields: "
-                + ", ".join(PAYMENT_ORDERING),
+                + ", ".join(PAYMENT_ORDERING)
+                + ". Unverified payments sort last by verified_at (both directions).",
             ),
         ]
     )
@@ -334,7 +361,7 @@ class AdminPaymentListView(AdminAPIMixin, generics.ListAPIView):
             value = query_choice(request, name, choices)
             if value:
                 queryset = queryset.filter(**{name: value})
-        for name in ("user", "package"):
+        for name in ("user", "package", "subscription"):
             value = query_int(request, name)
             if value is not None:
                 queryset = queryset.filter(**{f"{name}_id": value})
@@ -349,15 +376,20 @@ class AdminPaymentListView(AdminAPIMixin, generics.ListAPIView):
             queryset = queryset.filter(merchant_reference__iexact=search) | queryset.filter(
                 provider_transaction_id__iexact=search
             )
-        return queryset.order_by(*query_ordering(request, PAYMENT_ORDERING, ("-created_at",)))
+        return queryset.order_by(*_ordering(request))
 
 
 class AdminPaymentDetailView(AdminAPIMixin, generics.RetrieveAPIView):
+    """One payment with an allow-listed verification summary and the latest events."""
+
     serializer_class = AdminPaymentDetailSerializer
     lookup_field = "public_id"
 
     def get_queryset(self):
-        return _admin_queryset().prefetch_related("events")
+        return _admin_queryset()
+
+    def get_object(self):
+        return with_timeline(super().get_object())
 
 
 class AdminPaymentReverifyView(AdminAPIMixin, APIView):
@@ -373,5 +405,5 @@ class AdminPaymentReverifyView(AdminAPIMixin, APIView):
             payment = services.admin_reverify(public_id, ctx=AuditContext.from_request(request))
         except PaymentError as exc:
             raise _api_error(exc) from exc
-        payment = _admin_queryset().prefetch_related("events").get(pk=payment.pk)
+        payment = with_timeline(_admin_queryset().get(pk=payment.pk))
         return Response(AdminPaymentDetailSerializer(payment, context={"request": request}).data)

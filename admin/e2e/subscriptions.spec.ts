@@ -89,7 +89,7 @@ test("list: newest first, effective statuses, masked mobiles, read-only", async 
   await expect(mahmuda).toContainText("E2E Silver");
   const tanvir = bodyRows().filter({ hasText: "Tanvir Ahmed" });
   await expect(tanvir).toContainText("Active");
-  await expect(tanvir).toContainText("৳ 500.00");
+  await expect(tanvir).toContainText("৳ 1,500.00"); // manual grant + two verified payments (7H seed)
   await expect(main().getByRole("button", { name: /grant|extend|renew|cancel subscription|delete/i })).toHaveCount(0);
   await expect(main().getByRole("searchbox")).toHaveCount(0);
   await expectNoRawMobile(page);
@@ -148,7 +148,7 @@ test("detail: effective and stored status, period, masked mobile, links, no acti
   await expect(page.getByRole("heading", { level: 1, name: "Tanvir Ahmed" })).toBeVisible();
   const period = main().getByRole("region", { name: "Period" });
   await expect(period).toContainText("Active");
-  await expect(period).toContainText("৳ 500.00");
+  await expect(period).toContainText("৳ 1,500.00");
   const record = main().getByRole("region", { name: "Record" });
   await expect(record).toContainText("+88017*****102");
   await expect(record).toContainText("Partly hidden");

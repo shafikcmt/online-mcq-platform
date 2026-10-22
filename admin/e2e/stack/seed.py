@@ -5,10 +5,11 @@ Kept minimal and deterministic: the admin account the suites sign in with, one
 published exam so the 7B suite can check that a question used by a published exam is
 locked, and (7D) two published exams with submitted results from four students, merit
 NOT yet generated, plus (7E) one inactive student with an email, (7F) one open
-attempt and (7G) three packages (one unused) with an active, a scheduled and a cancelled
-subscription. Everything goes through the normal services (students submit through the
-exam engine, subscriptions are granted and cancelled by the subscription services) — no
-shortcuts around the rules. Suites create their own throwaway data on top of this.
+attempt, (7G) three packages (one unused) with an active, a scheduled and a cancelled
+subscription and (7H) five mock-provider payments. Everything goes through the normal
+services (students submit through the exam engine, subscriptions are granted and
+cancelled by the subscription services, payments are verified by the payment services) —
+no shortcuts around the rules. Suites create their own throwaway data on top of this.
 """
 
 import os
@@ -240,10 +241,54 @@ subscriptions.grant_subscription(
 cancelled = subscriptions.grant_subscription(students["Rafiq Islam"].pk, gold.pk, ctx=ctx)
 subscriptions.cancel_subscription(cancelled.subscription.pk, ctx=ctx)
 
+# --- 7H: payments -----------------------------------------------------------------------
+# Five payments through the normal payment services and the MOCK provider only (never a
+# real gateway): initiate → the mock checkout outcome → the provider callback → server-
+# side verification. Tanvir pays for E2E Gold twice: both verified payments EXTEND his
+# running Gold subscription (the renewal case — two payments, one subscription, no new
+# subscription row). One failed, one cancelled and one still pending (no subscription).
+# The mock provider's ledger lives in this process's memory only (local-memory cache), so
+# seeding touches no Redis database at all.
+from django.test import override_settings  # noqa: E402
+
+from apps.payments import services as payments  # noqa: E402
+from apps.payments.gateways import mock as mock_gateway  # noqa: E402
+
+
+def pay(student, pkg, result=None):
+    payment, _created = payments.initiate_payment(student, pkg.pk)
+    if result:
+        val_id = mock_gateway.complete(payment.merchant_reference, result)
+        payments.process_callback(
+            "mock", result, {"tran_id": payment.merchant_reference, "val_id": val_id}
+        )
+    payment.refresh_from_db()
+    return payment
+
+
+with override_settings(
+    PAYMENT_PROVIDER="mock",
+    PAYMENT_MOCK_ALLOWED=True,
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}},
+):
+    first = pay(students["Tanvir Ahmed"], gold, "success")
+    renewal = pay(students["Tanvir Ahmed"], gold, "success")
+    failed = pay(students["মাহমুদা আক্তার"], silver, "fail")
+    cancelled_payment = pay(students["Rafiq Islam"], silver, "cancel")
+    open_payment = pay(students["Rafiq Islam"], gold)
+assert first.status == renewal.status == "success", (first.status, renewal.status)
+assert first.subscription_id == renewal.subscription_id is not None
+assert (failed.status, cancelled_payment.status, open_payment.status) == (
+    "failed",
+    "cancelled",
+    "pending",
+)
+
 print(
     "e2e seed: admin + 1 category, 1 subject, 3 questions, 1 published exam; "
     "results: 2 exams, 4 students, 5 submitted results (merit not generated), "
     "1 open attempt; "
     "users: 1 inactive student with an email; "
-    "packages: 3 (1 unused), subscriptions: active, scheduled, cancelled"
+    "packages: 3 (1 unused), subscriptions: active, scheduled, cancelled; "
+    "payments (mock): 2 successful renewing one subscription, failed, cancelled, pending"
 )

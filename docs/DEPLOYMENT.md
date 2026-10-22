@@ -142,8 +142,13 @@ database:
    email; for the Attempts suite, one open attempt started through the exam engine and not
    submitted; for the Packages and Subscriptions suites, a paid draft exam, three packages
    (one unused) with access rules and an active, a scheduled and a cancelled subscription
-   granted/cancelled by the subscription services; all created through the normal
-   services, students submitting through the exam engine).
+   granted/cancelled by the subscription services; for the Payments suite, five payments
+   through the payment services and the **mock** provider only — two verified E2E Gold
+   payments that both extend Tanvir's running subscription (two payments, one
+   subscription), one failed, one cancelled and one still pending; the mock provider's
+   ledger is kept in the seeding process's local memory, so seeding touches no Redis
+   database; all created through the normal services, students submitting through the
+   exam engine).
 2. Before **each** suite, `e2e-db.sh fresh` re-creates `mcq_e2e` as a copy of the template, and
    Redis databases 14 (broker) and 15 (cache) are emptied with `FLUSHDB` (never `FLUSHALL`).
 3. `run.sh` starts its own Django server (development settings) on that database, with a new
@@ -156,7 +161,7 @@ E2E_DISPOSABLE_DB=destroy-and-recreate \
 POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=5432 POSTGRES_USER=… POSTGRES_PASSWORD=… \
 PYTHON=backend/.venv/bin/python E2E_BASE_URL=http://localhost:8088 \
 E2E_ADMIN_MOBILE=… E2E_ADMIN_PASSWORD=… \
-admin/e2e/stack/run.sh packages subscriptions attempts users results exams content admin-shell api-proxy
+admin/e2e/stack/run.sh payments packages subscriptions attempts users results exams content admin-shell api-proxy
 ```
 
 The panel (`next start`) and nginx must already run, with nginx sending `/api/` to
