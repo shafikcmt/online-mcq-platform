@@ -9,3 +9,4 @@ argon2-cffi==25.1.0         # Argon2 password hashing (docs/SECURITY_PLAN.md §3
 djangorestframework-simplejwt==5.5.1  # JWT + blacklist (2C). Exact pin: apps/accounts/tokens.py relies
                                       # on its blacklist internals — re-test before upgrading
 Pillow==12.3.0              # image validation/re-encoding for question images (SECURITY_PLAN §3.6)
+gunicorn==23.0.0            # production WSGI server (staging/production image only)

@@ -1,0 +1,14 @@
+node_modules/
+.next/
+test-results/
+playwright-report/
+blob-report/
+e2e/
+tests/
+coverage/
+tsconfig.tsbuildinfo
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore
