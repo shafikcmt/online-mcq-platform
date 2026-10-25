@@ -84,6 +84,10 @@ media serving is not designed yet**; this section records the constraints, not a
 Until this is settled, image previews in the Admin Panel work in development/QA (Django with
 `DEBUG`) but not behind the production nginx example.
 
+**Staging demo exception (§9):** the client-demo stack uses the local option — a shared
+`media_files` volume written by the backend and served read-only by nginx at `/media/` with the
+headers above. That is demo storage only; the production decision is still open.
+
 ## 5. CSRF and CORS
 
 - **CORS: not needed** — same origin.
@@ -199,3 +203,156 @@ The panel (`next start`) and nginx must already run, with nginx sending `/api/` 
 
 `exams.spec.ts` refuses to start without `E2E_DISPOSABLE_DB=destroy-and-recreate`, so it cannot
 be run by accident against a database whose records it could not remove.
+
+## 9. First client demo — staging deployment (manual, controlled)
+
+> A **staging / demo** environment for the client review. It is **not** the production
+> deployment: production sizing (20,000 students), media storage, monitoring and real payment/SMS
+> providers are separate, later work. Files: `docker-compose.staging.yml`,
+> `.env.staging.example`, `deploy/nginx/demo-admin*.conf`, `deploy/staging/*.sh`,
+> `backend/Dockerfile` (`production` target), `admin/Dockerfile`. Demo scope: `docs/DEMO_SCOPE.md`.
+
+### 9.1 Shape
+
+```
+Internet ──▶ nginx (only published ports 80/443; edge + internal networks)
+              ├─ /api/*, /<DJANGO_ADMIN_URL> ─▶ backend (gunicorn, prod settings)
+              ├─ /static/  (shared volume, read-only)      ◀─ collectstatic
+              ├─ /media/   (shared volume, read-only)      ◀─ question image uploads
+              └─ /*        ─▶ admin (next start)
+internal network (internal: true — NO internet route):
+   backend · celery (worker) · celery-beat · admin · postgres (online_mcq_demo) · redis
+```
+
+- **One public host**, e.g. `demo-admin.<domain>`, for the panel and its API — same origin, so no
+  CORS and no `CSRF_TRUSTED_ORIGINS` (§5). Inside Docker that name is a network alias of nginx,
+  so the panel's server-side reads (`API_ORIGIN=https://demo-admin.<domain>`) never leave the server.
+- **No internet route** for the app containers: the API, Celery and the panel cannot contact a
+  payment gateway or an SMS provider at all. (Production will need egress — a later decision.)
+- **Media:** a shared volume served read-only by nginx — **demo storage only**, not the final
+  production media design (§4a).
+- Images run as non-root users (`app`, `node`); secrets come only from `.env.staging` at run time.
+  Every service has `restart: unless-stopped`, Docker log rotation (10 MB × 5) and a memory limit.
+
+### 9.2 Payments and SMS in the demo
+
+- **No real money, no merchant credentials, no real SMS.** Production settings refuse the mock
+  payment provider, so the runtime provider is the SSLCommerz **sandbox** with non-functional
+  placeholder store values (`PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true`), and SMS is the mock
+  provider (`SMS_ALLOW_MOCK_IN_PRODUCTION=true`; production settings force OTP text out of logs).
+  These two allowances exist **only** in `.env.staging.example` — never copy them into production.
+- Nothing in the demo starts a payment (no student app yet; the panel is read-only), and the
+  internal network has no route out anyway.
+- **Sample payments** come from `seed_demo`, which — inside its own process only — enables the
+  in-process mock gateway while creating them (no network). They are stored as provider `mock`;
+  at runtime the mock provider stays disabled, so the reconciliation job **skips** them (a
+  "provider disabled" warning in the logs) and re-verify would answer `409 provider_disabled`.
+
+### 9.3 TLS strategy
+
+Host-level **certbot (webroot)** + the nginx container. nginx mounts `/etc/letsencrypt` and the
+webroot read-only. Two site templates (filled from the environment at container start):
+
+- `demo-admin-http.conf` — **bootstrap**: HTTP only, serves the ACME challenge; needs no
+  certificate, so nginx always starts;
+- `demo-admin.conf` — **HTTPS**: HTTP → HTTPS redirect (ACME still answered on port 80), TLS 1.2/1.3,
+  short HSTS (`HSTS_SECONDS`, 1 hour at first), `X-Robots-Tag: noindex, nofollow` on everything.
+
+Switch with `NGINX_SITE` in `.env.staging` and `up -d nginx`. Renewal: certbot's own timer with a
+deploy hook that reloads nginx (step 15).
+
+### 9.4 Ordered first-deploy checklist
+
+Run as the non-root `deploy` user in `/srv/mcq-demo/app` (a checkout of a **pinned tag**). Shorthand:
+`dc() { docker compose --env-file .env.staging -f docker-compose.staging.yml "$@"; }`
+
+1. **VPS** — Ubuntu LTS, 2 vCPU / 4 GB RAM / 40 GB SSD minimum (comfortable: 2–4 vCPU / 8 GB);
+   add 2 GB swap (the panel image build is memory-hungry); enable unattended security upgrades.
+2. **Deploy user** — create `deploy` with SSH-key login; disable password and root SSH login;
+   firewall (UFW): allow 22 (ideally from your IP only), 80, 443 — nothing else.
+3. **Docker** — Docker Engine + Compose plugin; add `deploy` to the `docker` group.
+4. **DNS** — `A` (and `AAAA` if used) record `demo-admin.<domain>` → the VPS; wait until it resolves.
+5. **Checkout** — `git clone … /srv/mcq-demo/app && git -C /srv/mcq-demo/app checkout <tag>`
+   (e.g. `demo-2026.10-1` — never a floating branch).
+6. **`.env.staging`** — `cp .env.staging.example .env.staging && chmod 600 .env.staging`; set
+   `DEMO_HOST`, `API_ORIGIN`, `DJANGO_ALLOWED_HOSTS`, `PAYMENT_*_URL`, `IMAGE_TAG` (= the tag),
+   `NGINX_SITE=demo-admin-http.conf`, and **new** values for `DJANGO_SECRET_KEY`, `JWT_SIGNING_KEY`
+   (different), `POSTGRES_PASSWORD`, `DJANGO_ADMIN_URL`. `mkdir -p /srv/mcq-demo/certbot-www /srv/mcq-demo/backups`.
+7. **Build** — `dc build` (the panel image runs lint, typecheck and `next build` itself).
+   **First-VPS verification item:** the backend image's `apt-get install gettext` step (Debian
+   mirrors) has not been executed in a real build yet — confirm it succeeds here (§9.6).
+8. **PostgreSQL/Redis** — `dc up -d --wait postgres redis`.
+9. **Migrate** — `dc run --rm backend python manage.py migrate --noinput`.
+10. **Static files** — `dc run --rm backend python manage.py collectstatic --noinput`.
+11. **Demo data** — `dc run --rm backend python manage.py seed_demo` (refuses unless
+    `DEMO_SEED_ALLOWED=true`, `DEMO_ENVIRONMENT=staging-demo` and `POSTGRES_DB=online_mcq_demo`;
+    running it again changes nothing).
+12. **Admin accounts** (two; passwords typed at a hidden prompt — never on the command line):
+    `dc run --rm backend python manage.py create_demo_admin --mobile <number> --full-name "Client Demo"`
+    and the same for your own operator account. Both are `role=admin`, **not** Django
+    superusers. Running it again for a number sets a new password (use this to rotate after the demo).
+13. **Bootstrap nginx (HTTP)** — `dc up -d --wait` (all services; nginx starts with the HTTP site).
+14. **TLS certificate** — on the host: `sudo apt install certbot` then
+    `sudo certbot certonly --webroot -w /srv/mcq-demo/certbot-www -d demo-admin.<domain> --agree-tos -m <email>`.
+    **External verification item:** real issuance has not been tested yet (§9.6); if it fails,
+    nginx keeps serving the HTTP bootstrap site — fix DNS/firewall and retry before step 15.
+15. **Enable HTTPS** — set `NGINX_SITE=demo-admin.conf`, `dc up -d nginx`; add a renewal hook:
+    `/etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh` running
+    `docker compose --env-file /srv/mcq-demo/app/.env.staging -f /srv/mcq-demo/app/docker-compose.staging.yml exec -T nginx nginx -s reload`;
+    check `sudo certbot renew --dry-run`.
+16. **All services** — `dc ps` shows every service `healthy`/`running`.
+17. **Service check** — `dc run --rm backend python manage.py check_services`.
+18. **Browser smoke test** — `docs/DEMO_SCOPE.md` acceptance list (login, every panel route,
+    EN/BN, phone width, payments read-only, "Validity bought", HTTPS + `noindex` headers).
+19. **Backup** — `deploy/staging/backup.sh` (custom-format dump to `/srv/mcq-demo/backups`, 7-day
+    retention); add a nightly cron entry for it.
+20. **Client demo** — send the URL and, through a separate channel, the client account's password.
+
+### 9.5 Operations
+
+- **Reset demo data:** `deploy/staging/reset-demo.sh --yes` — backup → stop app services → drop and
+  recreate `online_mcq_demo` → migrate → `seed_demo` → start → `check_services`. It refuses without
+  the `DEMO_ENVIRONMENT=staging-demo` marker or for any database other than `online_mcq_demo`.
+  Admin accounts are not recreated by the script (that would need passwords in a script) — run
+  step 12 again afterwards.
+- **Update to a new tag:** `deploy/staging/backup.sh` → `git checkout <new-tag>` → set
+  `IMAGE_TAG` → `dc build` → `dc run --rm backend python manage.py migrate --noinput` →
+  `collectstatic` → `dc up -d --wait`.
+- **Rollback:** previous images stay tagged (`mcq-backend:<old-tag>`, `mcq-admin:<old-tag>`): set
+  `IMAGE_TAG` back and `dc up -d --wait`. If the new tag ran a migration, the simplest safe path
+  is restoring the pre-update dump:
+  `dc exec -T postgres pg_restore -U mcq_demo -d online_mcq_demo --clean --if-exists < <dump>`.
+- **Rebuild from scratch:** a new VPS → this checklist → restore the latest dump instead of
+  `seed_demo` (or reset).
+- **After the demo window:** rotate the client account's password (step 12 again) or deactivate it.
+
+### 9.6 Validation status (before the first VPS deploy)
+
+Validated locally (sandbox Docker, self-signed certificate, no internet route):
+
+- backend suite **1799 passed** (including the 30 staging tests in `tests/test_demo_staging.py`);
+  ruff, `check`, `makemigrations --check` and the OpenAPI schema clean;
+- both images built; all seven services healthy; only nginx published host ports (no 3000,
+  8000, 5432 or 6379 on the host);
+- `migrate`, `collectstatic`, `seed_demo` and a second, unchanged `seed_demo` run;
+- admin sign-in; every panel route in English and Bangla, desktop and phone width; payments and
+  subscriptions read-only; "Validity bought 30 days"; static files and question-image upload
+  and read-back through nginx; one HSTS header; `noindex` headers; API docs 404;
+- Celery worker and beat running; reconciliation skipped the seeded mock payments with **no**
+  gateway call; outbound DNS/connections from the app containers failed (no egress);
+- `backup.sh` (including same-second and concurrent runs), retention, the demo guards and
+  `reset-demo.sh --yes`.
+
+The local image builds used a sandbox-only workaround (the sandbox network blocks Debian mirrors
+and needs a proxy CA); that workaround is **not** part of the repository.
+
+**Not yet verified — check on the first VPS deploy:**
+
+1. the real `apt-get install gettext` step of `backend/Dockerfile` against the Debian mirrors (step 7);
+2. real Let's Encrypt issuance with certbot webroot, the switch to `demo-admin.conf`, and
+   `certbot renew --dry-run` with the nginx reload hook (steps 14–15).
+
+**Synthetic data:** all seeded students use made-up `017000003xx` numbers and `example.org`
+emails. They look like valid Bangladeshi numbers, but the demo has **no SMS provider** (mock
+only) and **no internet route**, and no scheduled job sends SMS, so they are never contacted.
+Never replace them with real people's numbers.

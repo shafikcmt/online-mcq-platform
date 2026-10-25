@@ -82,6 +82,10 @@ Then open `.env` and at least change `POSTGRES_PASSWORD` (any local password is 
 
 ---
 
+> **Staging / client demo:** the deployable stack (gunicorn + Next.js + nginx + TLS, demo data and
+> admin commands, backup/reset scripts) is documented in [`docs/DEPLOYMENT.md` §9](docs/DEPLOYMENT.md#9-first-client-demo--staging-deployment-manual-controlled);
+> what the demo covers is in [`docs/DEMO_SCOPE.md`](docs/DEMO_SCOPE.md).
+
 ## 2. Run with Docker (recommended)
 
 Requires Docker Desktop (or Docker Engine) with Docker Compose.
