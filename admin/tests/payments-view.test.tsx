@@ -251,6 +251,7 @@ describe("PaymentDetail", () => {
     return {
       ...payment(),
       provider_transaction_id: "BANKTXN123456",
+      validity_days: 30,
       updated_at: "2026-10-01T08:05:00Z",
       last_checked_at: "2026-10-01T08:04:01Z",
       verification: { provider_status: "VALID", risk_level: "0", card_brand: "VISA", validated_on: "2026-10-01 14:04:01" },
@@ -267,6 +268,7 @@ describe("PaymentDetail", () => {
     expect(value(summary, "Status")).toHaveTextContent("Successful");
     expect(value(summary, "Reason")).toHaveTextContent("None");
     expect(value(summary, "Amount")).toHaveTextContent("৳ 500.00");
+    expect(value(summary, "Validity bought")).toHaveTextContent("30 days");
     expect(value(summary, "Provider")).toHaveTextContent("SSLCommerz");
     expect(value(summary, "Verified")).toHaveTextContent("1 Oct 2026");
     const who = screen.getByRole("region", { name: "Student and package" });

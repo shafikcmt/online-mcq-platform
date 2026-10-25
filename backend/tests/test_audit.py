@@ -398,6 +398,8 @@ def test_migration_reversal_removes_trigger_before_table():
         assert trigger_objects() == (0, 0)
         assert "audit_auditlog" not in connection.introspection.table_names()
     finally:
-        call_command("migrate", "audit", verbosity=0)
+        # Every app, not just audit: migrations that depend on audit (payments.0002 reads
+        # the package audit history) were unapplied with it and must come back too.
+        call_command("migrate", verbosity=0)
     assert trigger_objects() == (1, 1)
     assert AuditLog.objects.count() == 0

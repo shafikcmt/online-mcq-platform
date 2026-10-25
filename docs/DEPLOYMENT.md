@@ -116,6 +116,27 @@ Admin Panel (`admin` service, runtime):
 the backend then needs `CSRF_TRUSTED_ORIGINS=http://localhost:3001` because the proxy rewrites
 `Host`. This proxy adds no `X-Forwarded-For` — fine for development, never for production.
 
+## 7a. Migrations with a data backfill
+
+`payments.0002_payment_validity_days` (payment-safety slice) adds `Payment.validity_days`, fills
+it for existing payments, then makes it NOT NULL, adds `CHECK 1..3650` and installs the
+`payments_payment_snapshot_guard` trigger (amount/currency/validity_days immutable). Run it with
+the normal `python manage.py migrate` before the new code serves traffic.
+
+- The backfill is an **audit-derived reconstruction**: for each payment, the package validity in
+  force at the payment's `created_at`, taken from the append-only `package.create` /
+  `package.update` audit entries (an entry at the same instant counts as earlier). It is not a
+  claim of exact history — timestamps come from the application servers' clocks.
+- When a package has no usable audit history, it falls back to `earliest_known` (the value
+  before the package's first recorded change) and then `current_package`. The migration prints
+  one line with the counts, e.g.
+  `payments.0002 validity_days backfill: total=… audit=… earliest_known=… current_package=…;
+  successful payments whose checkout validity differs from the package validity at
+  verification (reported, not corrected)=…`. Keep it in the deployment log; review
+  `earliest_known`/`current_package` rows and the reported successful payments **before**
+  production use — subscriptions are never rewritten automatically.
+- Reversible: `migrate payments 0001` drops the trigger, the CHECK and the column.
+
 ## 8. Full-stack (Playwright) test runs
 
 The E2E suites (`admin/e2e/*.spec.ts`) sign in with a real admin account, so they count toward

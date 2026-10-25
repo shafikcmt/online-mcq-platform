@@ -138,10 +138,13 @@ class AdminPaymentSerializer(serializers.Serializer):
 
 
 class AdminPaymentDetailSerializer(AdminPaymentSerializer):
-    """Adds the provider transaction ID (detail only), an allow-listed summary of the
-    provider's verification answer and the latest events (``admin_timeline``)."""
+    """Adds the provider transaction ID and the validity bought (detail only), an
+    allow-listed summary of the provider's verification answer and the latest events."""
 
     provider_transaction_id = serializers.CharField(allow_null=True)
+    validity_days = serializers.IntegerField(
+        help_text="Days of access this payment bought (snapshot taken at checkout)."
+    )
     updated_at = serializers.DateTimeField()
     last_checked_at = serializers.DateTimeField(allow_null=True)
     verification = serializers.SerializerMethodField()

@@ -44,6 +44,7 @@ from .exceptions import (
 )
 from .models import (
     MAX_MONEY,
+    MAX_VALIDITY_DAYS,
     PACKAGE_SLUG_TAKEN_MESSAGE,
     Package,
     PackageAccessRule,
@@ -450,6 +451,7 @@ def grant_subscription(
     ctx: AuditContext,
     price_paid: Decimal | None = None,
     starts_at: datetime | None = None,
+    validity_days: int | None = None,
     for_verified_payment: bool = False,
 ) -> GrantResult:
     """Give a student a package (manual/admin grant now; verified payments in M5).
@@ -463,11 +465,24 @@ def grant_subscription(
 
     ``price_paid`` defaults to the package's current price and is stored as a snapshot.
 
+    ``validity_days``: the duration granted (new period or extension). A manual grant
+    omits it and gets the package's **current** validity. A verified payment must pass
+    its own snapshot (``Payment.validity_days``, taken at checkout) — the duration the
+    student bought — and never falls back to the package.
+
     ``for_verified_payment``: the provider has already taken the money (Milestone 5), so
     the sale is honoured even if the package was deactivated or the account deactivated
     during checkout (ROADMAP decisions log #19). Access itself still needs an active
     student account (``selectors.user_can_access_exam``).
     """
+    if for_verified_payment and validity_days is None:
+        raise ValueError("A verified payment must pass its validity_days snapshot.")
+    if validity_days is not None and not (
+        isinstance(validity_days, int)
+        and not isinstance(validity_days, bool)
+        and 1 <= validity_days <= MAX_VALIDITY_DAYS
+    ):
+        raise ValueError(f"validity_days must be an integer from 1 to {MAX_VALIDITY_DAYS}.")
     require_active = not for_verified_payment
     user = _lock_student(user_id, require_active=require_active)
     package = _lock_grantable_package(package_id, require_active=require_active)
@@ -475,7 +490,8 @@ def grant_subscription(
     amount = package.price if price_paid is None else Decimal(price_paid)
     if amount < 0:
         raise _error("price_paid", PRICE_NEGATIVE_MESSAGE, "min_value")
-    validity = timedelta(days=package.validity_days)
+    days = package.validity_days if validity_days is None else validity_days
+    validity = timedelta(days=days)
 
     rows = list(
         Subscription.objects.select_for_update()
@@ -516,7 +532,7 @@ def grant_subscription(
                     "user_id": user.pk,
                     "package_id": package.pk,
                     "currency": package.currency,
-                    "validity_days": package.validity_days,
+                    "validity_days": days,  # the validity actually applied
                 },
                 "changes": {
                     field: {"from": before[field], "to": after[field]}
@@ -551,7 +567,7 @@ def grant_subscription(
             "values": {
                 **_subscription_values(subscription),
                 "currency": package.currency,
-                "validity_days": package.validity_days,
+                "validity_days": days,  # the validity actually applied
             }
         },
     )

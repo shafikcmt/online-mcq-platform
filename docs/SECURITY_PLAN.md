@@ -113,7 +113,12 @@
   whole: no `raw_verification` blob, no event payloads, no source IP addresses, no provider
   session key (`provider_payment_id`), checkout URL or idempotency key — only a four-field
   verification summary and event short codes that must match known values or strict
-  patterns (`payments.selectors`), and the student's masked mobile number. Logs carry ids/references/statuses only (no contact
+  patterns (`payments.selectors`), and the student's masked mobile number.
+  The commercial snapshot of a payment — `amount`, `currency` and (payment-safety slice)
+  `validity_days` — is taken at initiation and protected by a PostgreSQL trigger that rejects
+  any change; the subscription a verified payment creates or extends always uses the
+  snapshot, so editing a package can neither shorten nor lengthen what a student already
+  bought. Logs carry ids/references/statuses only (no contact
   data, secrets or payloads). Production refuses `PAYMENT_PROVIDER=mock` (and forces the mock
   gateway off), missing SSLCommerz credentials, the SSLCommerz sandbox (unless
   `PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true` on a non-public test server), a non-https callback
@@ -193,6 +198,8 @@
 
 - [x] In-app notifications: created only by server events (verified payment success, result visible) — no API can create or edit one; per-type allow-listed params (no provider data, contact data or amounts); own rows only (IDOR → 404); one per event by a unique index *(6B tests)*
 - [x] Admin Panel sign-in: session cookie (httpOnly, Secure, SameSite=Lax) + CSRF on every unsafe request including login; admin role only, one generic error and identical 429s; admin-only throttle buckets (per IP + number, per IP) separate from student logins; session rotated, 12-hour lifetime, deleted on sign-out; audited with the real client IP behind nginx (`TRUSTED_PROXY_COUNT`); no tokens in browser storage; same-origin `/api/*` via nginx — `docs/DEPLOYMENT.md` *(Milestone 7 tests)*
+- [x] Payment snapshot: `amount`/`currency`/`validity_days` frozen at initiation (database trigger refuses changes); every verified success path grants the snapshot, never the package's current validity; legacy rows backfilled from the audit history with reported fallbacks *(payment-safety slice tests, incl. a migration upgrade test)*
+- [ ] Manual subscription grant idempotency (a repeated/concurrent identical grant must not extend twice) — next slice
 - [x] Admin payments API: allow-listed only — no raw provider answer, event payloads, source IPs, provider session key, checkout URL, idempotency key or raw mobile number in list, detail or re-verify responses (planted-value regression tests); provider transaction ID on the detail only; exact-match search on reference/transaction ID only; the panel is read-only (no re-verify or status actions) *(7H tests)*
 - [x] Dashboards: `/me/dashboard/` student JWT, own rows only, public ids only (no answers, prices, contact or payment data); `/admin/dashboard/` admin session + role only (student JWT/anonymous rejected), counts and sums only — no lists of people, contact messages, provider data or audit metadata *(6C tests)*
 - [ ] Student API responses never contain `is_correct`/`explanation` before submission (automated test)

@@ -105,6 +105,7 @@ test("the API itself returns only allow-listed data (list and every detail)", as
   expect(detail.provider_transaction_id).toMatch(/^MOCKTXN/);
   expect(detail.verification).toEqual({ provider_status: "VALID", risk_level: null, card_brand: null, validated_on: null });
   expect(detail.events_total).toBe(detail.events.length);
+  expect(detail.validity_days).toBe(30); // E2E Gold's validity at checkout
   // The renewal: both verified payments point at the same subscription.
   expect(seed.first.subscription_id).not.toBeNull();
   expect(seed.renewal.subscription_id).toBe(seed.first.subscription_id);
@@ -215,6 +216,7 @@ test("detail: safe provider summary, masked student, timeline, links, no actions
   const summary = main().getByRole("region", { name: "Payment" });
   await expect(summary).toContainText("Successful");
   await expect(summary).toContainText("৳ 500.00");
+  await expect(summary).toContainText("Validity bought30 days"); // the checkout snapshot
   const who = main().getByRole("region", { name: "Student and package" });
   await expect(who).toContainText("+88017*****102");
   await expect(who).toContainText("Partly hidden");

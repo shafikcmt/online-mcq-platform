@@ -51,6 +51,9 @@ export type PaymentEvent = { event_type: string; created_at: string; summary: Ev
 
 export type AdminPaymentDetail = AdminPayment & {
   provider_transaction_id: string | null;
+  /** Days of access this payment bought — frozen at checkout, never the package's
+   * current validity. */
+  validity_days: number;
   updated_at: string;
   last_checked_at: string | null;
   verification: VerificationSummary | null;
