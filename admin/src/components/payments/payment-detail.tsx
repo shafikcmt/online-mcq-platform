@@ -66,6 +66,7 @@ export function PaymentDetail({ payment }: { payment: AdminPaymentDetail }) {
           <Item label={t("paymentDetail.amount")}>
             <span className="tabular-nums">{formatMoney(payment.amount, payment.currency, locale)}</span>
           </Item>
+          <Item label={t("paymentDetail.validity")}>{t("packages.days", { n: formatNumber(payment.validity_days, locale) })}</Item>
           <Item label={t("paymentDetail.provider")}>{codeLabel(t, "payProvider", payment.provider)}</Item>
           <Item label={t("paymentDetail.reference")}>
             <span className="font-mono text-xs break-all">{payment.merchant_reference}</span>

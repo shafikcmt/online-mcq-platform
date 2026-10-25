@@ -3,7 +3,8 @@
 The rule: **only a server-to-server verification can make a payment successful.**
 Callbacks, IPNs, the app and admins can only ask for a verification.
 
-- ``initiate_payment``  — price snapshot from the server-side package; gateway session.
+- ``initiate_payment``  — snapshot of the server-side package's price, currency and
+  validity (the contract bought); gateway session.
 - ``process_callback``  — browser callback / IPN → event → provider verification →
   ``apply_verification``. Fail/cancel callbacks also ask the provider (``query``), so a
   forged "cancel" cannot end a payment that was in fact paid.
@@ -13,7 +14,9 @@ Callbacks, IPNs, the app and admins can only ask for a verification.
   ``PAID`` answer succeeds only if reference, amount and currency equal our snapshot
   and the provider transaction ID is not used by another payment; then, in the **same
   transaction**, ``subscriptions.services.grant_subscription`` creates or extends the
-  subscription (4A renewal rules) and the payment records it.
+  subscription (4A renewal rules) for the payment's ``validity_days`` snapshot and the
+  payment records it. Every success path (callback, IPN, late success, reconciliation,
+  admin re-verify) goes through here, so all of them use the snapshot.
 - ``reconcile_payments`` (Celery beat) and ``admin_reverify`` re-query the provider and
   use the same ``apply_verification``.
 - **Late-success recovery** (the one exception to forward-only): a ``failed``/``cancelled``
@@ -172,8 +175,9 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
     """Start buying ``package_id``. Returns ``(payment, created)``; a repeated
     ``idempotency_key`` returns the earlier payment (``created=False``).
 
-    The amount and currency are the package's **current server-side** price, frozen on
-    the payment; the client only names the package."""
+    The amount, currency and validity are the package's **current server-side** values,
+    frozen on the payment (the package row is locked); the client only names the
+    package."""
     if not (user.is_active and user.is_student):
         raise PaymentError("not_student", NOT_STUDENT_MESSAGE, status=403)
     provider = settings.PAYMENT_PROVIDER
@@ -202,6 +206,7 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
             provider=provider,
             amount=package.price,
             currency=package.currency,
+            validity_days=package.validity_days,
             idempotency_key=idempotency_key,
         )
         try:
@@ -312,6 +317,7 @@ def _succeed(payment: Payment, result: VerificationResult, now, ip, *, recovery=
                 payment.package_id,
                 ctx=SYSTEM,
                 price_paid=payment.amount,
+                validity_days=payment.validity_days,  # the snapshot, never the package
                 for_verified_payment=True,
             )
             payment.subscription = grant.subscription

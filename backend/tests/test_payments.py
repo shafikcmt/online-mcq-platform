@@ -168,9 +168,17 @@ class TestDatabase:
         assert Payment.objects.filter(provider_transaction_id__isnull=True).count() == 1
 
     def test_amount_must_be_positive(self, student, package):
-        payment = initiate(student, package)
+        # Checked on insert (after creation the snapshot trigger refuses any change).
         with pytest.raises(IntegrityError), transaction.atomic():
-            Payment.objects.filter(pk=payment.pk).update(amount=Decimal("0"))
+            Payment.objects.create(
+                merchant_reference=services.new_reference(),
+                user=student,
+                package=package,
+                provider="mock",
+                amount=Decimal("0"),
+                currency=package.currency,
+                validity_days=package.validity_days,
+            )
 
     def test_events_are_append_only(self, student, package):
         payment = initiate(student, package)
@@ -864,6 +872,7 @@ class TestForwardOnly:
                 provider="mock",
                 amount=package.price,
                 currency=package.currency,
+                validity_days=package.validity_days,
             )
         with pytest.raises(Exception, match="illegal payment status change"):
             with transaction.atomic():
@@ -1671,6 +1680,7 @@ class TestReconciliation:
             provider="mock",
             amount=package.price,
             currency=package.currency,
+            validity_days=package.validity_days,
         )
         mock_gateway.open_session(payment.merchant_reference, payment.amount, payment.currency)
         pay_mock(payment)

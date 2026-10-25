@@ -44,6 +44,7 @@ LIST_FIELDS = {
 }
 DETAIL_FIELDS = LIST_FIELDS | {
     "provider_transaction_id",
+    "validity_days",
     "updated_at",
     "last_checked_at",
     "verification",
@@ -81,7 +82,8 @@ IP = "203.0.113.77"
 MARKER = "RAW_PROVIDER_MARKER_7H"
 VAL_ID = "PLANTEDVALID7H42"
 IDEMPOTENCY_KEY = "idem-planted-7h"
-FREE_TEXT_ERROR = f"Bank said: card 4111 declined {MARKER}"
+CARD_NUMBER = "4111XXXXXXXX1111"
+FREE_TEXT_ERROR = f"Bank said: card {CARD_NUMBER} declined {MARKER}"
 
 
 @pytest.fixture(autouse=True)
@@ -152,7 +154,7 @@ def plant(payment, student):
             "cus_phone": student.mobile_number,
             "cus_email": "rahim@example.org",
             "verify_sign": MARKER,
-            "card_no": "4111XXXXXXXX1111",
+            "card_no": CARD_NUMBER,
         },
     )
     PaymentEvent.objects.create(
@@ -181,7 +183,8 @@ def assert_safe(body, student, payment):
     text = json.dumps(body)
     for key in FORBIDDEN_KEYS:
         assert f'"{key}"' not in text, key
-    for value in (SESSION_KEY, IP, MARKER, VAL_ID, IDEMPOTENCY_KEY, "487.50", "4111"):
+    # Whole planted values only: a short fragment could appear by chance in a timestamp.
+    for value in (SESSION_KEY, IP, MARKER, VAL_ID, IDEMPOTENCY_KEY, "487.50", CARD_NUMBER):
         assert value not in text, value
     assert student.mobile_number not in text
     assert student.mobile_number[-10:] not in text

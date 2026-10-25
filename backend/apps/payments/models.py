@@ -1,9 +1,12 @@
 """Payments and their append-only event log (docs/DATABASE_DESIGN.md §4.9).
 
 - A **payment** is one attempt by one student to buy one package through one provider.
-  ``amount``/``currency`` are a snapshot of the package price **at initiation**; later
-  price changes never touch it, and verification compares the provider's figures with
-  this snapshot only.
+  ``amount``/``currency``/``validity_days`` are a snapshot of the package's commercial
+  contract **at initiation** (price and duration bought). Later package edits never touch
+  them: verification compares the provider's figures with ``amount``/``currency`` only,
+  and the subscription a verified payment creates or extends runs for ``validity_days``
+  (never the package's current validity). A PostgreSQL trigger (migration 0002) rejects
+  any change to the three snapshot columns after the row is created.
 - ``status`` moves forward only (``services`` is the only writer)::
 
       initiated → pending → success | failed | cancelled
@@ -34,7 +37,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStampedModel
-from apps.subscriptions.models import Currency, Package, Subscription, money_field
+from apps.subscriptions.models import (
+    MAX_VALIDITY_DAYS,
+    Currency,
+    Package,
+    Subscription,
+    money_field,
+)
 
 MERCHANT_REFERENCE_MAX_LENGTH = 30  # SSLCommerz tran_id limit
 IDEMPOTENCY_KEY_MAX_LENGTH = 64
@@ -103,6 +112,8 @@ class Payment(TimeStampedModel):
     provider = models.CharField(_("provider"), max_length=20, choices=PaymentProvider.choices)
     amount = money_field(_("amount"))
     currency = models.CharField(_("currency"), max_length=3, choices=Currency.choices)
+    # Snapshot of the package's validity at initiation: the duration this payment buys.
+    validity_days = models.PositiveIntegerField(_("validity (days)"), editable=False)
     status = models.CharField(
         _("status"),
         max_length=10,
@@ -142,6 +153,10 @@ class Payment(TimeStampedModel):
             ),
             models.CheckConstraint(
                 condition=models.Q(status__in=PaymentStatus.values), name="payments_status_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(validity_days__gte=1, validity_days__lte=MAX_VALIDITY_DAYS),
+                name="payments_validity_days_valid",
             ),
             models.CheckConstraint(
                 condition=models.Q(provider__in=PaymentProvider.values),
