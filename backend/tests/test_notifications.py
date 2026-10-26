@@ -18,6 +18,7 @@ from apps.exams.models import Exam
 from apps.notifications import services
 from apps.notifications.models import Notification, NotificationRollout, NotificationType
 from apps.payments import services as payments
+from apps.payments.exceptions import PaymentError
 from apps.payments.gateways import Outcome, VerificationResult, get_gateway
 from apps.results import services as result_services
 from apps.results import tasks as result_tasks
@@ -198,7 +199,9 @@ class TestPaymentTrigger:
             post_form(ipn_url(), {"tran_id": payment.merchant_reference, "val_id": val_id})
         verified = get_gateway("mock").query(payment)
         payments.apply_verification(payment.pk, verified, source="test")
-        payments.admin_reverify(payment.public_id, ctx=CTX)
+        with pytest.raises(PaymentError) as refused:  # a successful payment is final
+            payments.admin_reverify(payment.public_id, ctx=CTX)
+        assert refused.value.code == "already_successful"
         _age(payment, 1000)
         payments.reconcile_payments()
         assert len(notes(student)) == 1

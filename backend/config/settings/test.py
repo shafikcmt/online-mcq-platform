@@ -18,3 +18,5 @@ CELERY_TASK_ALWAYS_EAGER = True
 CELERY_BROKER_URL = "memory://"
 # Fast hasher for most tests; tests that check real hashing override this explicitly.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+# Many payment tests re-verify the same payment twice in a row; the cooldown tests set it.
+PAYMENT_REVERIFY_COOLDOWN_SECONDS = 0

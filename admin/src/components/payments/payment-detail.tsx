@@ -12,12 +12,13 @@ import type { AdminPaymentDetail } from "@/types/payments";
 
 import { PaymentStatusBadge, codeLabel } from "./payment-cells";
 import { PaymentTimeline } from "./payment-timeline";
+import { ReverifyButton } from "./reverify-button";
 
-/** One payment, read-only and allow-listed: the server's status and reason code, the
- * amount snapshot, the student (masked mobile), the package, the subscription it paid
- * for (when the server links one), the provider transaction ID, a four-field summary of
- * the provider's answer and the latest events as short codes. No re-verify, status,
- * retry or refund actions. */
+/** One payment, allow-listed: the server's status and reason code, the amount snapshot,
+ * the student (masked mobile), the package, the subscription it paid for (when the
+ * server links one), the provider transaction ID, a four-field summary of the provider's
+ * answer and the latest events as short codes. One action: re-verify with the provider
+ * (not for successful payments). No status, retry or refund actions. */
 export function PaymentDetail({ payment }: { payment: AdminPaymentDetail }) {
   const { locale, t } = useI18n();
   const pkgName = packageName(payment.package, locale);
@@ -42,6 +43,7 @@ export function PaymentDetail({ payment }: { payment: AdminPaymentDetail }) {
             <span>{codeLabel(t, "payProvider", payment.provider)}</span>
           </p>
         </header>
+        <ReverifyButton payment={payment} />
       </div>
 
       <div className="rounded-card border border-line bg-neutral-50/70 px-4 py-3 text-sm text-ink-muted">

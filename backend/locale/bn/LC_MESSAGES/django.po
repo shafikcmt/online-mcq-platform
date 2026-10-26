@@ -1167,6 +1167,15 @@ msgstr ""
 msgid "This payment provider is not enabled on this server."
 msgstr "এই সার্ভারে এই পেমেন্ট প্রোভাইডার চালু নেই।"
 
+msgid "This payment is already successful; there is nothing to verify again."
+msgstr "এই পেমেন্ট ইতিমধ্যে সফল; আবার যাচাই করার কিছু নেই।"
+
+#, python-format
+msgid ""
+"This payment was checked with the provider moments ago. Try again in "
+"%(seconds)s seconds."
+msgstr "এই পেমেন্টটি কিছুক্ষণ আগে প্রোভাইডারের কাছে যাচাই করা হয়েছে। %(seconds)s সেকেন্ড পরে আবার চেষ্টা করুন।"
+
 msgid "Initiated"
 msgstr "শুরু হয়েছে"
 
