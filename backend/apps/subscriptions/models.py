@@ -354,3 +354,92 @@ class Subscription(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"subscription #{self.pk} · user #{self.user_id} · package #{self.package_id}"
+
+
+# Idempotency-Key header format for admin writes (same as attempts submit).
+IDEMPOTENCY_KEY_MAX_LENGTH = 64
+IDEMPOTENCY_KEY_REGEX = rf"^[A-Za-z0-9._:-]{{1,{IDEMPOTENCY_KEY_MAX_LENGTH}}}$"
+
+
+class GrantRequest(models.Model):
+    """One completed manual grant, keyed by the admin's ``Idempotency-Key``.
+
+    Written in the same transaction as the grant/extension it records, so a row exists
+    only for a grant that committed; a failed grant leaves nothing and the same key may
+    be retried. A repeated request with the same (actor, key) replays this outcome
+    instead of granting again; the same key with a different request is refused.
+
+    The ``requested_*`` columns keep the request exactly as sent (``None`` = omitted),
+    which is what a retry is compared with; ``applied_amount`` is what was actually
+    added to ``price_paid``. Rows are never updated. Not exposed through any API yet.
+    """
+
+    # Scope of the key: one admin. Different admins may use the same key independently.
+    # (No separate actor index: the unique (actor, key) constraint already starts with it.)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("actor"),
+        on_delete=models.PROTECT,
+        related_name="+",
+        db_index=False,
+    )
+    key = models.CharField(
+        _("idempotency key"),
+        max_length=IDEMPOTENCY_KEY_MAX_LENGTH,
+        validators=[RegexValidator(IDEMPOTENCY_KEY_REGEX, code="invalid_idempotency_key")],
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    package = models.ForeignKey(
+        Package, verbose_name=_("package"), on_delete=models.PROTECT, related_name="+"
+    )
+    requested_price_paid = money_field(_("requested price paid"), null=True, blank=True)
+    requested_starts_at = models.DateTimeField(_("requested start"), null=True, blank=True)
+    applied_amount = money_field(_("applied amount"))
+    subscription = models.ForeignKey(
+        Subscription,
+        verbose_name=_("subscription"),
+        on_delete=models.PROTECT,
+        related_name="grant_requests",
+    )
+    extended = models.BooleanField(_("extended"))
+    status_code = models.PositiveSmallIntegerField(_("original status code"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("grant request")
+        verbose_name_plural = _("grant requests")
+        ordering = ("-created_at", "-id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["actor", "key"], name="subscriptions_grant_request_actor_key_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(key__regex=IDEMPOTENCY_KEY_REGEX),
+                name="subscriptions_grant_request_key_format",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(applied_amount__gte=0)
+                & (
+                    models.Q(requested_price_paid__isnull=True)
+                    | models.Q(requested_price_paid__gte=0)
+                ),
+                name="subscriptions_grant_request_amounts_valid",
+            ),
+            # 201 = new subscription, 200 = extension — and nothing else.
+            models.CheckConstraint(
+                condition=models.Q(extended=False, status_code=201)
+                | models.Q(extended=True, status_code=200),
+                name="subscriptions_grant_request_outcome_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"grant request #{self.pk} · actor #{self.actor_id} "
+            f"→ subscription #{self.subscription_id}"
+        )

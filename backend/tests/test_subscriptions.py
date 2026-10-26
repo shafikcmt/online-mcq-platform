@@ -3,6 +3,7 @@
 import itertools
 import json
 import threading
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 
@@ -44,6 +45,11 @@ ME = "/api/v1/me/subscriptions/"
 PUBLIC = "/api/v1/public/packages/"
 
 _phones = itertools.count(10_000_000)
+
+
+def idem(key=None) -> dict:
+    """The Idempotency-Key header every grant request needs (a fresh key by default)."""
+    return {"HTTP_IDEMPOTENCY_KEY": key or uuid.uuid4().hex}
 
 
 # --------------------------------------------------------------------------------------
@@ -930,14 +936,19 @@ class TestAdminAPI:
 
     def test_grant_extend_and_cancel(self, api, student):
         package = make_package(validity_days=30)
-        response = api.post(GRANT, {"user": student.pk, "package": package.pk}, format="json")
+        response = api.post(
+            GRANT, {"user": student.pk, "package": package.pk}, format="json", **idem()
+        )
         assert response.status_code == 201, response.json()
         body = response.json()
         assert body["user"]["id"] == student.pk and body["package"]["slug"] == "gold"
         assert body["status"] == "active" and body["effective_status"] == "active"
         assert body["price_paid"] == "500.00" and body["currency"] == "BDT"
         response = api.post(
-            GRANT, {"user": student.pk, "package": package.pk, "price_paid": "0"}, format="json"
+            GRANT,
+            {"user": student.pk, "package": package.pk, "price_paid": "0"},
+            format="json",
+            **idem(),
         )
         assert response.status_code == 200 and response.json()["id"] == body["id"]
         assert response.json()["price_paid"] == "500.00"
@@ -960,16 +971,20 @@ class TestAdminAPI:
     def test_grant_validation(self, api, student, payload):
         package = make_package()
         data = {"user": student.pk, "package": package.pk, **payload}
-        response = api.post(GRANT, data, format="json")
+        response = api.post(GRANT, data, format="json", **idem())
         assert response.status_code == 400
         assert not Subscription.objects.exists()
 
     def test_grant_business_errors_are_field_errors(self, api, student, admin_user):
         package = make_package(status="inactive")
-        response = api.post(GRANT, {"user": student.pk, "package": package.pk}, format="json")
+        response = api.post(
+            GRANT, {"user": student.pk, "package": package.pk}, format="json", **idem()
+        )
         assert response.status_code == 400 and "package" in errors(response)
         active = make_package("silver")
-        response = api.post(GRANT, {"user": admin_user.pk, "package": active.pk}, format="json")
+        response = api.post(
+            GRANT, {"user": admin_user.pk, "package": active.pk}, format="json", **idem()
+        )
         assert response.status_code == 400 and "user" in errors(response)
 
     def test_subscription_status_cannot_be_patched(self, api, student):
@@ -1282,7 +1297,11 @@ def test_exam_delete_racing_rule_creation(run):
 def test_messages_in_bangla(api, student):
     package = make_package(status="inactive")
     response = api.post(
-        GRANT, {"user": student.pk, "package": package.pk}, format="json", HTTP_ACCEPT_LANGUAGE="bn"
+        GRANT,
+        {"user": student.pk, "package": package.pk},
+        format="json",
+        **idem(),
+        HTTP_ACCEPT_LANGUAGE="bn",
     )
     assert errors(response)["package"] == ["এই প্যাকেজটি নিষ্ক্রিয়, তাই দেওয়া যাবে না।"]
     active = make_package("silver")
@@ -1338,7 +1357,10 @@ class TestPriceTotalLimit:
     def test_api_returns_validation_error_not_500(self, api, student):
         package, sub = self._near_max(student, Decimal("0"))
         response = api.post(
-            GRANT, {"user": student.pk, "package": package.pk, "price_paid": "0.01"}, format="json"
+            GRANT,
+            {"user": student.pk, "package": package.pk, "price_paid": "0.01"},
+            format="json",
+            **idem(),
         )
         assert response.status_code == 400 and code(response) == "validation_error"
         assert "price_paid" in errors(response)
@@ -1346,6 +1368,9 @@ class TestPriceTotalLimit:
         assert sub.price_paid == self.MAX and not audits("subscription.extend").exists()
         # A free extension (0.00) still fits.
         response = api.post(
-            GRANT, {"user": student.pk, "package": package.pk, "price_paid": "0"}, format="json"
+            GRANT,
+            {"user": student.pk, "package": package.pk, "price_paid": "0"},
+            format="json",
+            **idem(),
         )
         assert response.status_code == 200

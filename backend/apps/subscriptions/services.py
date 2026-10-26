@@ -5,6 +5,8 @@ nothing. Lock order (avoids deadlocks):
 
 - package writes: package row; for access rules then categories and exams (id order);
 - grants: user row → package row → the user's subscription rows for that package;
+  manual grants with an ``Idempotency-Key`` lock the same user row first, then re-check
+  the key (``grant_subscription_once``);
 - cancel: the subscription row.
 
 Locking the user row serializes every grant for one student, so two concurrent grants
@@ -16,6 +18,7 @@ verification transaction (``for_verified_payment=True``); nothing here talks to 
 payment provider. ``expire_subscriptions`` is the expiry job (Celery beat).
 """
 
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -38,6 +41,7 @@ from apps.exams.models import AccessType, Exam
 
 from .exceptions import (
     ALREADY_CANCELLED_MESSAGE,
+    IDEMPOTENCY_KEY_REUSED_MESSAGE,
     PACKAGE_IN_USE_MESSAGE,
     SUBSCRIPTION_EXPIRED_MESSAGE,
     SubscriptionError,
@@ -46,6 +50,7 @@ from .models import (
     MAX_MONEY,
     MAX_VALIDITY_DAYS,
     PACKAGE_SLUG_TAKEN_MESSAGE,
+    GrantRequest,
     Package,
     PackageAccessRule,
     PackageStatus,
@@ -54,6 +59,8 @@ from .models import (
     SubscriptionStatus,
 )
 from .selectors import EffectiveStatus, effective_status
+
+logger = logging.getLogger(__name__)
 
 SLUG_REQUIRED_MESSAGE = _(
     "Enter a slug (English letters, digits and hyphens), or an English name to generate it."
@@ -441,6 +448,7 @@ def _lock_grantable_package(package_id, *, require_active: bool = True) -> Packa
 class GrantResult:
     subscription: Subscription
     extended: bool
+    amount: Decimal  # what this grant added to ``price_paid``
 
 
 @transaction.atomic
@@ -540,7 +548,7 @@ def grant_subscription(
                 },
             },
         )
-        return GrantResult(subscription, extended=True)
+        return GrantResult(subscription, extended=True, amount=amount)
 
     if starts_at is None:
         starts_at = now
@@ -571,7 +579,113 @@ def grant_subscription(
             }
         },
     )
-    return GrantResult(subscription, extended=False)
+    return GrantResult(subscription, extended=False, amount=amount)
+
+
+@dataclass(frozen=True)
+class ManualGrantOutcome:
+    """What the grant endpoint answers: the subscription, the HTTP status of the
+    original grant (201 new / 200 extension) and whether this call was a replay."""
+
+    subscription_id: int
+    status_code: int
+    replayed: bool
+    grant_request_id: int
+
+
+def _same_request(row: GrantRequest, user_id, package_id, price_paid, starts_at) -> bool:
+    """Compare with the request as originally sent — never with resolved values (the
+    package's current price), and an omitted field never equals an explicit one."""
+    if (row.user_id, row.package_id) != (user_id, package_id):
+        return False
+    if (row.requested_price_paid is None) != (price_paid is None):
+        return False
+    if price_paid is not None and Decimal(price_paid) != row.requested_price_paid:
+        return False
+    if (row.requested_starts_at is None) != (starts_at is None):
+        return False
+    # Aware datetimes compare as instants, so +06:00 and the stored UTC value match.
+    return starts_at is None or starts_at == row.requested_starts_at
+
+
+def _replay(row: GrantRequest, user_id, package_id, price_paid, starts_at) -> ManualGrantOutcome:
+    if not _same_request(row, user_id, package_id, price_paid, starts_at):
+        raise SubscriptionError("idempotency_key_reused", IDEMPOTENCY_KEY_REUSED_MESSAGE)
+    # The key itself is never logged.
+    logger.info(
+        "Manual grant replayed grant_request=%s actor=%s subscription=%s",
+        row.pk,
+        row.actor_id,
+        row.subscription_id,
+    )
+    return ManualGrantOutcome(row.subscription_id, row.status_code, True, row.pk)
+
+
+def _find_grant_request(actor, key: str) -> GrantRequest | None:
+    return GrantRequest.objects.filter(actor=actor, key=key).first()
+
+
+def grant_subscription_once(
+    user_id: int,
+    package_id: int,
+    *,
+    key: str,
+    ctx: AuditContext,
+    price_paid: Decimal | None = None,
+    starts_at: datetime | None = None,
+) -> ManualGrantOutcome:
+    """Manual admin grant made safe to retry with an ``Idempotency-Key``.
+
+    - New key: ``grant_subscription`` runs once and a ``GrantRequest`` row is written in
+      the same transaction (both commit or neither does).
+    - Same admin + same key + same request: nothing changes; the original outcome is
+      replayed (the subscription is re-read, so it shows its *current* state).
+    - Same admin + same key + a different request: ``SubscriptionError``
+      ``idempotency_key_reused`` (→ 409), nothing changes.
+    - A failed grant writes no row, so the same key can be retried after fixing it.
+    - Different keys are separate, intentional grants (an extension each time).
+
+    Concurrency: the student row is locked before the key is re-checked, so two
+    simultaneous requests for the same student are serialized and the second one sees
+    the first one's row; the unique (actor, key) constraint is the last guard for
+    anything else (e.g. the same key sent for two different students at once).
+    """
+    actor = ctx.actor
+    if actor is None or not getattr(actor, "pk", None):
+        raise ValueError("An idempotent grant needs an authenticated actor.")
+    existing = _find_grant_request(actor, key)  # fast path: a plain retry
+    if existing is not None:
+        return _replay(existing, user_id, package_id, price_paid, starts_at)
+    try:
+        with transaction.atomic():
+            # Same first lock as grant_subscription (user row), taken before re-checking.
+            get_user_model().objects.select_for_update(no_key=True).filter(pk=user_id).first()
+            existing = _find_grant_request(actor, key)
+            if existing is not None:
+                return _replay(existing, user_id, package_id, price_paid, starts_at)
+            result = grant_subscription(
+                user_id, package_id, ctx=ctx, price_paid=price_paid, starts_at=starts_at
+            )
+            code = 200 if result.extended else 201
+            row = GrantRequest.objects.create(
+                actor=actor,
+                key=key,
+                user_id=user_id,
+                package_id=package_id,
+                requested_price_paid=price_paid,
+                requested_starts_at=starts_at,
+                applied_amount=result.amount,
+                subscription=result.subscription,
+                extended=result.extended,
+                status_code=code,
+            )
+    except IntegrityError:
+        # Lost a race on (actor, key): the whole attempt (grant included) rolled back.
+        existing = _find_grant_request(actor, key)
+        if existing is None:
+            raise
+        return _replay(existing, user_id, package_id, price_paid, starts_at)
+    return ManualGrantOutcome(result.subscription.pk, code, False, row.pk)
 
 
 @transaction.atomic

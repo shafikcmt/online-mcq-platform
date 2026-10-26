@@ -20,6 +20,7 @@ from tests.test_subscriptions import (
     GRANT,
     SUBSCRIPTIONS,
     grant,
+    idem,
     make_package,
     make_student,
 )
@@ -84,8 +85,12 @@ class TestMaskedMobile:
     def test_grant_extend_and_cancel_responses(self, api):
         student = make_student()
         package = make_package()
-        created = api.post(GRANT, {"user": student.pk, "package": package.pk}, format="json")
-        extended = api.post(GRANT, {"user": student.pk, "package": package.pk}, format="json")
+        created = api.post(
+            GRANT, {"user": student.pk, "package": package.pk}, format="json", **idem()
+        )
+        extended = api.post(
+            GRANT, {"user": student.pk, "package": package.pk}, format="json", **idem()
+        )
         assert (created.status_code, extended.status_code) == (201, 200)
         cancelled = api.post(f"{SUBSCRIPTIONS}{created.json()['id']}/cancel/")
         assert cancelled.status_code == 200
