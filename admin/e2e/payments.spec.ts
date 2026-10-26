@@ -4,8 +4,10 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
  * `e2e/stack/seed.py` through the normal payment services and the MOCK provider: Tanvir
  * Ahmed — two successful E2E Gold payments renewing ONE subscription; মাহমুদা আক্তার —
  * E2E Silver failed; Rafiq Islam — E2E Silver cancelled and E2E Gold still pending.
- * Runs ONLY on the disposable stack (`e2e/stack/run.sh`). Nothing here changes a payment:
- * the panel has no payment actions, and this suite never calls the re-verify endpoint.
+ * Runs ONLY on the disposable stack (`e2e/stack/run.sh`). The panel's only payment action
+ * is "Re-verify with provider" (never for a successful payment); the last test uses it on
+ * the pending payment — the mock provider's answer changes nothing, and a second attempt
+ * right away is refused by the server's cooldown.
  * Pagination needs more rows than the smallest page size (10): Vitest covers it. */
 const MOBILE = process.env.E2E_ADMIN_MOBILE ?? "";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "";
@@ -315,3 +317,26 @@ for (const locale of ["en", "bn"] as const) {
     });
   }
 }
+
+test("re-verify the pending payment: confirm, provider answer applied, then the cooldown", async () => {
+  await context.addCookies([{ name: "admin_lang", value: "en", url: test.info().project.use.baseURL ?? "http://localhost:8088" }]);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/payments/${seed.first.payment_id}`);
+  await expect(main().getByRole("button", { name: "Re-verify with provider" })).toHaveCount(0); // successful = final
+  await page.goto(`/payments/${seed.pending.payment_id}`);
+  await main().getByRole("button", { name: "Re-verify with provider" }).click();
+  let dialog = page.getByRole("alertdialog", { name: "Ask the provider again?" });
+  await expect(dialog).toContainText("The server asks Mock (development) for this payment");
+  await dialog.getByRole("button", { name: "Ask the provider" }).click();
+  await expect(page.getByText("The provider's answer did not change this payment.")).toBeVisible();
+  await expect(main().getByRole("region", { name: "Timeline" })).toContainText(/Admin re-?verif/i);
+  await main().getByRole("button", { name: "Re-verify with provider" }).click();
+  dialog = page.getByRole("alertdialog", { name: "Ask the provider again?" });
+  await dialog.getByRole("button", { name: "Ask the provider" }).click();
+  await expect(dialog.getByRole("alert")).toContainText(/checked with the provider moments ago\. Try again in \d+ seconds\./);
+  await page.screenshot({ path: `${SHOTS}/payment-reverify-cooldown-1440.png` });
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  const detail = JSON.parse(await apiText(`/admin/payments/${seed.pending.payment_id}/`)) as { status: string; events: { event_type: string }[] };
+  expect(detail.status).toBe("pending");
+  expect(detail.events.filter((event) => event.event_type === "admin_reverify")).toHaveLength(1);
+});

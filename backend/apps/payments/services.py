@@ -32,6 +32,7 @@ or provider payloads (those go, sanitized, to ``payment_events``).
 """
 
 import logging
+import math
 import secrets
 from datetime import timedelta
 
@@ -49,6 +50,7 @@ from apps.subscriptions.models import Package, PackageStatus
 from apps.subscriptions.services import grant_subscription
 
 from .exceptions import (
+    ALREADY_SUCCESSFUL_MESSAGE,
     IDEMPOTENCY_KEY_REUSED_MESSAGE,
     NOT_STUDENT_MESSAGE,
     PACKAGE_INACTIVE_MESSAGE,
@@ -56,6 +58,7 @@ from .exceptions import (
     PACKAGE_NOT_PURCHASABLE_MESSAGE,
     PAYMENT_UNAVAILABLE_MESSAGE,
     PROVIDER_DISABLED_MESSAGE,
+    REVERIFY_TOO_SOON_MESSAGE,
     PaymentError,
 )
 from .gateways import (
@@ -612,16 +615,54 @@ def reconcile_payments(*, batch_size: int | None = None, max_batches: int | None
 REVERIFY_AUDIT_FIELDS = ("outcome", "status", "merchant_reference")
 
 
+def _claim_reverify(payment: Payment) -> None:
+    """One provider query per payment per ``PAYMENT_REVERIFY_COOLDOWN_SECONDS``.
+
+    A single conditional UPDATE claims the slot (``last_checked_at``, which every provider
+    answer also sets): of two simultaneous re-verifies — a double click, two admins — only
+    one queries the provider; the other gets 429 with Retry-After. A successful payment is
+    final and is never re-queried (409 ``already_successful``)."""
+    now = timezone.now()
+    cooldown = timedelta(seconds=max(settings.PAYMENT_REVERIFY_COOLDOWN_SECONDS, 0))
+    claimed = (
+        Payment.objects.filter(pk=payment.pk)
+        .exclude(status=PaymentStatus.SUCCESS)
+        .filter(Q(last_checked_at__isnull=True) | Q(last_checked_at__lte=now - cooldown))
+        .update(last_checked_at=now)
+    )
+    if claimed:
+        return
+    payment.refresh_from_db(fields=["status", "last_checked_at"])
+    if payment.status == PaymentStatus.SUCCESS:
+        raise PaymentError("already_successful", ALREADY_SUCCESSFUL_MESSAGE)
+    remaining = cooldown - (now - payment.last_checked_at)
+    seconds = max(1, math.ceil(remaining.total_seconds()))
+    raise PaymentError(
+        "reverify_too_soon",
+        REVERIFY_TOO_SOON_MESSAGE % {"seconds": seconds},
+        status=429,
+        retry_after=seconds,
+    )
+
+
 def admin_reverify(public_id, *, ctx: AuditContext) -> Payment:
     """Ask the provider again (``query``) and apply the answer like any other — an admin
-    can never set a status directly. Audited."""
+    can never set a status directly. Audited.
+
+    Guards (refusals change nothing and are not audited): a successful payment is final
+    (409 ``already_successful``); a disabled provider (409 ``provider_disabled``); at most
+    one query per payment per cooldown (429 ``reverify_too_soon``). ``failed`` and
+    ``cancelled`` payments can still be re-verified — that is the late-success recovery."""
     payment = Payment.objects.filter(public_id=public_id).first()
     if payment is None:
         from django.http import Http404
 
         raise Http404
+    if payment.status == PaymentStatus.SUCCESS:
+        raise PaymentError("already_successful", ALREADY_SUCCESSFUL_MESSAGE)
     if not is_enabled(payment.provider):
         raise PaymentError("provider_disabled", PROVIDER_DISABLED_MESSAGE)
+    _claim_reverify(payment)
     before = payment.status
     result = get_gateway(payment.provider).query(payment)  # outside any transaction
     with transaction.atomic():

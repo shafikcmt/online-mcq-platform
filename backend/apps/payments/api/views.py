@@ -30,7 +30,12 @@ from django.http import Http404, HttpResponseRedirect
 from django.utils.dateparse import parse_date
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import generics, serializers, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
@@ -81,7 +86,9 @@ PAYMENT_ORDERING = ("id", "created_at", "updated_at", "amount", "verified_at")
 
 
 def _api_error(exc: PaymentError) -> ApiError:
-    return ApiError(status_code=exc.status, code=exc.code, message=str(exc.message))
+    return ApiError(
+        status_code=exc.status, code=exc.code, message=str(exc.message), retry_after=exc.retry_after
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -394,11 +401,26 @@ class AdminPaymentDetailView(AdminAPIMixin, generics.RetrieveAPIView):
 
 class AdminPaymentReverifyView(AdminAPIMixin, APIView):
     """Ask the provider again and apply its answer (same rules as callbacks). Audited.
-    Never sets a status by itself."""
+    Never sets a status by itself. A successful payment is final (409), and each payment
+    is queried at most once per ``PAYMENT_REVERIFY_COOLDOWN_SECONDS`` (429)."""
 
     http_method_names = ["post", "options"]
 
-    @extend_schema(request=None, responses=AdminPaymentDetailSerializer)
+    @extend_schema(
+        request=None,
+        responses={
+            200: AdminPaymentDetailSerializer,
+            409: OpenApiResponse(
+                description="`already_successful` (a successful payment is final) or "
+                "`provider_disabled`."
+            ),
+            429: OpenApiResponse(
+                description="`reverify_too_soon`: this payment was checked with the provider "
+                "within the cooldown (a callback, reconciliation or another re-verify); "
+                "`Retry-After` gives the seconds to wait."
+            ),
+        },
+    )
     def post(self, request, public_id):
         generics.get_object_or_404(Payment.objects.all(), public_id=public_id)
         try:

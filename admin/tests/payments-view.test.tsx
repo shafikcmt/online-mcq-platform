@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() };
@@ -18,7 +18,7 @@ import type { Package } from "@/types/packages";
 import type { AdminPayment, AdminPaymentDetail, PaymentEvent } from "@/types/payments";
 import type { AdminSubscription } from "@/types/subscriptions";
 
-import { json, mockApi, page, renderPanel } from "./content-helpers";
+import { apiError, json, mockApi, page, renderPanel } from "./content-helpers";
 
 const ID = "3f2b8c4e-1a2b-4c3d-8e9f-0a1b2c3d4e5f";
 
@@ -285,7 +285,52 @@ describe("PaymentDetail", () => {
     expect(screen.getByRole("link", { name: "All payments for this package" })).toHaveAttribute("href", "/payments?package=5");
   });
 
-  it("no re-verify or any other action; no raw provider data, IPs or session keys rendered", () => {
+  it("re-verify: asks first, then applies the provider's answer and reloads", async () => {
+    router.refresh.mockReset();
+    const { calls } = mockApi(() => json(200, detail({ status: "success" })));
+    renderPanel(<PaymentDetail payment={detail({ status: "pending", failure_reason: "" })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Re-verify with provider" }));
+    const dialog = await screen.findByRole("alertdialog", { name: "Ask the provider again?" });
+    expect(dialog).toHaveTextContent("The server asks SSLCommerz for this payment");
+    expect(calls).toHaveLength(0);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Ask the provider" }));
+    expect(await screen.findByText("Payment updated: Pending → Successful.")).toBeInTheDocument();
+    expect(calls.map((call) => [call.method, call.url])).toEqual([["POST", `/api/v1/admin/payments/${detail().payment_id}/reverify/`]]);
+    expect(router.refresh).toHaveBeenCalled();
+  });
+
+  it("re-verify: an unchanged answer, and the cooldown (429) message", async () => {
+    let answer = () => json(200, detail({ status: "failed" }));
+    mockApi(() => answer());
+    renderPanel(<PaymentDetail payment={detail({ status: "failed" })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Re-verify with provider" }));
+    let dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Ask the provider" }));
+    expect(await screen.findByText("The provider's answer did not change this payment.")).toBeInTheDocument();
+    answer = () => apiError(429, "reverify_too_soon", "This payment was checked with the provider moments ago. Try again in 42 seconds.");
+    fireEvent.click(screen.getByRole("button", { name: "Re-verify with provider" }));
+    dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Ask the provider" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("Try again in 42 seconds.");
+  });
+
+  it("re-verify: an 'already successful' conflict reloads the page", async () => {
+    router.refresh.mockReset();
+    mockApi(() => apiError(409, "already_successful", "This payment is already successful; there is nothing to verify again."));
+    renderPanel(<PaymentDetail payment={detail({ status: "pending", failure_reason: "" })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Re-verify with provider" }));
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Ask the provider" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("already successful");
+    await waitFor(() => expect(router.refresh).toHaveBeenCalled());
+  });
+
+  it("re-verify in Bangla", () => {
+    renderPanel(<PaymentDetail payment={detail({ status: "cancelled" })} />, "bn");
+    expect(screen.getByRole("button", { name: "প্রোভাইডারের কাছে পুনঃযাচাই" })).toBeInTheDocument();
+  });
+
+  it("a successful payment has no re-verify or any other action; no raw provider data, IPs or session keys rendered", () => {
     const { container } = renderPanel(<PaymentDetail payment={detail()} />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(screen.queryByText(/re-?verify/i, { selector: "button, a" })).not.toBeInTheDocument();

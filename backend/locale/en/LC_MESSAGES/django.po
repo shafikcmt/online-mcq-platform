@@ -1122,6 +1122,15 @@ msgstr ""
 msgid "This payment provider is not enabled on this server."
 msgstr ""
 
+msgid "This payment is already successful; there is nothing to verify again."
+msgstr ""
+
+#, python-format
+msgid ""
+"This payment was checked with the provider moments ago. Try again in "
+"%(seconds)s seconds."
+msgstr ""
+
 msgid "Initiated"
 msgstr ""
 

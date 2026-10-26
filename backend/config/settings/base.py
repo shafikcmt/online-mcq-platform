@@ -421,6 +421,9 @@ PAYMENT_RECONCILE_MIN_AGE_SECONDS = env_int("PAYMENT_RECONCILE_MIN_AGE_SECONDS",
 PAYMENT_ABANDON_AFTER_SECONDS = env_int("PAYMENT_ABANDON_AFTER_SECONDS", 24 * 3600)
 PAYMENT_RECONCILE_BATCH_SIZE = env_int("PAYMENT_RECONCILE_BATCH_SIZE", 50)
 PAYMENT_RECONCILE_MAX_BATCHES = env_int("PAYMENT_RECONCILE_MAX_BATCHES", 10)
+# Admin re-verify: at most one provider query per payment in this many seconds (a double
+# click, two admins, or right after a callback/reconciliation check) → 429 + Retry-After.
+PAYMENT_REVERIFY_COOLDOWN_SECONDS = env_int("PAYMENT_REVERIFY_COOLDOWN_SECONDS", 60)
 
 # SSLCommerz (sandbox by default; live needs SSLCOMMERZ_SANDBOX=false).
 SSLCOMMERZ_STORE_ID = env_str("SSLCOMMERZ_STORE_ID", "")
