@@ -63,9 +63,9 @@ export const NAV: NavGroup[] = [
   {
     key: "nav.site",
     items: [
-      { key: "nav.announcements", href: "/announcements", icon: Megaphone, ready: false },
-      { key: "nav.faq", href: "/faqs", icon: HelpCircle, ready: false },
-      { key: "nav.pages", href: "/pages", icon: FileText, ready: false },
+      { key: "nav.announcements", href: "/announcements", icon: Megaphone, ready: true },
+      { key: "nav.faq", href: "/faqs", icon: HelpCircle, ready: true },
+      { key: "nav.pages", href: "/pages", icon: FileText, ready: true },
       { key: "nav.contact", href: "/contact-messages", icon: Mail, ready: false },
       { key: "nav.settings", href: "/settings", icon: Settings, ready: false },
     ],

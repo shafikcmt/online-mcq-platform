@@ -1,6 +1,7 @@
 import { CONTENT_LANGUAGES, DIFFICULTIES } from "@/types/content";
 import { ACCESS_TYPES, EXAM_STATUSES, EXAM_TYPES } from "@/types/exams";
 import { ATTEMPT_STATUSES } from "@/types/attempts";
+import { AUDIENCES } from "@/types/cms";
 import { PACKAGE_STATUSES } from "@/types/packages";
 import { PAYMENT_PROVIDERS, PAYMENT_STATUSES } from "@/types/payments";
 import { EFFECTIVE_SUBSCRIPTION_STATUSES } from "@/types/subscriptions";
@@ -99,4 +100,24 @@ export const PAYMENT_LIST: ListSpec = {
   filters: { user: "id", package: "id", subscription: "id", status: PAYMENT_STATUSES, provider: PAYMENT_PROVIDERS },
   orderings: ["created_at", "amount", "verified_at"],
   defaultOrdering: "-created_at",
+};
+
+/** CMS content (apps/cms/api/views.py): announcements newest first; FAQs by their sort
+ * order; pages by slug. Search: titles / questions (pages: slug too). */
+export const ANNOUNCEMENT_LIST: ListSpec = {
+  filters: { audience: AUDIENCES, published: "bool", is_pinned: "bool" },
+  orderings: ["id", "published_at", "expires_at", "created_at", "updated_at"],
+  defaultOrdering: "-created_at",
+};
+
+export const FAQ_LIST: ListSpec = {
+  filters: { is_active: "bool" },
+  orderings: ["id", "sort_order", "created_at", "updated_at"],
+  defaultOrdering: "sort_order",
+};
+
+export const PAGE_LIST: ListSpec = {
+  filters: { is_active: "bool" },
+  orderings: ["id", "slug", "created_at", "updated_at"],
+  defaultOrdering: "slug",
 };
