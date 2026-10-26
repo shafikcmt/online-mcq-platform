@@ -59,7 +59,7 @@ online-mcq-platform/
 │   └── manage.py
 ├── web/                      Public Website (placeholder — Milestone 9)
 ├── admin/                    Admin Panel (placeholder — Milestone 7)
-├── mobile/                   Mobile App (placeholder — Milestone 8)
+├── mobile/                   Mobile App (Expo, Android) — Milestone 8, see mobile/README.md
 ├── design/                   Shared design tokens (placeholder)
 ├── docs/                     requirements and planning documents
 ├── docker-compose.yml        local development stack

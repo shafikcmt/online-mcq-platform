@@ -100,7 +100,7 @@ API returns `"title": "...", "title_lang": "en"` only where a fallback happened 
 
 ## 7. Mobile app (Expo)
 
-- i18n library (planned: `i18next` + `react-i18next`, `expo-localization` for device language) — **not installed now**.
+- i18n library: `i18next` + `react-i18next`, `expo-localization` for the device language *(8A: built; a test checks that every key exists in both languages with the same placeholders)*.
 - Translation files: `mobile/src/i18n/locales/{bn,en}/{common,auth,exam,result,payment,…}.json` split by feature namespace.
 - Language switch in onboarding (first screen) and Profile → Settings; takes effect instantly without restart; saved locally and synced to `preferred_language`; sent as `Accept-Language` on every request.
 - Bundled fonts (Bangla + Latin) via `expo-font` so rendering doesn't depend on the phone's fonts.

@@ -1,0 +1,6 @@
+{
+  "greeting": "Hello, {{name}}",
+  "subtitle": "Good to see you.",
+  "comingTitle": "Exams are on the way",
+  "comingBody": "Exams, results and packages will appear here in the next app update."
+}

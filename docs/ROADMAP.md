@@ -140,6 +140,8 @@ Branch: `feature/admin-panel-*` (one per section)
 ## Milestone 8 — Mobile App (Expo)
 Branch: `feature/mobile-*`
 
+**Status:** 8A built — app shell (Expo SDK 58, Expo Router, own theme from the shared tokens, bundled Inter + Noto Sans Bengali), Bangla/English with a first-launch choice, API client with secure token storage and refresh, registration with SMS code, sign-in, forgot password, Home (greeting only) and Profile (details, edit, language synced to the account, change password, sign out). Next: Home dashboard, exams and the exam room.
+
 - **Scope**
   - App shell, navigation, theme, i18n (বাংলা/English, bundled fonts), API client with token refresh, secure storage.
   - Auth screens (register with mobile + SMS OTP, login, forgot password via OTP), profile/settings (language).
