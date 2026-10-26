@@ -906,6 +906,16 @@ msgstr ""
 msgid "This subscription is already cancelled."
 msgstr "এই সাবস্ক্রিপশন ইতিমধ্যে বাতিল করা হয়েছে।"
 
+msgid ""
+"This Idempotency-Key was already used for a different grant. Use a new key "
+"for a new grant."
+msgstr ""
+"এই Idempotency-Key আগেই সাবস্ক্রিপশন দেওয়ার অন্য একটি অনুরোধে ব্যবহার করা "
+"হয়েছে। নতুন অনুরোধের জন্য নতুন কী ব্যবহার করুন।"
+
+msgid "Send an Idempotency-Key header with every grant request."
+msgstr "সাবস্ক্রিপশন দেওয়ার প্রতিটি অনুরোধের সঙ্গে একটি Idempotency-Key হেডার পাঠান।"
+
 msgid "This subscription has already expired."
 msgstr "এই সাবস্ক্রিপশনের মেয়াদ ইতিমধ্যে শেষ হয়ে গেছে।"
 

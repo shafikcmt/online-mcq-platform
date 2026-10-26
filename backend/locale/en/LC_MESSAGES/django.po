@@ -869,6 +869,14 @@ msgstr ""
 msgid "This subscription is already cancelled."
 msgstr ""
 
+msgid ""
+"This Idempotency-Key was already used for a different grant. Use a new key "
+"for a new grant."
+msgstr ""
+
+msgid "Send an Idempotency-Key header with every grant request."
+msgstr ""
+
 msgid "This subscription has already expired."
 msgstr ""
 

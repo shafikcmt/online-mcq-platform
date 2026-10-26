@@ -559,6 +559,34 @@ Implementation notes (4A):
   active again. Refunds are out of scope.
 - `user_id` is PROTECT (entitlement history; users are deactivated, not deleted).
 
+#### `grant_requests` *(grant-idempotency slice — model `subscriptions.GrantRequest`, migration `subscriptions.0002`)*
+Ledger of completed **manual** admin grants, keyed by the admin's `Idempotency-Key`, so a
+retried request replays its first outcome instead of granting again.
+
+| Field | Type | Notes |
+|---|---|---|
+| actor_id | FK → users | the admin who sent the key; PROTECT; no separate index (the unique constraint starts with it) |
+| key | varchar(64) | `^[A-Za-z0-9._:-]{1,64}$` (CHECK) |
+| user_id / package_id | FK → users / packages | as requested; PROTECT |
+| requested_price_paid | numeric(12,2)? | as sent; NULL = omitted (package price used) |
+| requested_starts_at | timestamptz? | as sent (stored UTC); NULL = omitted |
+| applied_amount | numeric(12,2) | what this grant added to `price_paid` (≥ 0) |
+| subscription_id | FK → subscriptions | the subscription created or extended; PROTECT |
+| extended | boolean | false = new subscription, true = extension |
+| status_code | smallint | original HTTP status: 201 (new) / 200 (extension) — CHECK ties it to `extended` |
+| created_at | timestamptz | |
+
+Constraint: `UNIQUE (actor_id, key)` — a key is scoped to one admin; two admins may use the same
+key. Rows are written in the **same transaction** as the grant/extension and its audit event,
+so a row exists only for a committed grant: a failed grant leaves nothing and the same key may
+be retried. Rows are never updated. A retry with the same key is compared with the
+`requested_*` values (never the package's current price); a match replays the stored
+status with the subscription's current state, a mismatch is `409 idempotency_key_reused`.
+Concurrency: the student row is locked before the key is re-checked (the same first lock as
+`grant_subscription`), and the unique constraint catches any remaining race (the losing
+transaction rolls back completely and replays or conflicts). Verified payments do not use
+this table (their own row is the idempotency record). Not exposed by any API yet.
+
 ### 4.9 payments
 
 #### `payments`

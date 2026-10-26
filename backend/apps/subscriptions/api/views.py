@@ -10,11 +10,19 @@ Views stay thin: validate input, call ``subscriptions.services`` (one transactio
 the audit entry), serialize.
 """
 
+import re
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,7 +42,14 @@ from apps.core.public_api import PublicAPIMixin
 
 from .. import services
 from ..exceptions import SubscriptionError
-from ..models import Package, PackageAccessRule, PackageStatus, Subscription, SubscriptionStatus
+from ..models import (
+    IDEMPOTENCY_KEY_REGEX,
+    Package,
+    PackageAccessRule,
+    PackageStatus,
+    Subscription,
+    SubscriptionStatus,
+)
 from ..selectors import EffectiveStatus, active_window, effective_status_filter
 from .serializers import (
     AccessRuleAdminSerializer,
@@ -262,30 +277,94 @@ def _subscription_response(request, subscription_id, status_code=status.HTTP_200
     )
 
 
+IDEMPOTENCY_KEY_PATTERN = re.compile(IDEMPOTENCY_KEY_REGEX)
+IDEMPOTENCY_KEY_REQUIRED_MESSAGE = _("Send an Idempotency-Key header with every grant request.")
+IDEMPOTENCY_KEY_INVALID_MESSAGE = _(
+    "Idempotency-Key must be 1–64 letters, digits or the characters . _ : -"
+)
+GRANT_IDEMPOTENCY_HEADER = OpenApiParameter(
+    "Idempotency-Key",
+    OpenApiTypes.STR,
+    location=OpenApiParameter.HEADER,
+    required=True,
+    pattern=IDEMPOTENCY_KEY_REGEX,
+    description=(
+        "Required. A new random key per intended grant (e.g. a UUID), reused only to "
+        "retry that same grant. Scope: the signed-in admin. Same key + same request → "
+        "the original outcome is replayed (original status code, the subscription's "
+        "current state, `Idempotent-Replayed: true`), nothing is granted again. Same key "
+        "+ different request → 409 `idempotency_key_reused`. A failed grant stores "
+        "nothing, so its key may be retried."
+    ),
+)
+REPLAYED_HEADER = OpenApiParameter(
+    "Idempotent-Replayed",
+    OpenApiTypes.STR,
+    location=OpenApiParameter.HEADER,
+    enum=["true"],
+    description="Present (true) only when this response replays an earlier grant.",
+    response=[200, 201],
+)
+
+
+def _idempotency_key(request) -> str:
+    key = request.headers.get("Idempotency-Key", "").strip()
+    if not key:
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code="idempotency_key_required",
+            message=str(IDEMPOTENCY_KEY_REQUIRED_MESSAGE),
+        )
+    if not IDEMPOTENCY_KEY_PATTERN.fullmatch(key):
+        raise ApiError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code="idempotency_key_invalid",
+            message=str(IDEMPOTENCY_KEY_INVALID_MESSAGE),
+        )
+    return key
+
+
 class SubscriptionGrantView(AdminAPIMixin, APIView):
     """Manual grant: a new subscription (201), or the extension of the student's
-    running subscription to the same package (200)."""
+    running subscription to the same package (200). Requires an ``Idempotency-Key``
+    header, so a double click or a retried request never grants twice."""
 
     http_method_names = ["post", "options"]
 
     @extend_schema(
         request=GrantSerializer,
-        responses={201: SubscriptionAdminSerializer, 200: SubscriptionAdminSerializer},
+        parameters=[GRANT_IDEMPOTENCY_HEADER, REPLAYED_HEADER],
+        responses={
+            201: SubscriptionAdminSerializer,
+            200: SubscriptionAdminSerializer,
+            400: OpenApiResponse(
+                description="Validation error, or a missing (`idempotency_key_required`) "
+                "or malformed (`idempotency_key_invalid`) Idempotency-Key."
+            ),
+            409: OpenApiResponse(
+                description="`idempotency_key_reused`: this admin already used the key "
+                "for a different grant request."
+            ),
+        },
     )
     def post(self, request):
+        key = _idempotency_key(request)
         serializer = GrantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        result = _write(
+        outcome = _write(
             request,
-            services.grant_subscription,
+            services.grant_subscription_once,
             data["user"],
             data["package"],
+            key=key,
             price_paid=data.get("price_paid"),
             starts_at=data.get("starts_at"),
         )
-        code = status.HTTP_200_OK if result.extended else status.HTTP_201_CREATED
-        return _subscription_response(request, result.subscription.pk, code)
+        response = _subscription_response(request, outcome.subscription_id, outcome.status_code)
+        if outcome.replayed:
+            response["Idempotent-Replayed"] = "true"
+        return response
 
 
 class SubscriptionCancelView(AdminAPIMixin, APIView):

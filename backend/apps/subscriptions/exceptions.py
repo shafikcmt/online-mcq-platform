@@ -16,3 +16,6 @@ PACKAGE_IN_USE_MESSAGE = _(
 )
 ALREADY_CANCELLED_MESSAGE = _("This subscription is already cancelled.")
 SUBSCRIPTION_EXPIRED_MESSAGE = _("This subscription has already expired.")
+IDEMPOTENCY_KEY_REUSED_MESSAGE = _(
+    "This Idempotency-Key was already used for a different grant. Use a new key for a new grant."
+)
