@@ -1,7 +1,8 @@
 import { CONTENT_LANGUAGES, DIFFICULTIES } from "@/types/content";
 import { ACCESS_TYPES, EXAM_STATUSES, EXAM_TYPES } from "@/types/exams";
 import { ATTEMPT_STATUSES } from "@/types/attempts";
-import { AUDIENCES } from "@/types/cms";
+import { AUDIT_ACTIONS, AUDIT_ENTITY_TYPES } from "@/types/audit";
+import { AUDIENCES, CONTACT_STATUSES } from "@/types/cms";
 import { PACKAGE_STATUSES } from "@/types/packages";
 import { PAYMENT_PROVIDERS, PAYMENT_STATUSES } from "@/types/payments";
 import { EFFECTIVE_SUBSCRIPTION_STATUSES } from "@/types/subscriptions";
@@ -120,4 +121,19 @@ export const PAGE_LIST: ListSpec = {
   filters: { is_active: "bool" },
   orderings: ["id", "slug", "created_at", "updated_at"],
   defaultOrdering: "slug",
+};
+
+/** Contact inbox: status/language filters, search (name, e-mail, phone, subject). */
+export const CONTACT_LIST: ListSpec = {
+  filters: { status: CONTACT_STATUSES, language: ["bn", "en"] },
+  orderings: ["id", "created_at", "updated_at", "status"],
+  defaultOrdering: "-created_at",
+};
+
+/** Audit log (read-only, always newest first on the server): action, record type, record
+ * id and actor filters. The API has no search or ordering parameters. */
+export const AUDIT_LIST: ListSpec = {
+  filters: { action: AUDIT_ACTIONS, entity_type: AUDIT_ENTITY_TYPES, entity_id: "id", actor: "id" },
+  orderings: ["created_at"],
+  defaultOrdering: "-created_at",
 };

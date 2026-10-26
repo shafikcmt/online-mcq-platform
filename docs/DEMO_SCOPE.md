@@ -18,13 +18,13 @@ no internet route, so nobody is ever contacted (`docs/DEPLOYMENT.md` §9.6).
 - Subscriptions — list and detail; **grant**, **extend** and **cancel** (retry-safe: a double click or a lost response never grants twice)
 - Payments — list and detail, including the purchased validity ("Validity bought"); **Re-verify with provider** for payments that are not successful (guarded: never for a successful payment, one provider query per payment per minute)
 - Website content: announcements (draft/scheduled/live, website or app), FAQ, static pages
+- Site settings, the contact inbox (read / resolved) and the audit log (who changed what, read-only)
 - Bangla/English switch; responsive layout (desktop, tablet, phone)
 
 ## Not complete yet — do not present as finished
 
 - Mobile App
 - Public Website
-- Admin screens for site settings, contact messages and the audit log
 - A real payment gateway end to end (merchant credentials, public callbacks)
 - Final production deployment and hardening (sizing, media storage, monitoring, backups off-site)
 

@@ -14,12 +14,16 @@ from ..models import AuditLog
 
 
 class AuditLogSerializer(serializers.ModelSerializer):
+    # The actor's name for the Admin Panel (null for system jobs). ``actor`` stays the id.
+    actor_name = serializers.SerializerMethodField()
+
     class Meta:
         model = AuditLog
         fields = (
             "id",
             "created_at",
             "actor",
+            "actor_name",
             "action",
             "entity_type",
             "entity_id",
@@ -28,6 +32,9 @@ class AuditLogSerializer(serializers.ModelSerializer):
             "ip_address",
         )
         read_only_fields = fields
+
+    def get_actor_name(self, obj) -> str | None:
+        return obj.actor.full_name if obj.actor_id else None
 
 
 @extend_schema(
@@ -43,7 +50,7 @@ class AuditLogListView(AdminAPIMixin, generics.ListAPIView):
     http_method_names = ["get", "head", "options"]
 
     def get_queryset(self):
-        queryset = AuditLog.objects.all()
+        queryset = AuditLog.objects.select_related("actor")  # actor_name without N+1
         params = self.request.query_params
         for name in ("action", "entity_type", "entity_id"):
             value = params.get(name, "").strip()

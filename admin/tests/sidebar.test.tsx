@@ -20,15 +20,14 @@ describe("SidebarNav", () => {
     }
   });
 
-  it("does not link to screens that are not built yet", () => {
+  it("every admin area is built: all entries are links, none marked Soon", () => {
     renderWithI18n(<SidebarNav />);
-    expect(screen.queryByRole("link", { name: /Contact messages/ })).not.toBeInTheDocument();
-    const contact = screen.getByText("Contact messages").closest("[aria-disabled]");
-    expect(contact).toHaveAttribute("aria-disabled", "true");
-    expect(contact).toHaveTextContent("Contact messages (Soon)"); // announced, not just dimmed
+    expect(document.querySelector("[aria-disabled]")).toBeNull();
+    expect(screen.queryByText(/\(Soon\)/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Dimmed sections are not built yet/)).not.toBeInTheDocument();
   });
 
-  it("links the screens built so far (Milestones 7B–7H and the website content screens)", () => {
+  it("links every screen (Milestones 7B–7H, website content, settings, inbox, audit log)", () => {
     renderWithI18n(<SidebarNav />);
     expect(screen.getByRole("link", { name: "Categories" })).toHaveAttribute("href", "/categories");
     expect(screen.getByRole("link", { name: "Subjects" })).toHaveAttribute("href", "/subjects");
@@ -43,7 +42,9 @@ describe("SidebarNav", () => {
     expect(screen.getByRole("link", { name: "Announcements" })).toHaveAttribute("href", "/announcements");
     expect(screen.getByRole("link", { name: "FAQ" })).toHaveAttribute("href", "/faqs");
     expect(screen.getByRole("link", { name: "Pages" })).toHaveAttribute("href", "/pages");
-    expect(screen.queryByRole("link", { name: /Contact messages/ })).not.toBeInTheDocument(); // not built yet
+    expect(screen.getByRole("link", { name: "Contact messages" })).toHaveAttribute("href", "/contact-messages");
+    expect(screen.getByRole("link", { name: "Site settings" })).toHaveAttribute("href", "/settings");
+    expect(screen.getByRole("link", { name: "Audit log" })).toHaveAttribute("href", "/audit-log");
   });
 
   it("keeps labels for screen readers when collapsed", () => {

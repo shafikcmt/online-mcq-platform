@@ -127,6 +127,8 @@ Branches: `feature/cms`, `feature/notifications`, `feature/dashboard-api`
 ## Milestone 7 — Admin Panel (Next.js)
 Branch: `feature/admin-panel-*` (one per section)
 
+**Status:** every section listed below now has a screen (7A–7H, then subscription grant/extend/cancel, payment re-verify, website content, site settings, contact inbox and the audit log). Bilingual and accessibility review of the whole panel remains part of Milestone 10.
+
 - **Scope**
   - Layout shell, login, design tokens, i18n (বাংলা/English UI), reusable table/form/filter components, bilingual content editor.
   - Sections: dashboard (basic reports), users, categories/subjects, questions, exams (+question picker, retake/merit settings), results, packages/subscriptions, payments, settings/content, contact messages, audit log.
