@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 
 import { NAV } from "./nav";
 
+const HAS_PENDING = NAV.some((group) => group.items.some((item) => !item.ready));
+
 export function SidebarNav({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const { t } = useI18n();
@@ -69,7 +71,8 @@ export function SidebarNav({ collapsed = false, onNavigate }: { collapsed?: bool
           </ul>
         </div>
       ))}
-      {!collapsed && <p className="mt-6 px-2.5 text-xs leading-relaxed text-ink-subtle">{t("nav.pendingNote")}</p>}
+      {/* Only while some area is still marked "Soon" (none are now; kept for future areas). */}
+      {!collapsed && HAS_PENDING && <p className="mt-6 px-2.5 text-xs leading-relaxed text-ink-subtle">{t("nav.pendingNote")}</p>}
     </nav>
   );
 }

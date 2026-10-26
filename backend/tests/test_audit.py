@@ -335,6 +335,18 @@ class TestAppendOnly:
         assert api.delete(f"{AUDIT}{log.pk}/").status_code == 404
         assert AuditLog.objects.count() == 1
 
+    def test_api_names_the_actor_in_one_query(self, api, log, admin_user):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        api.post(SUBJECTS, {"category": int(log.entity_id), "name_en": "P"}, format="json")
+        AuditLog.objects.create(action="system.job", entity_type="x", entity_id="1", summary="job")
+        with CaptureQueriesContext(connection) as queries:
+            rows = api.get(AUDIT).json()["results"]
+        assert {row["actor_name"] for row in rows} == {admin_user.full_name, None}
+        assert all(row["actor"] in (admin_user.pk, None) for row in rows)
+        assert len([q for q in queries if "audit_auditlog" in q["sql"]]) <= 2  # count + page
+
     def test_api_filters(self, api, log):
         api.post(SUBJECTS, {"category": int(log.entity_id), "name_en": "P"}, format="json")
         assert api.get(AUDIT + "?entity_type=catalog.subject").json()["count"] == 1

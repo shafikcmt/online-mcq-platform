@@ -56,3 +56,44 @@ export const CMS_LIMITS = {
   pageBody: 20000,
   slug: 140,
 } as const;
+
+/** Site settings (GET/PATCH /admin/settings/ — one row; environment defaults until saved). */
+export type LanguageCode = "bn" | "en";
+export type LeaderboardNameMode = "masked" | "initials" | "display_name" | "full_name";
+export const LEADERBOARD_NAME_MODES: LeaderboardNameMode[] = ["masked", "initials", "display_name", "full_name"];
+
+export type SiteSettings = {
+  platform_name_bn: string;
+  platform_name_en: string;
+  tagline_bn: string;
+  tagline_en: string;
+  address_bn: string;
+  address_en: string;
+  contact_email: string;
+  contact_phone: string;
+  app_download_url: string;
+  app_open_url: string;
+  default_language: LanguageCode;
+  public_leaderboard_name_mode: LeaderboardNameMode;
+  app_leaderboard_name_mode: LeaderboardNameMode;
+  /** null until the settings are saved for the first time. */
+  updated_at: string | null;
+};
+
+/** Contact inbox (website contact form). What the admin needs to reply — never the IP. */
+export type ContactStatus = "new" | "read" | "resolved";
+export const CONTACT_STATUSES: ContactStatus[] = ["new", "read", "resolved"];
+
+export type ContactMessage = {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  subject: string;
+  message: string;
+  language: LanguageCode;
+  status: ContactStatus;
+  handled_by: { id: number; full_name: string } | null;
+  created_at: string;
+  updated_at: string;
+};

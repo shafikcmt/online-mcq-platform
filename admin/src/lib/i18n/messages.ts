@@ -2,6 +2,7 @@
  * complete so the panel can switch languages. Keys are stable; never build strings by
  * concatenating translated fragments. */
 import { attemptBn, attemptEn } from "./attempt-messages";
+import { auditBn, auditEn } from "./audit-messages";
 import { cmsBn, cmsEn } from "./cms-messages";
 import { contentBn, contentEn } from "./content-messages";
 import { packageBn, packageEn } from "./package-messages";
@@ -105,7 +106,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn, ...packageEn, ...paymentEn, ...cmsEn };
+export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn, ...packageEn, ...paymentEn, ...cmsEn, ...auditEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -205,7 +206,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn, ...packageBn, ...paymentBn, ...cmsBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn, ...packageBn, ...paymentBn, ...cmsBn, ...auditBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

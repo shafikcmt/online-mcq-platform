@@ -66,11 +66,11 @@ export const NAV: NavGroup[] = [
       { key: "nav.announcements", href: "/announcements", icon: Megaphone, ready: true },
       { key: "nav.faq", href: "/faqs", icon: HelpCircle, ready: true },
       { key: "nav.pages", href: "/pages", icon: FileText, ready: true },
-      { key: "nav.contact", href: "/contact-messages", icon: Mail, ready: false },
-      { key: "nav.settings", href: "/settings", icon: Settings, ready: false },
+      { key: "nav.contact", href: "/contact-messages", icon: Mail, ready: true },
+      { key: "nav.settings", href: "/settings", icon: Settings, ready: true },
     ],
   },
-  { key: "nav.system", items: [{ key: "nav.audit", href: "/audit-log", icon: ScrollText, ready: false }] },
+  { key: "nav.system", items: [{ key: "nav.audit", href: "/audit-log", icon: ScrollText, ready: true }] },
 ];
 
 export const NAV_ICON_FALLBACK = BarChart3;
