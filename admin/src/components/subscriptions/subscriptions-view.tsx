@@ -1,13 +1,12 @@
 "use client";
 
-import { ExternalLink, Package as PackageIcon, UserRound } from "lucide-react";
+import { ExternalLink, Package as PackageIcon, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { ListRowsLoading } from "@/components/content/list-skeleton";
 import { packageName } from "@/components/packages/package-cells";
 import { StudentPicker } from "@/components/results/student-picker";
-import type { ServerStudent } from "@/components/results/results-view";
 import { MaskedValue } from "@/components/users/user-cells";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,17 +25,26 @@ import { useListUrl } from "@/lib/use-list-url";
 import type { Paginated } from "@/types/content";
 import type { Package } from "@/types/packages";
 import type { AdminSubscription } from "@/types/subscriptions";
+import type { AdminUser } from "@/types/users";
 
+import { GrantDialog } from "./grant-dialog";
 import { PackagePicker } from "./package-picker";
 import { SubscriptionState } from "./subscription-cells";
 
 /** The package named by `?package=` as the server page read it: `null` = it does not exist. */
 export type ServerPackage = { id: number; pkg: Package | null };
+/** The student named by `?user=` as the server page read it (`user: null` = no such user).
+ * The mobile number is the server's masked value. */
+export type SubscriptionsStudent = {
+  id: number;
+  user: Pick<AdminUser, "id" | "full_name" | "mobile_display" | "role"> | null;
+};
 
-/** Subscriptions list (read-only). URL-driven list state like the other lists: the
- * server filters (student, package, effective status), sorts and pages. Status is the
- * server's `effective_status`; the student's mobile number arrives masked. No actions
- * that change a subscription. */
+/** Subscriptions list. URL-driven list state like the other lists: the server filters
+ * (student, package, effective status), sorts and pages. Status is the server's
+ * `effective_status`; the student's mobile number arrives masked. "Grant subscription"
+ * opens the manual grant dialog, prefilled with the student/package being filtered on;
+ * cancelling is done on the subscription's own page. */
 export function SubscriptionsView({
   data,
   state: serverState,
@@ -45,7 +53,7 @@ export function SubscriptionsView({
 }: {
   data: Paginated<AdminSubscription>;
   state: ListState;
-  student: ServerStudent | null;
+  student: SubscriptionsStudent | null;
   pkg: ServerPackage | null;
 }) {
   const { locale, t } = useI18n();
@@ -60,6 +68,7 @@ export function SubscriptionsView({
   });
   const [pickingStudent, setPickingStudent] = useState(false);
   const [pickingPackage, setPickingPackage] = useState(false);
+  const [granting, setGranting] = useState(false);
   const rows = list?.results ?? [];
   const pending = navigating || reloading;
   const filtered = activeFilterCount(state) > 0;
@@ -69,6 +78,9 @@ export function SubscriptionsView({
   // Chip names come from the server page's reads of the URL's ids only (never stale).
   const studentName = userId !== null && serverStudent?.id === userId ? (serverStudent.user?.full_name ?? null) : null;
   const packageContext = packageId !== null && serverPackage?.id === packageId ? serverPackage.pkg : null;
+  // Prefill the grant dialog with the filtered student — never with an admin account.
+  const filteredUser = userId !== null && serverStudent?.id === userId ? serverStudent.user : null;
+  const grantStudent = filteredUser?.role === "student" ? filteredUser : null;
   const time = (iso: string) => <span className="text-ink-muted">{formatDateTime(iso, locale)}</span>;
   const rowPackageName = (row: AdminSubscription) => {
     const name = packageName(row.package, locale);
@@ -113,7 +125,16 @@ export function SubscriptionsView({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("subscriptions.title")} subtitle={t("subscriptions.subtitle")} />
+      <PageHeader
+        title={t("subscriptions.title")}
+        subtitle={t("subscriptions.subtitle")}
+        actions={
+          <Button onClick={() => setGranting(true)} aria-haspopup="dialog">
+            <Plus aria-hidden />
+            {t("grant.open")}
+          </Button>
+        }
+      />
 
       <div className="flex flex-wrap items-center gap-2" aria-label={t("list.filters")} role="group">
         {userId === null ? (
@@ -255,6 +276,12 @@ export function SubscriptionsView({
           setPickingStudent(false);
           update({ filters: { user: String(user.id) } });
         }}
+      />
+      <GrantDialog
+        open={granting}
+        onOpenChange={setGranting}
+        student={grantStudent}
+        pkg={packageContext}
       />
       <PackagePicker
         open={pickingPackage}
