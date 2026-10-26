@@ -22,13 +22,13 @@ describe("SidebarNav", () => {
 
   it("does not link to screens that are not built yet", () => {
     renderWithI18n(<SidebarNav />);
-    expect(screen.queryByRole("link", { name: /Announcements/ })).not.toBeInTheDocument();
-    const announcements = screen.getByText("Announcements").closest("[aria-disabled]");
-    expect(announcements).toHaveAttribute("aria-disabled", "true");
-    expect(announcements).toHaveTextContent("Announcements (Soon)"); // announced, not just dimmed
+    expect(screen.queryByRole("link", { name: /Contact messages/ })).not.toBeInTheDocument();
+    const contact = screen.getByText("Contact messages").closest("[aria-disabled]");
+    expect(contact).toHaveAttribute("aria-disabled", "true");
+    expect(contact).toHaveTextContent("Contact messages (Soon)"); // announced, not just dimmed
   });
 
-  it("links the content screens built in Milestones 7B–7H", () => {
+  it("links the screens built so far (Milestones 7B–7H and the website content screens)", () => {
     renderWithI18n(<SidebarNav />);
     expect(screen.getByRole("link", { name: "Categories" })).toHaveAttribute("href", "/categories");
     expect(screen.getByRole("link", { name: "Subjects" })).toHaveAttribute("href", "/subjects");
@@ -40,7 +40,10 @@ describe("SidebarNav", () => {
     expect(screen.getByRole("link", { name: "Packages" })).toHaveAttribute("href", "/packages");
     expect(screen.getByRole("link", { name: "Subscriptions" })).toHaveAttribute("href", "/subscriptions");
     expect(screen.getByRole("link", { name: "Payments" })).toHaveAttribute("href", "/payments");
-    expect(screen.queryByRole("link", { name: /Announcements/ })).not.toBeInTheDocument(); // not built yet
+    expect(screen.getByRole("link", { name: "Announcements" })).toHaveAttribute("href", "/announcements");
+    expect(screen.getByRole("link", { name: "FAQ" })).toHaveAttribute("href", "/faqs");
+    expect(screen.getByRole("link", { name: "Pages" })).toHaveAttribute("href", "/pages");
+    expect(screen.queryByRole("link", { name: /Contact messages/ })).not.toBeInTheDocument(); // not built yet
   });
 
   it("keeps labels for screen readers when collapsed", () => {
