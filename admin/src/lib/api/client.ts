@@ -28,11 +28,21 @@ type Options = {
   signal?: AbortSignal;
   timeoutMs?: number;
   retried?: boolean;
+  /** Extra request headers (e.g. `Idempotency-Key`); they never replace the panel's own. */
+  headers?: Record<string, string>;
 };
 
+/** A successful response with its status and headers (e.g. 201 vs 200, replay markers). */
+export type ApiResponse<T> = { data: T; status: number; headers: Headers };
+
 export async function apiFetch<T>(path: string, options: Options = {}): Promise<T> {
+  return (await apiRequest<T>(path, options)).data;
+}
+
+export async function apiRequest<T>(path: string, options: Options = {}): Promise<ApiResponse<T>> {
   const method = (options.method ?? "GET").toUpperCase();
   const headers: Record<string, string> = {
+    ...options.headers,
     Accept: "application/json",
     // The backend localizes its messages from this (the panel's current UI language).
     "Accept-Language": document.documentElement.lang || "en",
@@ -59,13 +69,14 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
     throw networkError();
   }
   if (response.ok) {
-    return (response.status === 204 ? undefined : await response.json()) as T;
+    const data = (response.status === 204 ? undefined : await response.json()) as T;
+    return { data, status: response.status, headers: response.headers };
   }
   const error = await toApiError(response);
   // A stale CSRF token (e.g. rotated at sign-in): refresh it once and retry.
   if (error.status === 403 && !SAFE.has(method) && !options.retried && /csrf/i.test(error.message)) {
     document.cookie = "csrftoken=; Max-Age=0; path=/";
-    return apiFetch<T>(path, { ...options, retried: true });
+    return apiRequest<T>(path, { ...options, retried: true });
   }
   // The admin session ended (expired, signed out elsewhere): tell the panel shell, which
   // offers sign-in. The caller still gets the error and keeps its form state.

@@ -31,7 +31,7 @@ export function apiError(status: number, code: string, message: string, fieldErr
   return json(status, { error: { code, message, details: {}, ...(fieldErrors ? { field_errors: fieldErrors } : {}) } });
 }
 
-type Call = { method: string; url: string; body: unknown };
+type Call = { method: string; url: string; body: unknown; headers: Record<string, string> };
 
 /** Stub `fetch` (the real apiFetch runs, so headers, CSRF and error parsing are exercised).
  * `handler` answers each request; every request is recorded in `calls`. */
@@ -44,6 +44,7 @@ export function mockApi(handler: (call: Call) => Response | Promise<Response>) {
       method: (init?.method ?? "GET").toUpperCase(),
       url: String(input),
       body: typeof body === "string" ? JSON.parse(body) : body,
+      headers: { ...(init?.headers as Record<string, string> | undefined) },
     };
     calls.push(call);
     return handler(call);

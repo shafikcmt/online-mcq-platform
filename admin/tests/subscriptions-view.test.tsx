@@ -9,8 +9,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { SubscriptionDetail } from "@/components/subscriptions/subscription-detail";
-import { SubscriptionsView, type ServerPackage } from "@/components/subscriptions/subscriptions-view";
-import type { ServerStudent } from "@/components/results/results-view";
+import { SubscriptionsView, type ServerPackage, type SubscriptionsStudent } from "@/components/subscriptions/subscriptions-view";
 import { SUBSCRIPTION_LIST } from "@/lib/content-specs";
 import { parseListParams } from "@/lib/list-params";
 import type { Package } from "@/types/packages";
@@ -50,7 +49,7 @@ const state = (query = "") => {
 function view(
   query = "",
   data = page(rows),
-  { student = null, pkg = null, locale = "en" }: { student?: ServerStudent | null; pkg?: ServerPackage | null; locale?: "en" | "bn" } = {},
+  { student = null, pkg = null, locale = "en" }: { student?: SubscriptionsStudent | null; pkg?: ServerPackage | null; locale?: "en" | "bn" } = {},
 ) {
   return renderPanel(<SubscriptionsView data={data} state={state(query)} student={student} pkg={pkg} />, locale);
 }
@@ -89,9 +88,10 @@ describe("SubscriptionsView", () => {
     expect(bodyRows()[0]).not.toHaveTextContent("Expired");
   });
 
-  it("read-only: no grant, extend, cancel or delete controls", () => {
+  it("one Grant action in the header; rows have no extend, cancel or delete controls", () => {
     view();
-    expect(screen.queryByRole("button", { name: /grant|extend|renew|cancel|delete/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Grant subscription" })).toBeInTheDocument();
+    expect(within(table()).queryByRole("button", { name: /grant|extend|renew|cancel|delete/i })).not.toBeInTheDocument();
   });
 
   it("effective-status filter, sorting and the package/student shortcuts go to the URL", () => {
@@ -109,7 +109,7 @@ describe("SubscriptionsView", () => {
   it("chips name the student and package from the server's reads; fall back to ids", () => {
     const gold = { id: 5, name_en: "Gold", name_bn: "গোল্ড", slug: "gold" } as Package;
     const { unmount } = view("user=40&package=5", page(rows), {
-      student: { id: 40, user: { id: 40, full_name: "Ayesha Siddika" } },
+      student: { id: 40, user: { id: 40, full_name: "Ayesha Siddika", mobile_display: "+88017*****101", role: "student" } },
       pkg: { id: 5, pkg: gold },
     });
     const filters = screen.getByRole("group", { name: "Filters" });
@@ -198,8 +198,9 @@ describe("SubscriptionDetail", () => {
     expect(screen.getByRole("link", { name: "All subscriptions of this student" })).toHaveAttribute("href", "/subscriptions?user=40");
     expect(screen.getByRole("link", { name: "All subscriptions of this package" })).toHaveAttribute("href", "/subscriptions?package=5");
     expect(screen.getByRole("link", { name: "View payments" })).toHaveAttribute("href", "/payments?subscription=7");
-    expect(screen.queryByRole("button")).not.toBeInTheDocument(); // no grant/extend/cancel/payment actions
-    expect(screen.getByText(/Granting, extending and cancelling are not available/)).toBeInTheDocument();
+    // Ended subscription: "Grant again" only — no cancel, and never any payment action.
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Grant again"]);
+    expect(screen.getByText(/recorded in the audit log/)).toBeInTheDocument();
   });
 
   it("Bangla", () => {

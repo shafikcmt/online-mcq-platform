@@ -15,7 +15,7 @@ no internet route, so nobody is ever contacted (`docs/DEPLOYMENT.md` §9.6).
 - Attempts (read-only, server-computed timing)
 - Results — publish/hide, merit list generation
 - Packages — create/edit, access rules, activate/deactivate
-- Subscriptions — **read-only** list and detail
+- Subscriptions — list and detail; **grant**, **extend** and **cancel** (retry-safe: a double click or a lost response never grants twice)
 - Payments — **read-only** list and detail, including the purchased validity ("Validity bought")
 - Bangla/English switch; responsive layout (desktop, tablet, phone)
 
@@ -23,7 +23,6 @@ no internet route, so nobody is ever contacted (`docs/DEPLOYMENT.md` §9.6).
 
 - Mobile App
 - Public Website
-- Admin subscription grant/cancel (and its duplicate-request safety)
 - Payment re-verify in the Admin Panel
 - Admin CMS pages: announcements, FAQ, pages, site settings, contact messages, audit log
 - A real payment gateway end to end (merchant credentials, public callbacks)
@@ -38,7 +37,7 @@ no internet route, so nobody is ever contacted (`docs/DEPLOYMENT.md` §9.6).
 - [ ] Every ready section above loads; no 5xx in `dc logs nginx backend`
 - [ ] `dc ps`: all services healthy/running; Celery worker and beat log their periodic tasks
 - [ ] `migrate --check` clean; `check_services` OK
-- [ ] Payments and Subscriptions are read-only (no grant, cancel or re-verify buttons)
+- [ ] Payments are read-only (no re-verify or status buttons); Subscriptions offer grant, extend and cancel only
 - [ ] One payment shows "Validity bought: 30 days" while the package now says 45 days
 - [ ] Bangla and English; phone width without sideways scrolling
 - [ ] A backup exists (`deploy/staging/backup.sh`) and the reset script was dry-run on the server

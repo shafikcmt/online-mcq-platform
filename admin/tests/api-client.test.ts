@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, apiRequest } from "@/lib/api/client";
 
 afterEach(() => {
   document.cookie = "csrftoken=; Max-Age=0; path=/";
@@ -21,6 +21,48 @@ describe("apiFetch", () => {
     expect(headers["Accept-Language"]).toBe("bn");
     expect(post?.credentials).toBe("same-origin");
     expect((fetchMock.mock.calls[1][1]?.headers as Record<string, string>)["X-CSRFToken"]).toBeUndefined();
+  });
+
+  it("adds extra headers without replacing its own, and apiRequest returns status and headers", async () => {
+    document.cookie = "csrftoken=abc123; path=/";
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ id: 1 }), {
+        status: 201,
+        headers: { "Content-Type": "application/json", "Idempotent-Replayed": "true" },
+      }),
+    );
+    const response = await apiRequest<{ id: number }>("/admin/subscriptions/grant/", {
+      method: "POST",
+      body: {},
+      headers: { "Idempotency-Key": "k-1", "X-CSRFToken": "forged" },
+    });
+    const headers = fetchMock.mock.calls[0][1]?.headers as Record<string, string>;
+    expect(headers["Idempotency-Key"]).toBe("k-1");
+    expect(headers["X-CSRFToken"]).toBe("abc123"); // the panel's own header wins
+    expect(response.status).toBe(201);
+    expect(response.data).toEqual({ id: 1 });
+    expect(response.headers.get("Idempotent-Replayed")).toBe("true");
+  });
+
+  it("keeps extra headers on the one CSRF retry", async () => {
+    document.cookie = "csrftoken=stale; path=/";
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: { code: "permission_denied", message: "CSRF Failed: CSRF token incorrect." } }), {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockImplementationOnce(async () => {
+        document.cookie = "csrftoken=fresh; path=/";
+        return new Response(null, { status: 204 });
+      })
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await apiFetch("/admin/subscriptions/grant/", { method: "POST", body: {}, headers: { "Idempotency-Key": "same" } });
+    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts).toHaveLength(2);
+    for (const [, init] of posts) expect((init?.headers as Record<string, string>)["Idempotency-Key"]).toBe("same");
   });
 
   it("turns a connection failure into network_error", async () => {

@@ -10,12 +10,13 @@ import { formatDateTime, formatMoney } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import type { AdminSubscription } from "@/types/subscriptions";
 
+import { SubscriptionActions } from "./subscription-actions";
 import { EffectiveStatusBadge, SubscriptionState } from "./subscription-cells";
 
-/** One subscription, read-only: the server's effective status (and the stored one), the
- * period, what was paid, and links to the student, the package and the payments that
- * created or extended it (none for a manual grant). No grant, extend, cancel or payment
- * actions. */
+/** One subscription: the server's effective status (and the stored one), the period,
+ * what was paid, and links to the student, the package and the payments that created or
+ * extended it (none for a manual grant). Actions: extend (or grant the package again once
+ * it ended) and cancel — see SubscriptionActions. No payment actions. */
 export function SubscriptionDetail({ subscription }: { subscription: AdminSubscription }) {
   const { locale, t } = useI18n();
   const pkgName = packageName(subscription.package, locale);
@@ -44,12 +45,13 @@ export function SubscriptionDetail({ subscription }: { subscription: AdminSubscr
           </p>
           <SubscriptionState subscription={subscription} />
         </header>
+        <SubscriptionActions subscription={subscription} />
       </div>
 
       <div className="space-y-2 rounded-card border border-line bg-neutral-50/70 px-4 py-3 text-sm text-ink-muted">
         <p className="flex items-start gap-2">
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {t("subscriptionDetail.readOnly")}
+          {t("subscriptionDetail.actionsNote")}
         </p>
         <p className="flex items-start gap-2">
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />

@@ -22,6 +22,9 @@ export default async function SubscriptionsPage({ searchParams }: { searchParams
     userId ? readUserOrNull(userId) : Promise.resolve(null),
     packageId ? readPackageOrNull(packageId) : Promise.resolve(null),
   ]);
-  const student = userId ? { id: userId, user: user && { id: user.id, full_name: user.full_name } } : null;
+  // The masked mobile number and the role are only for the grant dialog's prefill.
+  const student = userId
+    ? { id: userId, user: user && { id: user.id, full_name: user.full_name, mobile_display: user.mobile_display, role: user.role } }
+    : null;
   return <SubscriptionsView data={data} state={state} student={student} pkg={packageId ? { id: packageId, pkg } : null} />;
 }

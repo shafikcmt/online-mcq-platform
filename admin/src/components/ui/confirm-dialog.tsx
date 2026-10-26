@@ -24,6 +24,7 @@ export function ConfirmDialog({
   onConfirm,
   describe,
   confirmVariant = "danger",
+  cancelLabel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,6 +37,9 @@ export function ConfirmDialog({
   describe?: (error: unknown) => { title?: string; message: string };
   /** "primary" for a confirmation that is not destructive (e.g. duplicate). */
   confirmVariant?: "danger" | "primary";
+  /** Text of the safe button (default "Cancel") — e.g. "Keep subscription" when the action
+   * itself is a cancellation. */
+  cancelLabel?: string;
 }) {
   const { t } = useI18n();
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +76,7 @@ export function ConfirmDialog({
       footer={
         <>
           <Button ref={cancelRef} variant="secondary" onClick={() => change(false)} disabled={pending}>
-            {t("common.cancel")}
+            {cancelLabel ?? t("common.cancel")}
           </Button>
           <Button variant={confirmVariant} onClick={confirm} disabled={pending} aria-busy={pending || undefined}>
             {pending ? (pendingLabel ?? confirmLabel) : confirmLabel}
