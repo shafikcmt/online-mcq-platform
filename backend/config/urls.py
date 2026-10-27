@@ -11,8 +11,8 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.views import not_found
 
-admin.site.site_header = _("Online MCQ — internal administration")
-admin.site.site_title = _("Online MCQ administration")
+admin.site.site_header = _("Live Model Test — internal administration")
+admin.site.site_title = _("Live Model Test administration")
 
 urlpatterns = [
     path("api/v1/", include("config.api_v1")),

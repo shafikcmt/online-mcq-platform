@@ -1135,11 +1135,11 @@ msgid ""
 "it."
 msgstr "আপনার যাচাই কোড %(code)s। %(minutes)s মিনিট বৈধ। কাউকে জানাবেন না।"
 
-msgid "Online MCQ — internal administration"
-msgstr "অনলাইন MCQ — অভ্যন্তরীণ অ্যাডমিনিস্ট্রেশন"
+msgid "Live Model Test — internal administration"
+msgstr "লাইভ মডেল টেস্ট — অভ্যন্তরীণ অ্যাডমিনিস্ট্রেশন"
 
-msgid "Online MCQ administration"
-msgstr "অনলাইন MCQ অ্যাডমিনিস্ট্রেশন"
+msgid "Live Model Test administration"
+msgstr "লাইভ মডেল টেস্ট অ্যাডমিনিস্ট্রেশন"
 
 msgid "Enter a valid date (YYYY-MM-DD)."
 msgstr "একটি সঠিক তারিখ লিখুন (YYYY-MM-DD)।"

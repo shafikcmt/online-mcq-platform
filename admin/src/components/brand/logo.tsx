@@ -1,10 +1,9 @@
-/* eslint-disable @next/next/no-img-element -- a static SVG brand asset; no optimisation needed */
+/* eslint-disable @next/next/no-img-element -- a small static brand asset; no optimisation needed */
 import { cn } from "@/lib/utils";
 
-/** Brand asset location — the ONE file to swap for the official logo mark.
- * TEMPORARY: public/brand/logo-mark.svg is a hand-reconstructed placeholder, not the official
- * Live Model Test logo. Replace that file (keep the name) when the official artwork is available. */
-export const LOGO_MARK_SRC = "/brand/logo-mark.svg";
+/** The official Live Model Test logo mark (owner-supplied artwork, transparent PNG). The
+ * Mobile App uses the same mark (`mobile/assets/images/logo-mark.png`). */
+export const LOGO_MARK_SRC = "/brand/logo-mark.png";
 
 export function LogoMark({ className, title }: { className?: string; title?: string }) {
   return (
