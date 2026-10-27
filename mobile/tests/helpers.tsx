@@ -3,6 +3,8 @@ import * as SecureStore from "expo-secure-store";
 import { renderRouter } from "expo-router/testing-library";
 
 import { setAccessToken } from "@/auth/token-store";
+import type { Dashboard } from "@/features/dashboard/types";
+import { resetServerClock } from "@/lib/server-clock";
 
 /** A fake backend for `fetch`: handlers keyed by "METHOD /path" (path after /api/v1).
  * Every call is recorded with its headers and parsed body. */
@@ -12,7 +14,9 @@ type Handler = Reply | ((call: Call) => Reply);
 
 export function mockBackend(routes: Record<string, Handler | Handler[]>) {
   const calls: Call[] = [];
-  const queues = new Map(Object.entries(routes).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value]));
+  // Home loads the dashboard after every sign-in; an empty one unless the test says otherwise.
+  const all = { "GET /me/dashboard/": { status: 200, body: emptyDashboard() }, ...routes };
+  const queues = new Map(Object.entries(all).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value]));
   global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     const path = url.pathname.replace(/^\/api\/v1/, "");
@@ -64,10 +68,24 @@ export async function resetDevice({ language, refresh }: { language?: "bn" | "en
   await AsyncStorage.clear();
   secureStore.clear();
   setAccessToken(null);
+  resetServerClock();
   if (language) await AsyncStorage.setItem("mcq.language", language);
   if (refresh) secureStore.set("mcq.refresh_token", refresh);
 }
 
 export function renderApp(initialUrl = "/") {
   return renderRouter("./src/app", { initialUrl });
+}
+
+/** A dashboard with nothing in it: no exams, package, results or notifications. */
+export function emptyDashboard(overrides: Partial<Dashboard> = {}): Dashboard {
+  const none = { count: 0, items: [] };
+  return {
+    server_time: new Date().toISOString(),
+    exams: { available: none, upcoming: none, practice: none },
+    subscription: { active_count: 0, items: [] },
+    results: none,
+    notifications: { unread_count: 0 },
+    ...overrides,
+  };
 }
