@@ -3,10 +3,12 @@
 The students' app — the only place where exams are taken. React Native + Expo (SDK 58) +
 TypeScript, Expo Router for navigation. Bangla and English; Bangla is the default.
 
-**Built so far (Milestone 8A):** app shell, theme, bundled fonts, language choice, sign-in,
-registration with an SMS code, forgot password, Home (greeting) and Profile (details, edit,
-language, change password, sign out). Exams, results, packages and payments come next
-(`docs/ROADMAP.md` Milestone 8).
+**Built so far:** app shell, theme, bundled fonts, language choice, sign-in, registration
+with an SMS code, forgot password, Profile (details, edit, language, change password, sign
+out) — Milestone 8A — and the Home dashboard (8B): exams open now / upcoming / practice with
+what the student can do, active packages, recent results and the unread count, all times
+counted from the server's clock. Exam screens, the exam room, results, packages and payments
+come next (`docs/ROADMAP.md` Milestone 8).
 
 ## Run it
 
@@ -25,7 +27,7 @@ to see it in the backend/Celery log.
 |---|---|
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript |
-| `npm test` | Jest + React Native Testing Library: API client, translations, every auth/profile flow on the real routes with a fake backend |
+| `npm test` | Jest + React Native Testing Library: API client, translations, every auth/profile flow and the Home dashboard on the real routes with a fake backend (run in the Asia/Dhaka time zone) |
 | `npm run export:web` | Bundle check; the web build is used only for browser QA |
 | `npx playwright test` | End-to-end on the web build against the real backend — only through `admin/e2e/stack/run.sh` with `E2E_PROJECT_DIR=mobile` (`docs/DEPLOYMENT.md` §8) |
 
@@ -41,9 +43,10 @@ src/
 ├── api/                 fetch wrapper, error shape, error → sentence
 ├── auth/                session provider, token storage, types
 ├── features/auth/       phone and SMS-code steps shared by registration and reset
+├── features/dashboard/  Home: API call, exam card, result row, package card, time labels
 ├── components/          AppText, Button, TextField, OtpInput, Banner, Card, dialogs…
 ├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home}.json
-├── lib/                 phone numbers, digits, dates
+├── lib/                 phone numbers, digits, dates, server clock, screen data loading
 └── theme/               design tokens (same values as the Admin Panel)
 ```
 
@@ -59,6 +62,8 @@ src/
   use Bangla digits; input accepts both.
 - **Fonts:** bundled Inter and Noto Sans Bengali; `AppText` picks the font per script and
   gives Bangla a taller line height. System font scaling is respected.
+- **Server clock:** exam windows and countdowns use the server's time (`server_time` in
+  responses → `lib/server-clock.ts`), never the phone's own clock, which may be wrong.
 - **Server is the source of truth:** the app validates only for quick feedback; the server
   validates again (mobile numbers, passwords, OTP rules).
 

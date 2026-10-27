@@ -26,7 +26,8 @@ describe("translations", () => {
   });
 
   test("Bangla strings are really Bangla (not English left untranslated)", () => {
-    const allowedSame = new Set(["language.bn", "language.en"]);
+    // Language names, and pure number formats ("2.5/3", "83%") that read the same in both.
+    const allowedSame = new Set(["language.bn", "language.en", "result.marks", "result.percent"]);
     for (const ns of namespaces) {
       const bn = flatten(resources.bn[ns] as Tree);
       const en = flatten(resources.en[ns] as Tree);
