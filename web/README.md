@@ -20,7 +20,16 @@ buying works; a localized 404 inside the site.
 **9C:** `/notices` — website notices (audience public or everyone), pinned first, full
 text, pages; `/leaderboard` — the exams whose merit list is public; `/exams/{slug}/leaderboard`
 — the top students with names shortened by the platform's privacy setting (masked by
-default), marks, percent and time; never a phone number or an email. The other pages come next
+default), marks, percent and time; never a phone number or an email.
+
+**9D:** `/about` (the Admin Panel's "about" page, or the site's own text until one exists),
+`/faq` (all active FAQs as native disclosure widgets + FAQPage structured data), `/contact`
+(contact details from Site settings + the contact form). The form posts to
+`/api/v1/public/contact/` **on the site's own origin**: nginx routes it to Django in
+production (real client IP for the per-IP limit, no CORS); `next dev` and the E2E build
+(`DEV_PUBLIC_API_PROXY=1`) proxy it instead (`next.config.ts`). It checks the fields before
+sending, shows the backend's field errors, explains "too many messages" and network
+failures without losing the text, and has a hidden honeypot field for bots. The other pages come next
 (`docs/ROADMAP.md` Milestone 9).
 
 ## Run it

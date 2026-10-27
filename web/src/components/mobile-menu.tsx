@@ -18,14 +18,14 @@ export function MobileMenu({ items, labels, children }: { items: Item[]; labels:
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="menu-overlay fixed inset-0 z-40 bg-ink/40" />
-        <Dialog.Content className="menu-panel fixed inset-x-0 top-0 z-50 rounded-b-dialog bg-surface p-4 shadow-float" aria-describedby={undefined}>
+        <Dialog.Content className="menu-panel fixed inset-x-0 top-0 z-50 max-h-dvh overflow-y-auto rounded-b-dialog bg-surface p-4 shadow-float" aria-describedby={undefined}>
           <div className="flex items-center justify-between">
             <Dialog.Title className="text-base font-semibold">{labels.menu}</Dialog.Title>
             <Dialog.Close className="inline-flex size-10 items-center justify-center rounded-control hover:bg-brand-50" aria-label={labels.close}>
               <X className="size-6" aria-hidden />
             </Dialog.Close>
           </div>
-          <nav aria-label={labels.nav} className="mt-2 flex flex-col">
+          <nav aria-label={labels.nav} className="mt-2 grid grid-cols-2 gap-x-2">
             {items.map((item) => (
               <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="rounded-control px-3 py-3 text-base font-medium hover:bg-brand-50">
                 {item.label}

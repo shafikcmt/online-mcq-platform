@@ -218,8 +218,22 @@ Playwright builds and starts the site itself on port 3002, reading the disposabl
 
 ```bash
 E2E_DISPOSABLE_DB=destroy-and-recreate … E2E_BASE_URL=http://localhost:3002 \
-E2E_PROJECT_DIR=web admin/e2e/stack/run.sh home
+E2E_PROJECT_DIR=web admin/e2e/stack/run.sh about-faq-contact notices-leaderboard exams-packages home
 ```
+
+Each run clears the site's data cache (`.next/cache/fetch-cache`) before the build, like the
+disposable database. The build sets `DEV_PUBLIC_API_PROXY=1` so the Contact form's
+`/api/v1/public/*` reaches the disposable backend through Next.js (nginx does this in
+production, below).
+
+**Public website in production (Milestone 10).** The site has its own origin
+(`https://livemodeltest.com`). Pages read the public API on the server (`API_ORIGIN`). The
+**only** browser call is the Contact form, `POST /api/v1/public/contact/` on the site's own
+origin, so the site's nginx server block must route **`/api/v1/public/`** (and nothing else
+under `/api/`) to Django with the §2 headers, everything else to `next start`. Django then
+sees the visitor's real IP for the per-IP contact limit (§3), with no CORS. Never set
+`DEV_PUBLIC_API_PROXY` for a production build: the Next.js proxy adds no
+`X-Forwarded-For`, so every visitor would share one limit.
 
 **Safety guards** — `e2e-db.sh` refuses to create or drop anything unless all of these hold:
 

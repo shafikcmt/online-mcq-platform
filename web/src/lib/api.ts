@@ -84,6 +84,9 @@ export type Notice = { title: string; body: string; is_pinned: boolean; publishe
 
 export type Faq = { question: string; answer: string };
 
+/** A simple CMS page (`about`, …): plain text written in the Admin Panel. */
+export type CmsPage = { slug: string; title: string; body: string; updated_at: string };
+
 /** An exam with a public merit list (`/public/leaderboards/`). */
 export type LeaderboardExam = Exam & { ranked_count: number };
 

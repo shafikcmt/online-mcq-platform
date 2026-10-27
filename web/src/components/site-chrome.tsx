@@ -8,15 +8,20 @@ import { LanguageSwitch } from "./language-switch";
 import { Logo } from "./logo";
 import { MobileMenu } from "./mobile-menu";
 
-/** Pages linked from the header and footer. Each slice of Milestone 9 adds its pages here. */
+/** Every page, for the footer and the phone menu. `main` ones are also in the desktop
+ * header (the logo is the way home; About / FAQ / Contact stay in the footer so the header
+ * fits on one row in both languages). */
 export function navItems(lang: Lang) {
   const t = translator(lang);
   return [
-    { href: `/${lang}`, label: t("nav.home") },
-    { href: `/${lang}/exams`, label: t("nav.exams") },
-    { href: `/${lang}/packages`, label: t("nav.packages") },
-    { href: `/${lang}/leaderboard`, label: t("nav.leaderboard") },
-    { href: `/${lang}/notices`, label: t("nav.notices") },
+    { href: `/${lang}`, label: t("nav.home"), main: false },
+    { href: `/${lang}/exams`, label: t("nav.exams"), main: true },
+    { href: `/${lang}/packages`, label: t("nav.packages"), main: true },
+    { href: `/${lang}/leaderboard`, label: t("nav.leaderboard"), main: true },
+    { href: `/${lang}/notices`, label: t("nav.notices"), main: true },
+    { href: `/${lang}/about`, label: t("nav.about"), main: false },
+    { href: `/${lang}/faq`, label: t("nav.faq"), main: false },
+    { href: `/${lang}/contact`, label: t("nav.contact"), main: false },
   ];
 }
 
@@ -34,7 +39,7 @@ export function SiteHeader({ lang, settings }: { lang: Lang; settings: Settings 
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
         <Logo lang={lang} t={t} />
         <nav aria-label={t("nav.label")} className="ml-6 hidden items-center gap-1 lg:flex">
-          {items.map((item) => (
+          {items.filter((item) => item.main).map((item) => (
             <Link key={item.href} href={item.href} className="rounded-control px-3 py-2 text-sm font-medium text-ink-muted hover:bg-brand-50 hover:text-ink">
               {item.label}
             </Link>
@@ -66,7 +71,7 @@ export function SiteFooter({ lang, settings }: { lang: Lang; settings: Settings 
         </div>
         <div>
           <h2 className="text-sm font-semibold text-ink">{t("footer.explore")}</h2>
-          <ul className="mt-3 flex flex-col gap-2 text-sm">
+          <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
             {navItems(lang).map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="text-ink-muted hover:text-brand-700">
