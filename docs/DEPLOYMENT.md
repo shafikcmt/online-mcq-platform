@@ -189,6 +189,26 @@ E2E_ADMIN_MOBILE=… E2E_ADMIN_PASSWORD=… \
 admin/e2e/stack/run.sh payments packages subscriptions attempts users results exams content admin-shell api-proxy
 ```
 
+**Mobile App (web QA build).** The same script runs the app's suites
+(`mobile/e2e/*.spec.ts`) against the app's web build. The web build is only a QA vehicle on a
+desktop browser — the product is the Android app with the same code. Extra options:
+
+- `E2E_PROJECT_DIR=mobile` — run that project's Playwright suites instead of the panel's;
+- `E2E_CELERY_WORKER=1` — also start a Celery worker on the same disposable database and
+  Redis databases (it issues the SMS codes) and stop it at the end;
+- the server and worker use the **mock** SMS provider with `SMS_MOCK_LOG_CONTENT=true`
+  (development settings, `DEBUG` on), so the code appears in the disposable server log, whose
+  path the suites receive as `E2E_DJANGO_LOG`; the log is deleted with the media folder.
+
+Serve the exported build (`EXPO_PUBLIC_API_URL=/api/v1 npx expo export --platform web`) and
+`/api/` on one origin (an nginx `server` with `try_files $uri /index.html` for the app and
+`/api/` → Django), then:
+
+```bash
+E2E_DISPOSABLE_DB=destroy-and-recreate … E2E_BASE_URL=http://localhost:8089 \
+E2E_PROJECT_DIR=mobile E2E_CELERY_WORKER=1 admin/e2e/stack/run.sh auth
+```
+
 The panel (`next start`) and nginx must already run, with nginx sending `/api/` to
 `127.0.0.1:8000` (`E2E_DJANGO_PORT`); the port must be free, since the script starts Django there.
 

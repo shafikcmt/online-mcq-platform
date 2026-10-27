@@ -1,0 +1,28 @@
+{
+  "title": "Profile",
+  "verified": "Verified",
+  "memberSince": "Member since {{date}}",
+  "sectionAccount": "Account",
+  "sectionSettings": "Settings",
+  "language": "Language",
+  "editProfile": "Edit profile",
+  "changePassword": "Change password",
+  "signOut": "Sign out",
+  "signOutTitle": "Sign out?",
+  "signOutBody": "You'll need your mobile number and password to sign in again.",
+  "email": "Email",
+  "noEmail": "Not added",
+  "displayName": "Leaderboard name",
+  "displayNameHint": "Optional. Shown on leaderboards instead of your name.",
+  "fullName": "Full name",
+  "saved": "Profile saved.",
+  "unchanged": "Nothing to save.",
+  "languageSyncFailed": "Language changed on this phone. It will be saved to your account next time.",
+  "password": {
+    "current": "Current password",
+    "new": "New password",
+    "note": "After the change you will be signed out on every device, including this one.",
+    "submit": "Change password",
+    "done": "Password changed. Please sign in with your new password."
+  }
+}
