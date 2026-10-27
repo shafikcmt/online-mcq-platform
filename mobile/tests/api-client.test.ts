@@ -80,6 +80,8 @@ test("errors: standard shape, Retry-After, 5xx and no answer", async () => {
       apiError(429, "otp_resend_cooldown", "Please wait before requesting a new code.", { details: { retry_after: 42 } }),
       { status: 429, body: { error: { code: "throttled", message: "Slow down", details: {}, field_errors: {} } }, headers: { "Retry-After": "17" } },
       { status: 502, body: { nope: true } },
+      apiError(503, "payment_unavailable", "Online payment is not available right now."),
+      { status: 500, body: { error: { code: "server_error", message: "Internal details", details: {}, field_errors: {} } } },
       "network",
     ],
   });
@@ -89,6 +91,11 @@ test("errors: standard shape, Retry-After, 5xx and no answer", async () => {
   expect(second).toMatchObject({ code: "throttled", retryAfter: 17 });
   const third = await api("/auth/otp/request/", { method: "POST", body: {}, auth: false }).catch((error: ApiError) => error);
   expect(third).toMatchObject({ status: 502, code: "server_error" });
+  // A structured 5xx keeps its code and translated message; a generic one never shows its text.
+  const structured = await api("/auth/otp/request/", { method: "POST", body: {}, auth: false }).catch((error: ApiError) => error);
+  expect(structured).toMatchObject({ status: 503, code: "payment_unavailable", message: "Online payment is not available right now." });
+  const generic = await api("/auth/otp/request/", { method: "POST", body: {}, auth: false }).catch((error: ApiError) => error);
+  expect(generic).toMatchObject({ status: 500, code: "server_error", message: "" });
   const fourth = await api("/auth/otp/request/", { method: "POST", body: {}, auth: false }).catch((error: ApiError) => error);
   expect(fourth).toMatchObject({ status: 0, code: "network_error" });
 });

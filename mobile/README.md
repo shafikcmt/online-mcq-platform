@@ -9,8 +9,8 @@ out) — Milestone 8A — and the Home dashboard (8B): exams open now / upcoming
 what the student can do, active packages, recent results and the unread count, all times
 counted from the server's clock — and the Exams tab with exam details (8C): open now /
 upcoming / past, and for each exam what the student can do and why not — and the exam
-room (8D), and results, answer review, leaderboard and history (8E). Packages, payments
-and notifications come next (`docs/ROADMAP.md` Milestone 8).
+room (8D), results, answer review, leaderboard and history (8E), and packages and payment
+(8F). In-app notifications come next (`docs/ROADMAP.md` Milestone 8).
 
 ## Run it
 
@@ -41,8 +41,9 @@ src/
 │   ├── _layout.tsx      fonts, language, session; three guarded areas (Stack.Protected)
 │   ├── language.tsx     first launch: বাংলা / English
 │   ├── (auth)/          login, register, forgot-password      (signed out)
-│   └── (app)/           tabs (home, exams, results, profile), exam/[slug], attempt/[id]
-│                        (exam room), result/[id], review/[id], leaderboard/[slug],
+│   └── (app)/           tabs (home, exams, results, packages, profile), exam/[slug],
+│                        attempt/[id] (exam room), result/[id], review/[id], leaderboard/[slug],
+│                        payment/[id], payments, payment-result (return link),
 │                        edit-profile, change-password
 ├── api/                 fetch wrapper, error shape, error → sentence
 ├── auth/                session provider, token storage, types
@@ -51,8 +52,9 @@ src/
 ├── features/exams/      exam list/details API, paging, exam card, time labels
 ├── features/attempt/    exam room: session (save/retry/submit rules), timer, question, palette
 ├── features/results/    results, history, review and leaderboard API, rows
+├── features/packages/   packages, payment start, checkout browser, status polling
 ├── components/          AppText, Button, TextField, OtpInput, Banner, Card, dialogs…
-├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams,room,results}.json
+├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams,room,results,packages}.json
 ├── lib/                 phone numbers, digits, dates, server clock, screen data loading, paging
 └── theme/               design tokens (same values as the Admin Panel)
 ```
@@ -78,6 +80,11 @@ src/
   retried every few seconds and re-sent on the next start. Submit carries a stored
   Idempotency-Key, so a retried submit cannot count twice. The rules live in
   `features/attempt/session.ts` (tested on their own in `tests/attempt-session.test.ts`).
+- **Payments:** the app sends only the package id; the price comes from the server. The
+  provider's page opens in an in-app browser (`expo-web-browser`); afterwards the app asks
+  the server (`GET /payments/{id}/`) — the server verifies with the provider, the app never
+  decides "paid". The return link `livemodeltest://payment-result` only brings the student
+  back; its `status` is ignored. Set the backend's `PAYMENT_RETURN_URL` to that link.
 - **Server is the source of truth:** the app validates only for quick feedback; the server
   validates again (mobile numbers, passwords, OTP rules).
 

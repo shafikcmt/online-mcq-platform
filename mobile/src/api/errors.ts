@@ -41,13 +41,17 @@ export function errorFromResponse(status: number, body: unknown, retryAfterHeade
   const header = retryAfterHeader ? Number(retryAfterHeader) : NaN;
   const details = (error?.details as Record<string, unknown> | undefined) ?? {};
   const fromDetails = typeof details.retry_after === "number" ? details.retry_after : null;
-  if (status >= 500 || !error || typeof error.code !== "string") {
+  const code = typeof error?.code === "string" ? error.code : null;
+  const message = typeof error?.message === "string" ? error.message : "";
+  // A 5xx keeps only the server's own structured errors (a known code with a translated
+  // message, e.g. 503 `payment_unavailable`); anything else is the generic "server error".
+  if (!error || !code || (status >= 500 && (code === "server_error" || !message))) {
     return new ApiError({ status, code: status >= 500 ? "server_error" : "unknown_error", message: "" });
   }
   return new ApiError({
     status,
-    code: error.code,
-    message: typeof error.message === "string" ? error.message : "",
+    code,
+    message,
     details,
     fieldErrors: (error.field_errors as FieldErrors | undefined) ?? {},
     retryAfter: Number.isFinite(header) ? header : fromDetails,

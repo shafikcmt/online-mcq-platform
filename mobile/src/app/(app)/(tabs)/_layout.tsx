@@ -1,11 +1,10 @@
 import { Tabs } from "expo-router/js-tabs";
-import { ChartColumn, ClipboardList, House, UserRound } from "lucide-react-native";
+import { ChartColumn, ClipboardList, House, Package, UserRound } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import { colors, fontFamily } from "@/theme";
 
-/** Bottom tabs. Phase-1 plan: Home · Exams · Results · Packages · Profile — Packages is
- * added with its screens in a later Mobile App slice. */
+/** Bottom tabs (Phase-1 plan): Home · Exams · Results · Packages · Profile. */
 export default function TabsLayout() {
   const { t, i18n } = useTranslation();
   const family = fontFamily[i18n.language === "bn" ? "bengali" : "latin"].medium;
@@ -22,6 +21,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="home" options={{ title: t("tabs.home"), tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }} />
       <Tabs.Screen name="exams" options={{ title: t("tabs.exams"), tabBarIcon: ({ color, size }) => <ClipboardList color={color} size={size} /> }} />
       <Tabs.Screen name="results" options={{ title: t("tabs.results"), tabBarIcon: ({ color, size }) => <ChartColumn color={color} size={size} /> }} />
+      <Tabs.Screen name="packages" options={{ title: t("tabs.packages"), tabBarIcon: ({ color, size }) => <Package color={color} size={size} /> }} />
       <Tabs.Screen name="profile" options={{ title: t("tabs.profile"), tabBarIcon: ({ color, size }) => <UserRound color={color} size={size} /> }} />
     </Tabs>
   );

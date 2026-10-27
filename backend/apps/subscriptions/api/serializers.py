@@ -255,3 +255,23 @@ class PublicPackageSerializer(LocalizedSerializer):
             if features:
                 return list(features)
         return []
+
+
+class StudentPackageSubscriptionSerializer(serializers.Serializer):
+    active_now = serializers.BooleanField(help_text="A subscription to it gives access now.")
+    expires_at = serializers.DateTimeField(
+        help_text="When the latest current or scheduled subscription to it ends."
+    )
+
+
+class StudentPackageSerializer(PublicPackageSerializer):
+    """The public package fields plus what a logged-in student needs to buy or renew:
+    the package ``id`` (``POST /payments/`` takes it) and their own current
+    subscription to it (``null`` when none)."""
+
+    id = serializers.IntegerField()
+    subscription = serializers.SerializerMethodField()
+
+    @extend_schema_field(StudentPackageSubscriptionSerializer(allow_null=True))
+    def get_subscription(self, obj):
+        return self.context.get("subscriptions", {}).get(obj.pk)

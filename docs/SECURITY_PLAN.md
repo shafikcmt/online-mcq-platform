@@ -93,6 +93,10 @@
 - Idempotent processing: unique `provider_transaction_id`, status can only move forward, all inside one DB transaction with row lock.
 - Every step logged to `payment_events` (sanitized — no secrets, no full card data; we never handle card numbers ourselves).
 - Reconciliation job re-queries pending payments.
+- *(Mobile App, 8F)* The app sends only the package id (and an Idempotency-Key) to start a
+  payment — never a price. It never decides that a payment succeeded: after the provider page closes
+  (or the `livemodeltest://payment-result` return link opens the app) it asks `GET /payments/{id}/`;
+  the link's `status` is ignored and only a well-formed payment id is used (another student's → 404).
 - Admin cannot silently mark a payment successful; "re-verify" calls the provider; any manual override (if ever allowed) is audited.
 - Provider keys (bKash app secret, Nagad private key, SSLCommerz store password) only in env/secret files with restricted permissions.
 - *(Milestone 5 — as built)* Callback/return URLs are built from server settings

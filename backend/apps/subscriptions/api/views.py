@@ -59,6 +59,7 @@ from .serializers import (
     MySubscriptionSerializer,
     PackageAdminSerializer,
     PublicPackageSerializer,
+    StudentPackageSerializer,
     SubscriptionAdminSerializer,
 )
 
@@ -395,6 +396,43 @@ class MySubscriptionListView(generics.ListAPIView):
             .select_related("package")
             .order_by("-starts_at", "-id")
         )
+
+    @extend_schema(tags=["me"])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+# --------------------------------------------------------------------------------------
+# Student: packages with their own subscription state (app)
+# --------------------------------------------------------------------------------------
+class StudentPackageListView(generics.ListAPIView):
+    """Active packages (as on ``/public/packages/``) with the ``id`` the app buys with
+    and the caller's own current subscription to each — one extra query, filtered by
+    ``request.user``. Cancelled and expired subscriptions are not "current"."""
+
+    serializer_class = StudentPackageSerializer
+
+    def get_queryset(self):
+        return Package.objects.filter(status=PackageStatus.ACTIVE).order_by("sort_order", "id")
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.request is None or not self.request.user.is_authenticated:
+            return context
+        now = timezone.now()
+        current = Subscription.objects.filter(
+            user_id=self.request.user.pk,
+            status=SubscriptionStatus.ACTIVE,
+            expires_at__gt=now,
+        ).values_list("package_id", "starts_at", "expires_at")
+        subscriptions: dict[int, dict] = {}
+        for package_id, starts_at, expires_at in current:
+            entry = subscriptions.setdefault(
+                package_id, {"active_now": False, "expires_at": expires_at}
+            )
+            entry["active_now"] = entry["active_now"] or starts_at <= now
+            entry["expires_at"] = max(entry["expires_at"], expires_at)
+        return {**context, "subscriptions": subscriptions}
 
     @extend_schema(tags=["me"])
     def get(self, request, *args, **kwargs):
