@@ -11,7 +11,7 @@ import { Card } from "@/components/card";
 import { Screen } from "@/components/screen";
 import { fetchDashboard } from "@/features/dashboard/api";
 import { ExamCard } from "@/features/exams/exam-card";
-import { ResultRow } from "@/features/dashboard/result-row";
+import { ResultRow } from "@/features/results/result-row";
 import { EmptyNote, Section } from "@/features/dashboard/section";
 import { SubscriptionCard } from "@/features/dashboard/subscription-card";
 import type { Dashboard } from "@/features/dashboard/types";
@@ -99,7 +99,7 @@ function Content({ data, now }: { data: Dashboard; now: number }) {
           ))}
         </Section>
       ) : null}
-      <Section title={t("home:sections.results")} count={data.results.count} shown={data.results.items.length}>
+      <Section title={t("home:sections.results")} count={data.results.count} shown={data.results.items.length} seeAll="/results">
         {data.results.items.length ? (
           <Card style={styles.results}>
             {data.results.items.map((result, index) => (

@@ -19,6 +19,7 @@
   "tabs": {
     "home": "Home",
     "exams": "Exams",
+    "results": "Results",
     "profile": "Profile"
   },
   "errors": {
