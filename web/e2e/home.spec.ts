@@ -54,7 +54,7 @@ test("Home shows live data from the API: open exams and packages; empty sections
   await expect(page.getByRole("region", { name: "Latest notices" }).getByText("No notices right now.")).toBeVisible();
   await expect(page.getByRole("region", { name: "Common questions" })).toHaveCount(0); // no FAQs yet
   // No store link set yet: the button says so and leads to the "coming soon" section.
-  await expect(page.getByRole("link", { name: "Coming soon to Google Play" }).first()).toHaveAttribute("href", "#get-app");
+  await expect(page.getByRole("link", { name: "Coming soon to Google Play" }).first()).toHaveAttribute("href", "/en#get-app");
 });
 
 for (const [width, height] of [[360, 780], [768, 1024], [1280, 900]] as const) {

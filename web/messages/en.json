@@ -8,7 +8,9 @@
     "label": "Main",
     "menu": "Menu",
     "close": "Close menu",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "exams": "Exams",
+    "packages": "Packages"
   },
   "lang": {
     "label": "Language",
@@ -23,7 +25,12 @@
   },
   "meta": {
     "homeTitle": "Live Model Test — online model tests and live exams",
-    "homeDescription": "Practice model tests, take live exams on time, see your result and merit position — in Bangla and English. Download the Live Model Test app."
+    "homeDescription": "Practice model tests, take live exams on time, see your result and merit position — in Bangla and English. Download the Live Model Test app.",
+    "examsTitle": "Exams",
+    "examsDescription": "Live exams, model tests and practice sets on Live Model Test: what is open now, what is coming up and what has ended.",
+    "packagesTitle": "Packages",
+    "packagesDescription": "Live Model Test packages: prices, validity and what each package unlocks. Free exams are open to everyone.",
+    "examDescription": "{{title}} — {{minutes}}, {{questions}}. Take it in the Live Model Test app."
   },
   "home": {
     "hero": {
@@ -78,12 +85,14 @@
       "upcoming": "Upcoming",
       "open": "Open now",
       "empty": "New exams will appear here soon.",
-      "cta": "Take exams in the app"
+      "cta": "Take exams in the app",
+      "all": "See all exams"
     },
     "packages": {
       "title": "Packages",
       "body": "Free exams are open to everyone. Packages unlock paid exams.",
-      "empty": "Packages will be announced soon."
+      "empty": "Packages will be announced soon.",
+      "all": "See all packages"
     },
     "notices": {
       "title": "Latest notices",
@@ -127,7 +136,9 @@
     "minutes": "{{n}} min",
     "questions": "{{n}} questions",
     "starts": "Starts {{date}}",
-    "ends": "Ends {{date}}"
+    "ends": "Ends {{date}}",
+    "ended": "Ended {{date}}",
+    "details": "Details"
   },
   "package": {
     "days": "{{n}} days",
@@ -147,5 +158,90 @@
     "notFoundTitle": "Page not found",
     "notFoundBody": "The page you are looking for does not exist.",
     "home": "Go to the home page"
+  },
+  "exams": {
+    "title": "Exams",
+    "body": "Browse live exams, model tests and practice sets. Exams are taken in the app.",
+    "tabs": {
+      "label": "Schedule",
+      "open": "Open now",
+      "upcoming": "Upcoming",
+      "ended": "Ended"
+    },
+    "filters": {
+      "label": "Filter exams",
+      "category": "Category",
+      "type": "Type",
+      "access": "Access",
+      "all": "All",
+      "apply": "Apply",
+      "reset": "Clear filters"
+    },
+    "empty": {
+      "open": "No exams are open right now.",
+      "upcoming": "No upcoming exams yet.",
+      "ended": "No ended exams yet."
+    },
+    "filteredEmpty": "No exams match these filters.",
+    "unavailable": "Exams can't be loaded right now. Please try again in a moment.",
+    "count": "{{n}} exams",
+    "pages": {
+      "label": "Pages",
+      "of": "Page {{page}} of {{pages}}",
+      "prev": "Previous",
+      "next": "Next"
+    }
+  },
+  "examDetail": {
+    "facts": "Exam details",
+    "duration": "Duration",
+    "questions": "Questions",
+    "totalMarks": "Total marks",
+    "negative": "Negative marking",
+    "negativeValue": "−{{n}} per wrong answer",
+    "none": "None",
+    "passMarks": "Pass marks",
+    "language": "Language",
+    "languages": {
+      "bn": "Bangla",
+      "en": "English",
+      "both": "Bangla and English"
+    },
+    "schedule": "Schedule",
+    "starts": "Starts",
+    "ends": "Ends",
+    "anytime": "Available any time",
+    "instructions": "Instructions",
+    "takeTitle": "Take this exam in the app",
+    "takeBody": "Sign in with your mobile number in the Live Model Test app, open this exam and start when it is open.",
+    "upcomingBody": "This exam opens on {{date}}. Get the app ready to start on time.",
+    "endedTitle": "This exam has ended",
+    "endedBody": "Students who took it can see their results and the merit list in the app.",
+    "paid": "A package unlocks this paid exam.",
+    "seePackages": "See packages",
+    "unavailable": "This exam can't be loaded right now. Please try again in a moment."
+  },
+  "packagesPage": {
+    "title": "Packages",
+    "body": "Free exams are open to everyone. A package unlocks paid exams for the days it is valid.",
+    "how": {
+      "title": "How to buy a package",
+      "steps": [
+        {
+          "title": "Open the app",
+          "body": "Sign in with your mobile number."
+        },
+        {
+          "title": "Choose a package",
+          "body": "Compare packages in the Packages tab and pick one."
+        },
+        {
+          "title": "Pay securely",
+          "body": "Pay through the secure payment page. Our server verifies the payment, then the package is active."
+        }
+      ]
+    },
+    "paidExams": "See paid exams",
+    "unavailable": "Packages can't be loaded right now. Please try again in a moment."
   }
 }

@@ -8,8 +8,15 @@ logo as the Admin Panel and the Mobile App.
 English browser gets English, a choice is remembered), header and footer with the language
 switch and the Download / Open App button, the Home page with live data (open and upcoming
 exams, packages, notices, FAQs) and SEO basics (titles, descriptions, canonical, `hreflang`,
-Open Graph, `sitemap.xml`, `robots.txt`). The other pages come next (`docs/ROADMAP.md`
-Milestone 9).
+Open Graph, `sitemap.xml`, `robots.txt`).
+
+**9B:** `/exams` — Open now / Upcoming / Ended tabs, filters (category, type, free/paid) and
+pages, all in the address (`?when=upcoming&type=live&page=2`; shareable, works without
+JavaScript, unknown values are dropped in `src/lib/exam-filters.ts`; filtered views are
+`noindex`); `/exams/{slug}` — an exam's rules, schedule and instructions with the way to the
+app (no questions or answers: the public API has none); `/packages` — every package and how
+buying works; a localized 404 inside the site. The other pages come next
+(`docs/ROADMAP.md` Milestone 9).
 
 ## Run it
 

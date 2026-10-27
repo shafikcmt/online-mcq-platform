@@ -1,5 +1,6 @@
-import { BadgeCheck, BarChart3, Clock3, Download, Languages, ListChecks, ShieldCheck, Trophy } from "lucide-react";
+import { ArrowRight, BadgeCheck, BarChart3, Clock3, Download, Languages, ListChecks, ShieldCheck, Trophy } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AppButton } from "@/components/app-button";
 import { EmptyNote, ExamCard, NoticeItem, PackageCard, SectionHead } from "@/components/cards";
@@ -41,6 +42,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     downloadUrl: settings?.app_download_url ?? "",
     openUrl: settings?.app_open_url ?? "",
     labels: { download: t("app.download"), open: t("app.open"), soon: t("app.soon") },
+    lang,
   };
 
   return (
@@ -108,10 +110,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <EmptyNote text={m.exams.empty} />
             </div>
           ) : null}
-          <p className="mt-6 flex items-center gap-2 text-sm font-medium text-brand-700">
-            <Download className="size-4" aria-hidden />
-            {m.exams.cta}
-          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p className="flex items-center gap-2 text-sm font-medium text-brand-700">
+              <Download className="size-4" aria-hidden />
+              {m.exams.cta}
+            </p>
+            <SeeAll href={`/${lang}/exams`} label={m.exams.all} />
+          </div>
         </div>
       </section>
 
@@ -131,6 +136,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <EmptyNote text={m.packages.empty} />
           </div>
         )}
+        <div className="mt-6 flex justify-end">
+          <SeeAll href={`/${lang}/packages`} label={m.packages.all} />
+        </div>
       </section>
 
       {/* Notices */}
@@ -202,5 +210,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
     </>
+  );
+}
+
+function SeeAll({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="inline-flex min-h-11 items-center gap-1 rounded-control px-3 font-semibold text-brand-700 hover:bg-brand-50">
+      {label}
+      <ArrowRight className="size-4" aria-hidden />
+    </Link>
   );
 }

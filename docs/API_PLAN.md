@@ -115,7 +115,7 @@ and a `field_errors` entry; nothing is saved. Other unknown fields are ignored.
 |---|---|---|
 | GET | `/public/settings` | Platform name, logo, app download link, contact info |
 | GET | `/public/categories` | Categories with subjects *(3C: active categories, each with its active subjects; `slug`, localized `name`/`description`)* |
-| GET | `/public/exams` | Published exams (filters: `type`, `access`, `category` = category slug, `upcoming=true`) — **no questions**. *(3C: only published exams in an active category/subject; ordered by start time, unscheduled last, then id)* |
+| GET | `/public/exams` | Published exams (filters: `type`, `access`, `category` = category slug, `upcoming=true`, `when=open|upcoming|ended` — 9B, for the website tabs; `ended` is newest first) — **no questions**. *(3C: only published exams in an active category/subject; ordered by start time, unscheduled last, then id)* |
 | GET | `/public/exams/{slug}` | Exam info (duration, marks, schedule, free/paid). *(3C fields: `slug`, `title`, `description`, `instructions` — resolved to the request language — `exam_type`, `access_type`, `content_language`, `category`/`subject` `{slug, name}`, `duration_minutes`, `total_questions`, `total_marks`, `negative_marks`, `pass_marks`, `start_at`, `end_at`, `is_featured`. No ids, no questions/answers.)* |
 | GET | `/public/packages` | Active packages & prices *(4A: `slug`, localized `name`/`description`/`features`, `price`, `currency`, `validity_days`, `is_featured`; ordered by `sort_order`, id. No ids, no access rules)* |
 | GET | `/public/announcements` | Public notices |

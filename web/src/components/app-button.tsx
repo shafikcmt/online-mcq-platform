@@ -9,17 +9,17 @@ const noop = () => () => {};
 const isAndroid = () => /Android/i.test(navigator.userAgent);
 
 type Labels = { download: string; open: string; soon: string };
-type Props = { downloadUrl: string; openUrl: string; labels: Labels; className?: string; size?: "md" | "lg" };
+type Props = { downloadUrl: string; openUrl: string; labels: Labels; lang: string; className?: string; size?: "md" | "lg" };
 
 /** The website's main action. Desktop and iPhone: "Download App" (the Play Store link).
  * Android: "Open App" — tries the app's own link and, if the app is not installed (the
  * page is still visible after a moment), goes to the Play Store. Without a store link yet
- * (set in the Admin Panel → Site settings) it points to the "coming soon" section. */
-export function AppButton({ downloadUrl, openUrl, labels, className, size = "md" }: Props) {
+ * (set in the Admin Panel → Site settings) it points to the Home page's "coming soon" section. */
+export function AppButton({ downloadUrl, openUrl, labels, lang, className, size = "md" }: Props) {
   // The device is known only in the browser; the server renders "Download".
   const android = useSyncExternalStore(noop, isAndroid, () => false);
   const canOpen = android && !!openUrl;
-  const href = downloadUrl || "#get-app";
+  const href = downloadUrl || `/${lang}#get-app`;
   const classes = cn(
     "inline-flex items-center justify-center gap-2 rounded-control bg-brand-600 font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline-offset-4",
     size === "lg" ? "min-h-12 px-6 text-base" : "min-h-10 px-4 text-sm",

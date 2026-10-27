@@ -12,18 +12,28 @@ const ORIGIN = (process.env.API_ORIGIN ?? "http://127.0.0.1:8000").replace(/\/$/
 
 export type Page<T> = { count: number; next: string | null; previous: string | null; results: T[] };
 
-export async function publicGet<T>(path: string, lang: Lang): Promise<T | null> {
+/** `ok` with the data, `missing` for a 404 (the page shows "not found"), or
+ * `unavailable` for anything else (network, 5xx…: the page says "try again later"). */
+export type Fetched<T> = { state: "ok"; data: T } | { state: "missing" } | { state: "unavailable" };
+
+export async function publicFetch<T>(path: string, lang: Lang): Promise<Fetched<T>> {
   try {
     const response = await fetch(`${ORIGIN}/api/v1/public/${path}`, {
       headers: { Accept: "application/json", "Accept-Language": lang },
       next: { revalidate: REVALIDATE },
       signal: AbortSignal.timeout(8000),
     });
-    if (!response.ok) return null;
-    return (await response.json()) as T;
+    if (response.status === 404) return { state: "missing" };
+    if (!response.ok) return { state: "unavailable" };
+    return { state: "ok", data: (await response.json()) as T };
   } catch {
-    return null;
+    return { state: "unavailable" };
   }
+}
+
+export async function publicGet<T>(path: string, lang: Lang): Promise<T | null> {
+  const fetched = await publicFetch<T>(path, lang);
+  return fetched.state === "ok" ? fetched.data : null;
 }
 
 export type Settings = {
@@ -67,6 +77,8 @@ export type Package = {
   validity_days: number;
   is_featured: boolean;
 };
+
+export type Category = { slug: string; name: string; description: string; subjects: { slug: string; name: string; description: string }[] };
 
 export type Notice = { title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };
 
