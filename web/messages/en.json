@@ -1,0 +1,151 @@
+{
+  "brand": {
+    "name": "Live Model Test",
+    "tagline": "Model tests, live exams and results — in Bangla and English."
+  },
+  "nav": {
+    "home": "Home",
+    "label": "Main",
+    "menu": "Menu",
+    "close": "Close menu",
+    "skip": "Skip to content"
+  },
+  "lang": {
+    "label": "Language",
+    "bn": "বাংলা",
+    "en": "English"
+  },
+  "app": {
+    "download": "Download App",
+    "open": "Open App",
+    "soon": "Coming soon to Google Play",
+    "soonBody": "The Live Model Test app will be on Google Play soon. Exams are taken in the app."
+  },
+  "meta": {
+    "homeTitle": "Live Model Test — online model tests and live exams",
+    "homeDescription": "Practice model tests, take live exams on time, see your result and merit position — in Bangla and English. Download the Live Model Test app."
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Model tests · Live exams · Merit lists",
+      "title": "Prepare smarter with real exam practice",
+      "body": "Take timed model tests and live exams on your phone, see your marks the moment results are out, and know your merit position.",
+      "secondary": "See how it works"
+    },
+    "mock": {
+      "exam": "Physics model test",
+      "question": "Question 3 of 25",
+      "text": "Which quantity is a vector?",
+      "options": [
+        "Mass",
+        "Velocity",
+        "Temperature",
+        "Time"
+      ],
+      "time": "18:42"
+    },
+    "features": {
+      "title": "Everything you need to practise",
+      "items": [
+        {
+          "title": "Live and practice exams",
+          "body": "Scheduled live exams for everyone at once, and practice sets you can retake."
+        },
+        {
+          "title": "Fair, exact timing",
+          "body": "The timer follows the server's clock, answers save as you go and the exam submits on time."
+        },
+        {
+          "title": "Results and merit lists",
+          "body": "Marks, percentage and pass status, then your position on the merit list."
+        },
+        {
+          "title": "Answer review",
+          "body": "See the correct answers and explanations when the exam allows review."
+        },
+        {
+          "title": "বাংলা and English",
+          "body": "The app and many exams in both languages — switch any time."
+        },
+        {
+          "title": "Secure payments",
+          "body": "Buy packages through trusted payment providers, verified by our server."
+        }
+      ]
+    },
+    "exams": {
+      "title": "Exams",
+      "upcoming": "Upcoming",
+      "open": "Open now",
+      "empty": "New exams will appear here soon.",
+      "cta": "Take exams in the app"
+    },
+    "packages": {
+      "title": "Packages",
+      "body": "Free exams are open to everyone. Packages unlock paid exams.",
+      "empty": "Packages will be announced soon."
+    },
+    "notices": {
+      "title": "Latest notices",
+      "empty": "No notices right now."
+    },
+    "how": {
+      "title": "How it works",
+      "steps": [
+        {
+          "title": "Download the app",
+          "body": "Install Live Model Test and sign up with your mobile number."
+        },
+        {
+          "title": "Choose an exam",
+          "body": "Pick a live exam, a model test or a practice set."
+        },
+        {
+          "title": "Get your result and rank",
+          "body": "See your marks, review answers and check the merit list."
+        }
+      ]
+    },
+    "faq": {
+      "title": "Common questions"
+    },
+    "final": {
+      "title": "Ready for your next exam?",
+      "body": "Download the app and start practising today."
+    }
+  },
+  "exam": {
+    "type": {
+      "practice": "Practice",
+      "regular": "Exam",
+      "live": "Live"
+    },
+    "access": {
+      "free": "Free",
+      "paid": "Paid"
+    },
+    "minutes": "{{n}} min",
+    "questions": "{{n}} questions",
+    "starts": "Starts {{date}}",
+    "ends": "Ends {{date}}"
+  },
+  "package": {
+    "days": "{{n}} days",
+    "popular": "Popular",
+    "per": "/ {{days}}"
+  },
+  "pinned": "Pinned",
+  "footer": {
+    "rights": "© {{year}} Live Model Test. All rights reserved.",
+    "explore": "Explore",
+    "contact": "Contact",
+    "getApp": "Get the app"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "Please try again in a moment.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you are looking for does not exist.",
+    "home": "Go to the home page"
+  }
+}
