@@ -322,8 +322,13 @@ idempotency_key_reused`. Errors: `400` unknown package, `409 package_inactive`,
 `409 package_not_purchasable` (price 0), `403 not_student`, `503 payment_unavailable` (provider
 session could not be opened — the payment is `failed`, `details.payment_id`), `429` (`payment_init`
 throttle). `GET` endpoints show only the caller's own payments (another student's → `404`); no
-provider payloads, events or internal ids. The `GET /packages` "already subscribed" flags are not
-built yet.)*
+provider payloads, events or internal ids.)*
+*(8F — built: `GET /packages/` (student JWT, read-only) — the `/public/packages/` fields plus `id` (the
+value `POST /payments/` takes) and `subscription`: `{active_now, expires_at}` for the caller's own current
+subscription to that package (active or scheduled, not cancelled or expired; `expires_at` = the latest end)
+or `null`. One extra query, filtered by `request.user`. The app sends `PAYMENT_RETURN_URL` =
+`livemodeltest://payment-result` as the return target; the link's `status` is never trusted — the app polls
+`GET /payments/{id}/`.)*
 
 ### 3.7 Payment gateway interface & callbacks
 

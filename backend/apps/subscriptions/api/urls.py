@@ -6,6 +6,7 @@ from .views import (
     PackageDetailView,
     PackageListCreateView,
     PublicPackageListView,
+    StudentPackageListView,
     SubscriptionCancelView,
     SubscriptionDetailView,
     SubscriptionGrantView,
@@ -32,6 +33,11 @@ admin_urlpatterns = [
 
 me_urlpatterns = [
     path("subscriptions/", MySubscriptionListView.as_view(), name="my-subscriptions"),
+]
+
+# Student JWT (app): packages with the caller's own subscription state.
+student_urlpatterns = [
+    path("packages/", StudentPackageListView.as_view(), name="student-package-list"),
 ]
 
 public_urlpatterns = [

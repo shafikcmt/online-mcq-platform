@@ -31,6 +31,7 @@ from apps.results.api.urls import student_urlpatterns as result_student_urlpatte
 from apps.subscriptions.api.urls import admin_urlpatterns as subscription_admin_urlpatterns
 from apps.subscriptions.api.urls import me_urlpatterns as subscription_me_urlpatterns
 from apps.subscriptions.api.urls import public_urlpatterns as subscription_public_urlpatterns
+from apps.subscriptions.api.urls import student_urlpatterns as subscription_student_urlpatterns
 
 app_name = "api_v1"
 
@@ -67,6 +68,8 @@ urlpatterns = [
     path("", include((payment_student_urlpatterns, "payments"))),
     # Notices for logged-in students (student JWT).
     path("", include((cms_student_urlpatterns, "cms"))),
+    # Packages with the student's own subscription state (student JWT).
+    path("", include((subscription_student_urlpatterns, "subscriptions"))),
     # Public (no login): website & app. Only published, safe fields — no questions.
     path(
         "public/",

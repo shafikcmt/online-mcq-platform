@@ -1,5 +1,6 @@
+import { router } from "expo-router";
 import { PackageCheck, PackageOpen } from "lucide-react-native";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/app-text";
@@ -40,6 +41,13 @@ export function SubscriptionCard({ subscription }: { subscription: Dashboard["su
             {t("home:subscription.noneBody")}
           </AppText>
         )}
+        {!active ? (
+          <Pressable accessibilityRole="link" onPress={() => router.push("/packages")} hitSlop={8} style={styles.link}>
+            <AppText variant="small" weight="semibold" color={colors.brand700}>
+              {t("packages:seePackages")}
+            </AppText>
+          </Pressable>
+        ) : null}
         {more > 0 ? (
           <AppText variant="small" color={colors.inkMuted}>
             {t("home:subscription.more", { n: localizeDigits(more, language) })}
@@ -54,4 +62,5 @@ const styles = StyleSheet.create({
   card: { flexDirection: "row", gap: space.md, alignItems: "flex-start" },
   icon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   body: { flex: 1, gap: space.sm },
+  link: { alignSelf: "flex-start", minHeight: 32, justifyContent: "center" },
 });

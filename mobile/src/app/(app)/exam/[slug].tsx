@@ -69,6 +69,8 @@ export default function ExamDetailScreen() {
             loading={opening}
             onPress={() => (action === "start" ? setConfirming(true) : void open())}
           />
+        ) : data?.locked_reason === "needs_subscription" ? (
+          <Button label={t("packages:seePackages")} onPress={() => router.push("/packages")} />
         ) : undefined
       }
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[colors.brand600]} tintColor={colors.brand600} />}
