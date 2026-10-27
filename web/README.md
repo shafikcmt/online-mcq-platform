@@ -29,7 +29,15 @@ default), marks, percent and time; never a phone number or an email.
 production (real client IP for the per-IP limit, no CORS); `next dev` and the E2E build
 (`DEV_PUBLIC_API_PROXY=1`) proxy it instead (`next.config.ts`). It checks the fields before
 sending, shows the backend's field errors, explains "too many messages" and network
-failures without losing the text, and has a hidden honeypot field for bots. The other pages come next
+failures without losing the text, and has a hidden honeypot field for bots.
+
+**9E (quality):** `e2e/accessibility.spec.ts` runs axe-core (WCAG 2.1 A/AA) on every page in
+both languages at phone and desktop width, plus the open phone menu and the contact form's
+error state (0 violations). Lighthouse (mobile, on a local production build with sample
+content): Accessibility / Best Practices / SEO 100, Performance 93–96, layout shift 0.
+Fonts come from `src/lib/fonts.ts` (`next/font/local`: preloaded, size-matched fallback,
+only the Latin and Bengali subsets); the logo goes through `next/image` (resized, WebP/AVIF).
+See `docs/ROADMAP.md` Milestone 9 for the full history (milestone complete)
 (`docs/ROADMAP.md` Milestone 9).
 
 ## Run it

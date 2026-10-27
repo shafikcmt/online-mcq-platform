@@ -31,9 +31,11 @@ function scheduleLine(exam: Exam, lang: Lang): string | null {
 /** An exam as visitors see it: type, free/paid, title, category, time, questions and
  * its schedule (Bangladesh time). The whole card opens the exam's page; taking the exam
  * happens in the app. */
-export function ExamCard({ exam, lang }: { exam: Exam; lang: Lang }) {
+export function ExamCard({ exam, lang, headingLevel = 3 }: { exam: Exam; lang: Lang; headingLevel?: 2 | 3 }) {
   const t = translator(lang);
   const schedule = scheduleLine(exam, lang);
+  // h3 under a section's h2 (Home); h2 where the cards sit right under the page's h1 (Exams).
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <article className="relative flex h-full flex-col gap-3 rounded-card border border-line bg-surface p-5 shadow-sm transition hover:border-brand-600 hover:shadow-md focus-within:ring-2 focus-within:ring-brand-600">
       <div className="flex flex-wrap gap-1.5">
@@ -41,11 +43,11 @@ export function ExamCard({ exam, lang }: { exam: Exam; lang: Lang }) {
         <Chip tone={exam.access_type === "free" ? "success" : "neutral"}>{t(`exam.access.${exam.access_type}`)}</Chip>
       </div>
       <div>
-        <h3 className="text-base font-semibold text-ink">
+        <Heading className="text-base font-semibold text-ink">
           <Link href={`/${lang}/exams/${exam.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-card">
             {exam.title}
           </Link>
-        </h3>
+        </Heading>
         <p className="text-sm text-ink-subtle">{[exam.category.name, exam.subject?.name].filter(Boolean).join(" · ")}</p>
       </div>
       <ul className="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">

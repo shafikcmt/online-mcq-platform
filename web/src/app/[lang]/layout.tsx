@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { getSettings } from "@/lib/api";
+import { bengali, inter } from "@/lib/fonts";
 import { isLang, LANGS, translator } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site";
 
@@ -36,7 +37,7 @@ export default async function LangLayout({ children, params }: { children: React
   const t = translator(lang);
   const settings = await getSettings(lang);
   return (
-    <html lang={lang}>
+    <html lang={lang} className={`${inter.variable} ${bengali.variable}`}>
       <body className="min-h-dvh">
         <a href="#main" className="sr-only z-50 rounded-control bg-surface px-4 py-2 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
           {t("nav.skip")}

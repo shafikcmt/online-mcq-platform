@@ -37,7 +37,7 @@ export function SiteHeader({ lang, settings }: { lang: Lang; settings: Settings 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-        <Logo lang={lang} t={t} />
+        <Logo lang={lang} t={t} eager />
         <nav aria-label={t("nav.label")} className="ml-6 hidden items-center gap-1 lg:flex">
           {items.filter((item) => item.main).map((item) => (
             <Link key={item.href} href={item.href} className="rounded-control px-3 py-2 text-sm font-medium text-ink-muted hover:bg-brand-50 hover:text-ink">
