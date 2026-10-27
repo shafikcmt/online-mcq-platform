@@ -10,7 +10,8 @@ what the student can do, active packages, recent results and the unread count, a
 counted from the server's clock — and the Exams tab with exam details (8C): open now /
 upcoming / past, and for each exam what the student can do and why not — and the exam
 room (8D), results, answer review, leaderboard and history (8E), and packages and payment
-(8F). In-app notifications come next (`docs/ROADMAP.md` Milestone 8).
+(8F), and in-app notifications and notices (8G) — every Milestone 8 screen. Device testing
+and the Play Store build are part of Milestone 10 (`docs/ROADMAP.md`).
 
 ## Run it
 
@@ -43,7 +44,7 @@ src/
 │   ├── (auth)/          login, register, forgot-password      (signed out)
 │   └── (app)/           tabs (home, exams, results, packages, profile), exam/[slug],
 │                        attempt/[id] (exam room), result/[id], review/[id], leaderboard/[slug],
-│                        payment/[id], payments, payment-result (return link),
+│                        payment/[id], payments, payment-result (return link), notifications,
 │                        edit-profile, change-password
 ├── api/                 fetch wrapper, error shape, error → sentence
 ├── auth/                session provider, token storage, types
@@ -53,8 +54,9 @@ src/
 ├── features/attempt/    exam room: session (save/retry/submit rules), timer, question, palette
 ├── features/results/    results, history, review and leaderboard API, rows
 ├── features/packages/   packages, payment start, checkout browser, status polling
+├── features/notifications/  notifications and notices API
 ├── components/          AppText, Button, TextField, OtpInput, Banner, Card, dialogs…
-├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams,room,results,packages}.json
+├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams,room,results,packages,notifications}.json
 ├── lib/                 phone numbers, digits, dates, server clock, screen data loading, paging
 └── theme/               design tokens (same values as the Admin Panel)
 ```

@@ -1,5 +1,6 @@
+import { router } from "expo-router";
 import { Bell, CloudOff } from "lucide-react-native";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { describeError } from "@/api/describe";
@@ -47,10 +48,12 @@ export default function HomeScreen() {
           <AppText color={colors.inkMuted}>{t("home:subtitle")}</AppText>
         </View>
         {data ? (
-          <View
+          <Pressable
             style={styles.bell}
-            accessible
+            accessibilityRole="link"
             accessibilityLabel={unread > 0 ? t("home:unread", { n: localizeDigits(unread, i18n.language) }) : t("home:noUnread")}
+            onPress={() => router.push("/notifications")}
+            hitSlop={4}
           >
             <Bell size={22} color={colors.inkMuted} />
             {unread > 0 ? (
@@ -60,7 +63,7 @@ export default function HomeScreen() {
                 </AppText>
               </View>
             ) : null}
-          </View>
+          </Pressable>
         ) : null}
       </View>
 
