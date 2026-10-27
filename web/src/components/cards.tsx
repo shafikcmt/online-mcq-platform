@@ -1,6 +1,8 @@
 import { CalendarClock, Clock3, FileQuestion, Star } from "lucide-react";
+import Link from "next/link";
 
 import type { Exam, Notice, Package } from "@/lib/api";
+import { scheduleState } from "@/lib/exam-filters";
 import { date, dateTime, digits, money } from "@/lib/format";
 import { translator, type Lang } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
@@ -17,18 +19,33 @@ export function Chip({ children, tone = "neutral" }: { children: React.ReactNode
   return <span className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold", tones[tone])}>{children}</span>;
 }
 
+/** When the exam starts, ends or ended, for a card (null when it is always open). */
+function scheduleLine(exam: Exam, lang: Lang): string | null {
+  const t = translator(lang);
+  const state = scheduleState(exam, Date.now());
+  if (state === "upcoming" && exam.start_at) return t("exam.starts", { date: dateTime(exam.start_at, lang) });
+  if (state === "ended" && exam.end_at) return t("exam.ended", { date: dateTime(exam.end_at, lang) });
+  return exam.end_at ? t("exam.ends", { date: dateTime(exam.end_at, lang) }) : null;
+}
+
 /** An exam as visitors see it: type, free/paid, title, category, time, questions and
- * its schedule (Bangladesh time). Taking it happens in the app. */
+ * its schedule (Bangladesh time). The whole card opens the exam's page; taking the exam
+ * happens in the app. */
 export function ExamCard({ exam, lang }: { exam: Exam; lang: Lang }) {
   const t = translator(lang);
+  const schedule = scheduleLine(exam, lang);
   return (
-    <article className="flex h-full flex-col gap-3 rounded-card border border-line bg-surface p-5 shadow-sm">
+    <article className="relative flex h-full flex-col gap-3 rounded-card border border-line bg-surface p-5 shadow-sm transition hover:border-brand-600 hover:shadow-md focus-within:ring-2 focus-within:ring-brand-600">
       <div className="flex flex-wrap gap-1.5">
         <Chip tone={exam.exam_type === "live" ? "danger" : "info"}>{t(`exam.type.${exam.exam_type}`)}</Chip>
         <Chip tone={exam.access_type === "free" ? "success" : "neutral"}>{t(`exam.access.${exam.access_type}`)}</Chip>
       </div>
       <div>
-        <h3 className="text-base font-semibold text-ink">{exam.title}</h3>
+        <h3 className="text-base font-semibold text-ink">
+          <Link href={`/${lang}/exams/${exam.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-card">
+            {exam.title}
+          </Link>
+        </h3>
         <p className="text-sm text-ink-subtle">{[exam.category.name, exam.subject?.name].filter(Boolean).join(" · ")}</p>
       </div>
       <ul className="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
@@ -40,10 +57,10 @@ export function ExamCard({ exam, lang }: { exam: Exam; lang: Lang }) {
           <FileQuestion className="size-4 text-ink-subtle" aria-hidden />
           {t("exam.questions", { n: digits(exam.total_questions, lang) })}
         </li>
-        {exam.start_at ? (
+        {schedule ? (
           <li className="flex items-center gap-1.5">
             <CalendarClock className="size-4 text-ink-subtle" aria-hidden />
-            {new Date(exam.start_at) > new Date() ? t("exam.starts", { date: dateTime(exam.start_at, lang) }) : exam.end_at ? t("exam.ends", { date: dateTime(exam.end_at, lang) }) : null}
+            {schedule}
           </li>
         ) : null}
       </ul>
@@ -113,4 +130,26 @@ export function SectionHead({ id, title, body }: { id?: string; title: string; b
 
 export function EmptyNote({ text }: { text: string }) {
   return <p className="rounded-card border border-dashed border-line-strong p-6 text-center text-sm text-ink-muted">{text}</p>;
+}
+
+/** A section of the site couldn't be loaded (the API is unavailable): say so calmly. */
+export function UnavailableNote({ text }: { text: string }) {
+  return (
+    <p role="status" className="rounded-card border border-warning-700/20 bg-accent-50 p-6 text-center text-sm text-warning-700">
+      {text}
+    </p>
+  );
+}
+
+/** The top of an inner page: title and a short introduction on the brand tint. */
+export function PageIntro({ title, body, children }: { title: string; body?: string; children?: React.ReactNode }) {
+  return (
+    <div className="bg-gradient-to-b from-brand-50 to-canvas">
+      <div className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:px-6">
+        {children}
+        <h1 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl">{title}</h1>
+        {body ? <p className="mt-3 max-w-2xl text-lg text-ink-muted">{body}</p> : null}
+      </div>
+    </div>
+  );
 }

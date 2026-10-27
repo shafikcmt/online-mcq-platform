@@ -32,7 +32,7 @@ from apps.core.public_api import PublicAPIMixin
 from .. import services
 from ..exceptions import ExamStateError
 from ..models import AccessType, ContentLanguage, Exam, ExamQuestion, ExamStatus, ExamType
-from ..selectors import listable_exams, with_question_totals
+from ..selectors import listable_exams, open_window, with_question_totals
 from .serializers import (
     ExamAdminSerializer,
     ExamQuestionAdminListSerializer,
@@ -223,6 +223,10 @@ class ExamDuplicateView(_ExamActionView):
 # --------------------------------------------------------------------------------------
 # Public (website & app, no login)
 # --------------------------------------------------------------------------------------
+# The public list's schedule filter (the website's Open / Upcoming / Ended tabs).
+WHEN_CHOICES = ("open", "upcoming", "ended")
+
+
 def public_exams():
     """Only published exams whose category (and subject, if any) are active."""
     return with_question_totals(listable_exams())
@@ -236,6 +240,15 @@ def public_exams():
             OpenApiParameter("category", OpenApiTypes.STR, description="Category slug."),
             OpenApiParameter(
                 "upcoming", OpenApiTypes.BOOL, description="true = starts in the future."
+            ),
+            OpenApiParameter(
+                "when",
+                OpenApiTypes.STR,
+                enum=WHEN_CHOICES,
+                description=(
+                    "open = can be started now; upcoming = starts in the future; "
+                    "ended = its window has closed (newest first)."
+                ),
             ),
         ]
     )
@@ -257,8 +270,16 @@ class PublicExamListView(PublicAPIMixin, generics.ListAPIView):
             raise serializers.ValidationError({"category": [INVALID_CHOICE_MESSAGE]})
         if category:
             queryset = queryset.filter(category__slug=category)
+        now = timezone.now()
         if query_bool(request, "upcoming"):
-            queryset = queryset.filter(start_at__gt=timezone.now())
+            queryset = queryset.filter(start_at__gt=now)
+        when = query_choice(request, "when", WHEN_CHOICES)
+        if when == "open":
+            queryset = queryset.filter(open_window(now))
+        elif when == "upcoming":
+            queryset = queryset.filter(start_at__gt=now)
+        elif when == "ended":
+            return queryset.filter(end_at__lte=now).order_by("-end_at", "-id")
         return queryset.order_by(F("start_at").asc(nulls_last=True), "id")
 
 

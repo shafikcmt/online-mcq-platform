@@ -11,7 +11,11 @@ import { MobileMenu } from "./mobile-menu";
 /** Pages linked from the header and footer. Each slice of Milestone 9 adds its pages here. */
 export function navItems(lang: Lang) {
   const t = translator(lang);
-  return [{ href: `/${lang}`, label: t("nav.home") }];
+  return [
+    { href: `/${lang}`, label: t("nav.home") },
+    { href: `/${lang}/exams`, label: t("nav.exams") },
+    { href: `/${lang}/packages`, label: t("nav.packages") },
+  ];
 }
 
 function appLabels(lang: Lang) {
@@ -22,7 +26,7 @@ function appLabels(lang: Lang) {
 export function SiteHeader({ lang, settings }: { lang: Lang; settings: Settings | null }) {
   const t = translator(lang);
   const items = navItems(lang);
-  const app = { downloadUrl: settings?.app_download_url ?? "", openUrl: settings?.app_open_url ?? "", labels: appLabels(lang) };
+  const app = { downloadUrl: settings?.app_download_url ?? "", openUrl: settings?.app_open_url ?? "", labels: appLabels(lang), lang };
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
@@ -77,7 +81,7 @@ export function SiteFooter({ lang, settings }: { lang: Lang; settings: Settings 
               {line}
             </p>
           ))}
-          <AppButton downloadUrl={settings?.app_download_url ?? ""} openUrl={settings?.app_open_url ?? ""} labels={appLabels(lang)} className="self-start" />
+          <AppButton downloadUrl={settings?.app_download_url ?? ""} openUrl={settings?.app_open_url ?? ""} labels={appLabels(lang)} lang={lang} className="self-start" />
         </div>
       </div>
       <p className="border-t border-line py-5 text-center text-xs text-ink-subtle">{t("footer.rights", { year: new Date().getFullYear() })}</p>

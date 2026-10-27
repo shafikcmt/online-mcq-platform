@@ -970,6 +970,31 @@ class TestPublic:
         assert slugs("?access=paid") == [b.slug]
         assert slugs("?category=maths") == [b.slug]
         assert slugs("?upcoming=true") == [c.slug, b.slug]
+        assert slugs("?when=upcoming") == [c.slug, b.slug]
+        assert slugs("?when=open") == [a.slug]
+        assert slugs("?when=ended") == []
+        assert APIClient().get(PUBLIC + "?when=soon").status_code == 400
+
+    def test_when_open_and_ended(self, subject):
+        now = timezone.now()
+        open_now = make_exam(subject, title_en="Open", publish=True)
+        Exam.objects.filter(pk=open_now.pk).update(
+            start_at=now - timedelta(hours=1), end_at=now + timedelta(hours=1)
+        )
+        old = make_exam(subject, title_en="Old", publish=True)
+        Exam.objects.filter(pk=old.pk).update(
+            start_at=now - timedelta(days=3), end_at=now - timedelta(days=2)
+        )
+        recent = make_exam(subject, title_en="Recent", publish=True)
+        Exam.objects.filter(pk=recent.pk).update(
+            start_at=now - timedelta(hours=3), end_at=now - timedelta(hours=2)
+        )
+
+        def slugs(query):
+            return [row["slug"] for row in APIClient().get(PUBLIC + query).json()["results"]]
+
+        assert slugs("?when=open") == [open_now.slug]
+        assert slugs("?when=ended") == [recent.slug, old.slug]  # most recently ended first
         assert APIClient().get(PUBLIC + "?type=marathon").status_code == 400
 
     def test_public_ignores_credentials(self, exams):

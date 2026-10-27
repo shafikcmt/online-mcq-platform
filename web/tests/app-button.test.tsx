@@ -14,18 +14,18 @@ function agent(userAgent: string) {
 
 test("desktop: Download App → the store link", () => {
   agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
-  render(<AppButton downloadUrl={store} openUrl="livemodeltest://open" labels={labels} />);
+  render(<AppButton downloadUrl={store} openUrl="livemodeltest://open" labels={labels} lang="en" />);
   expect(screen.getByRole("link", { name: "Download App" })).toHaveAttribute("href", store);
 });
 
 test("Android with the app link: Open App → the app's own link", () => {
   agent("Mozilla/5.0 (Linux; Android 14; Pixel 7)");
-  render(<AppButton downloadUrl={store} openUrl="livemodeltest://open" labels={labels} />);
+  render(<AppButton downloadUrl={store} openUrl="livemodeltest://open" labels={labels} lang="en" />);
   expect(screen.getByRole("link", { name: "Open App" })).toHaveAttribute("href", "livemodeltest://open");
 });
 
 test("no store link yet: coming soon → the section that says so", () => {
   agent("Mozilla/5.0 (Linux; Android 14; Pixel 7)");
-  render(<AppButton downloadUrl="" openUrl="" labels={labels} />);
-  expect(screen.getByRole("link", { name: "Coming soon to Google Play" })).toHaveAttribute("href", "#get-app");
+  render(<AppButton downloadUrl="" openUrl="" labels={labels} lang="en" />);
+  expect(screen.getByRole("link", { name: "Coming soon to Google Play" })).toHaveAttribute("href", "/en#get-app"); // from any page
 });
