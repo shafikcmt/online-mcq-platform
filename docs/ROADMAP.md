@@ -155,6 +155,8 @@ Branch: `feature/mobile-*`
 ## Milestone 9 — Public Website (Next.js)
 Branch: `feature/public-website`
 
+**Status:** 9A built — Next.js site in `web/`: `/bn` and `/en` (Bangla default, English browsers get English, the choice is remembered), header/footer with the language switch and Download / Open App (Android tries the app, falls back to the store; "coming soon" until a store link is set), Home with live public-API data (open and upcoming exams, packages, notices, FAQs) and SEO basics (titles, descriptions, canonical, `hreflang`, Open Graph, sitemap, robots). Next: exams, packages, notices, leaderboard, About/FAQ/Contact pages.
+
 - **Scope**
   - `/bn` and `/en` routes, language switcher, `hreflang`.
   - Home, exams (available/upcoming), packages, notices, leaderboard (masked names), About, Contact (**basic contact form**), FAQ, **Download App / Open App** flow. No website login. SEO metadata.

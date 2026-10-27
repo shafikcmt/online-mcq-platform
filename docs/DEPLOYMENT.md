@@ -212,6 +212,15 @@ E2E_PROJECT_DIR=mobile E2E_CELERY_WORKER=1 admin/e2e/stack/run.sh notifications 
 The panel (`next start`) and nginx must already run, with nginx sending `/api/` to
 `127.0.0.1:8000` (`E2E_DJANGO_PORT`); the port must be free, since the script starts Django there.
 
+**Public website.** The same script runs the website's suites (`web/e2e/*.spec.ts`);
+Playwright builds and starts the site itself on port 3002, reading the disposable backend
+(nothing else needs to run):
+
+```bash
+E2E_DISPOSABLE_DB=destroy-and-recreate … E2E_BASE_URL=http://localhost:3002 \
+E2E_PROJECT_DIR=web admin/e2e/stack/run.sh home
+```
+
 **Safety guards** — `e2e-db.sh` refuses to create or drop anything unless all of these hold:
 
 - `E2E_DISPOSABLE_DB=destroy-and-recreate` is set (explicit opt-in; any other value refuses);

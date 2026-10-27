@@ -59,7 +59,7 @@ online-mcq-platform/
 │   ├── pyproject.toml        ruff + pytest configuration
 │   ├── Dockerfile
 │   └── manage.py
-├── web/                      Public Website (placeholder — Milestone 9)
+├── web/                      Public Website (Next.js, /bn and /en — Milestone 9)
 ├── admin/                    Admin Panel (placeholder — Milestone 7)
 ├── mobile/                   Mobile App (Expo, Android) — Milestone 8, see mobile/README.md
 ├── design/                   Shared design tokens (placeholder)
