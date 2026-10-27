@@ -206,7 +206,7 @@ Serve the exported build (`EXPO_PUBLIC_API_URL=/api/v1 npx expo export --platfor
 
 ```bash
 E2E_DISPOSABLE_DB=destroy-and-recreate … E2E_BASE_URL=http://localhost:8089 \
-E2E_PROJECT_DIR=mobile E2E_CELERY_WORKER=1 admin/e2e/stack/run.sh payments results exam-room exams dashboard auth
+E2E_PROJECT_DIR=mobile E2E_CELERY_WORKER=1 admin/e2e/stack/run.sh notifications payments results exam-room exams dashboard auth
 ```
 
 The panel (`next start`) and nginx must already run, with nginx sending `/api/` to

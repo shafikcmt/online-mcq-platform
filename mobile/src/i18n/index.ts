@@ -7,6 +7,7 @@ import bnAuth from "./locales/bn/auth.json";
 import bnCommon from "./locales/bn/common.json";
 import bnExams from "./locales/bn/exams.json";
 import bnHome from "./locales/bn/home.json";
+import bnNotifications from "./locales/bn/notifications.json";
 import bnPackages from "./locales/bn/packages.json";
 import bnProfile from "./locales/bn/profile.json";
 import bnResults from "./locales/bn/results.json";
@@ -15,6 +16,7 @@ import enAuth from "./locales/en/auth.json";
 import enCommon from "./locales/en/common.json";
 import enExams from "./locales/en/exams.json";
 import enHome from "./locales/en/home.json";
+import enNotifications from "./locales/en/notifications.json";
 import enPackages from "./locales/en/packages.json";
 import enProfile from "./locales/en/profile.json";
 import enResults from "./locales/en/results.json";
@@ -27,8 +29,8 @@ export const LANGUAGES = ["bn", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const resources = {
-  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom, results: bnResults, packages: bnPackages },
-  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom, results: enResults, packages: enPackages },
+  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom, results: bnResults, packages: bnPackages, notifications: bnNotifications },
+  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom, results: enResults, packages: enPackages, notifications: enNotifications },
 } as const;
 
 const i18n = createInstance();
@@ -36,7 +38,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: "bn",
   fallbackLng: "bn",
-  ns: ["common", "auth", "profile", "home", "exams", "room", "results", "packages"],
+  ns: ["common", "auth", "profile", "home", "exams", "room", "results", "packages", "notifications"],
   defaultNS: "common",
   interpolation: { escapeValue: false }, // React escapes; no HTML is ever rendered
   returnNull: false,
