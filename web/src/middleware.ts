@@ -30,6 +30,7 @@ function preferred(request: NextRequest): Lang {
 }
 
 export const config = {
-  // Not for Next.js internals, files with an extension, the sitemap or robots.txt.
-  matcher: ["/((?!_next|.*\\..*).*)"],
+  // Not for Next.js internals, the API (nginx / the dev proxy), files with an extension,
+  // the sitemap or robots.txt.
+  matcher: ["/((?!_next|api/|.*\\..*).*)"],
 };

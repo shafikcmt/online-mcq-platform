@@ -4,7 +4,12 @@ import { expect, request, type APIRequestContext } from "@playwright/test";
  * there through the Admin API, as an admin would in the Admin Panel). */
 export const DJANGO = `http://127.0.0.1:${process.env.E2E_DJANGO_PORT ?? "8000"}`;
 
-export type Admin = { api: APIRequestContext; post: (path: string, data?: object) => Promise<unknown>; get: (path: string) => Promise<unknown> };
+export type Admin = {
+  api: APIRequestContext;
+  post: (path: string, data?: object) => Promise<unknown>;
+  patch: (path: string, data: object) => Promise<unknown>;
+  get: (path: string) => Promise<unknown>;
+};
 
 async function csrf(api: APIRequestContext): Promise<string> {
   const cookie = (await api.storageState()).cookies.find((c) => c.name === "csrftoken");
@@ -29,5 +34,6 @@ export async function adminSession(): Promise<Admin> {
     api,
     get: async (path) => check(await api.get(`/api/v1${path}`), path),
     post: async (path, data = {}) => check(await api.post(`/api/v1${path}`, { data, headers: { "X-CSRFToken": await csrf(api) } }), path),
+    patch: async (path, data) => check(await api.patch(`/api/v1${path}`, { data, headers: { "X-CSRFToken": await csrf(api) } }), path),
   };
 }

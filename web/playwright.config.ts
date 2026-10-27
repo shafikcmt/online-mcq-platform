@@ -19,9 +19,13 @@ export default defineConfig({
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {},
   },
   webServer: {
-    command: `npm run build && npx next start -p ${PORT}`,
+    // A fresh data cache for every run, like the disposable database: cached API answers from
+    // an earlier run must never leak into this one.
+    command: `rm -rf .next/cache/fetch-cache && npm run build && npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}/bn`,
-    env: { API_ORIGIN, SITE_URL: "https://livemodeltest.com" },
+    // DEV_PUBLIC_API_PROXY: the Contact form's /api/v1/public/* goes to the disposable
+    // backend through Next.js here (nginx does it in production; see next.config.ts).
+    env: { API_ORIGIN, SITE_URL: "https://livemodeltest.com", DEV_PUBLIC_API_PROXY: "1" },
     timeout: 300_000,
     reuseExistingServer: false,
     stdout: "ignore",
