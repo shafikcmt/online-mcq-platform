@@ -1041,7 +1041,9 @@ class TestMySubscriptions:
         assert set(row) == {"package", "status", "effective_status", "starts_at", "expires_at"}
         assert row["package"] == {"slug": "gold", "name": "গোল্ড"}
         assert row["effective_status"] == "active"
-        assert "777" not in json.dumps(response.json())
+        # The price never leaks. "777.00" (not "777"): a timestamp's microseconds may
+        # contain "777" by chance, but never "777.00".
+        assert "777.00" not in json.dumps(response.json())
 
     def test_effective_status_values(self, student):
         a = grant(student, make_package("a")).subscription
