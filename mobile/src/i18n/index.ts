@@ -5,10 +5,12 @@ import { initReactI18next } from "react-i18next";
 
 import bnAuth from "./locales/bn/auth.json";
 import bnCommon from "./locales/bn/common.json";
+import bnExams from "./locales/bn/exams.json";
 import bnHome from "./locales/bn/home.json";
 import bnProfile from "./locales/bn/profile.json";
 import enAuth from "./locales/en/auth.json";
 import enCommon from "./locales/en/common.json";
+import enExams from "./locales/en/exams.json";
 import enHome from "./locales/en/home.json";
 import enProfile from "./locales/en/profile.json";
 
@@ -19,8 +21,8 @@ export const LANGUAGES = ["bn", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const resources = {
-  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome },
-  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome },
+  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams },
+  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams },
 } as const;
 
 const i18n = createInstance();
@@ -28,7 +30,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: "bn",
   fallbackLng: "bn",
-  ns: ["common", "auth", "profile", "home"],
+  ns: ["common", "auth", "profile", "home", "exams"],
   defaultNS: "common",
   interpolation: { escapeValue: false }, // React escapes; no HTML is ever rendered
   returnNull: false,

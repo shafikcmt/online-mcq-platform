@@ -9,13 +9,13 @@ The payload is built field by field from an explicit allow-list: it never touche
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.db.models import Prefetch, Q
+from django.db.models import Count, Max, Prefetch, Q
 
 from apps.core.i18n import resolve_bilingual
 from apps.exams.models import ContentLanguage, ExamType
 from apps.questions.models import QuestionOption
 
-from .models import AttemptAnswer, AttemptStatus, ExamAttempt
+from .models import FINISHED_STATUSES, AttemptAnswer, AttemptStatus, ExamAttempt
 
 
 # --------------------------------------------------------------------------------------
@@ -72,6 +72,15 @@ def remaining_seconds(attempt: ExamAttempt, now: datetime) -> int:
 # --------------------------------------------------------------------------------------
 NOT_STARTED, ENDED = "exam_not_started", "exam_ended"
 RETAKE_NOT_ALLOWED, LIMIT_REACHED = "retake_not_allowed", "attempt_limit_reached"
+NEEDS_SUBSCRIPTION = "needs_subscription"
+
+
+def deadline_for(exam, started_at: datetime) -> datetime:
+    """``min(started_at + duration, end_at)``: a late joiner only gets the time left."""
+    deadline = started_at + timedelta(minutes=exam.duration_minutes)
+    if exam.end_at and exam.end_at < deadline:
+        deadline = exam.end_at
+    return deadline
 
 
 def schedule_blocker(exam, now: datetime) -> str | None:
@@ -82,6 +91,14 @@ def schedule_blocker(exam, now: datetime) -> str | None:
     if exam.end_at and now >= exam.end_at:
         return ENDED
     return None
+
+
+def attempts_allowed(exam) -> int | None:
+    """How many attempts a student may make: one for live exams and exams without
+    retake, else ``max_attempts`` (``None`` = unlimited)."""
+    if exam.exam_type == ExamType.LIVE or not exam.allow_retake:
+        return 1
+    return exam.max_attempts
 
 
 def retake_blocker(exam, previous_attempts: int) -> str | None:
@@ -95,6 +112,15 @@ def retake_blocker(exam, previous_attempts: int) -> str | None:
     if exam.max_attempts is not None and previous_attempts >= exam.max_attempts:
         return LIMIT_REACHED
     return None
+
+
+def start_blocker(exam, now: datetime, *, entitled: bool, attempts: int) -> str | None:
+    """Why a **new** attempt cannot start now (``None`` = it can), checked in the order
+    ``attempts.services.start_attempt`` checks: access, then schedule, then retakes. The
+    codes are the error codes that start would return."""
+    if not entitled:
+        return NEEDS_SUBSCRIPTION
+    return schedule_blocker(exam, now) or retake_blocker(exam, attempts)
 
 
 def start_options(
@@ -112,10 +138,59 @@ def start_options(
     ``open_deadline`` = the open attempt's deadline, if there is one."""
     if open_deadline is not None and not past_grace(open_deadline, now):
         return False, True
-    can_start = (
-        entitled and schedule_blocker(exam, now) is None and retake_blocker(exam, attempts) is None
+    return start_blocker(exam, now, entitled=entitled, attempts=attempts) is None, False
+
+
+def attempt_history(user, exam_ids) -> dict[int, tuple[int, int, datetime | None]]:
+    """Per exam, the student's ``(attempts, finished, open attempt deadline)`` — one
+    grouped query, at most one row per exam."""
+    rows = (
+        ExamAttempt.objects.filter(user_id=user.pk, exam_id__in=exam_ids)
+        .order_by()
+        .values("exam_id")
+        .annotate(
+            attempts=Count("id"),
+            finished=Count("id", filter=Q(status__in=FINISHED_STATUSES)),
+            open_deadline=Max("deadline_at", filter=Q(status=AttemptStatus.IN_PROGRESS)),
+        )
     )
-    return can_start, False
+    return {r["exam_id"]: (r["attempts"], r["finished"], r["open_deadline"]) for r in rows}
+
+
+def student_exam_status(exam, now: datetime, *, grants, history: dict) -> dict:
+    """What this student can do with this exam right now — the exam engine's own start
+    rules, for lists and details (no queries: ``grants`` from
+    ``subscriptions.selectors.active_grants``, ``history`` from ``attempt_history``).
+
+    ``locked_reason`` is set only when the student can neither start nor resume; an
+    overdue open attempt counts as finished (the server finalizes it on the next start)."""
+    attempts, finished, open_deadline = history.get(exam.pk, (0, 0, None))
+    has_access = bool(grants and grants.covers(exam))
+    can_start, can_resume = start_options(
+        exam, now, entitled=has_access, attempts=attempts, open_deadline=open_deadline
+    )
+    if can_resume:
+        state = "in_progress"
+    elif finished or open_deadline is not None:
+        state = "finished"
+    else:
+        state = None
+    locked = None
+    if not (can_start or can_resume):
+        locked = start_blocker(exam, now, entitled=has_access, attempts=attempts)
+    return {
+        "has_access": has_access,
+        "can_start": can_start,
+        "can_resume": can_resume,
+        "attempt_state": state,
+        "locked_reason": locked,
+        "attempts_used": attempts,
+        "attempts_allowed": attempts_allowed(exam),
+        # A live/scheduled exam joined late gets only the time left before end_at.
+        "seconds_if_started_now": (
+            int((deadline_for(exam, now) - now).total_seconds()) if can_start else None
+        ),
+    }
 
 
 # --------------------------------------------------------------------------------------

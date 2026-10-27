@@ -73,6 +73,7 @@ from .selectors import (
     NOT_STARTED,
     RETAKE_NOT_ALLOWED,
     can_edit,
+    deadline_for,
     is_overdue,
     retake_blocker,
     schedule_blocker,
@@ -210,14 +211,6 @@ def _ensure_retake_allowed(exam: Exam, finished: int) -> None:
             status=422,
             details={"max_attempts": exam.max_attempts},
         )
-
-
-def deadline_for(exam: Exam, started_at: datetime) -> datetime:
-    """``min(started_at + duration, end_at)``: a late joiner only gets the time left."""
-    deadline = started_at + timedelta(minutes=exam.duration_minutes)
-    if exam.end_at and exam.end_at < deadline:
-        deadline = exam.end_at
-    return deadline
 
 
 def _build_answers(attempt: ExamAttempt, exam: Exam) -> list[AttemptAnswer]:

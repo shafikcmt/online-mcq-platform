@@ -10,7 +10,7 @@ import { Button } from "@/components/button";
 import { Card } from "@/components/card";
 import { Screen } from "@/components/screen";
 import { fetchDashboard } from "@/features/dashboard/api";
-import { ExamCard } from "@/features/dashboard/exam-card";
+import { ExamCard } from "@/features/exams/exam-card";
 import { ResultRow } from "@/features/dashboard/result-row";
 import { EmptyNote, Section } from "@/features/dashboard/section";
 import { SubscriptionCard } from "@/features/dashboard/subscription-card";
@@ -78,7 +78,7 @@ function Content({ data, now }: { data: Dashboard; now: number }) {
   return (
     <>
       <SubscriptionCard subscription={data.subscription} />
-      <Section title={t("home:sections.available")} count={available.count} shown={available.items.length}>
+      <Section title={t("home:sections.available")} count={available.count} shown={available.items.length} seeAll="/exams?when=open">
         {available.items.length ? (
           available.items.map((exam) => <ExamCard key={exam.slug} exam={exam} now={now} />)
         ) : (
@@ -86,7 +86,7 @@ function Content({ data, now }: { data: Dashboard; now: number }) {
         )}
       </Section>
       {upcoming.count > 0 ? (
-        <Section title={t("home:sections.upcoming")} count={upcoming.count} shown={upcoming.items.length}>
+        <Section title={t("home:sections.upcoming")} count={upcoming.count} shown={upcoming.items.length} seeAll="/exams?when=upcoming">
           {upcoming.items.map((exam) => (
             <ExamCard key={exam.slug} exam={exam} now={now} upcoming />
           ))}

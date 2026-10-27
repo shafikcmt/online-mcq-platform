@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from apps.exams.api.serializers import AwareDateTimeField
+from apps.exams.api.serializers import AwareDateTimeField, PublicExamSerializer
 from apps.results.api.serializers import ResultSummarySerializer
 
 from ..models import AttemptLanguage, AttemptStatus, SubmitSource
@@ -151,3 +151,52 @@ class HistoryExamSerializer(serializers.Serializer):
 
 class AttemptHistorySerializer(AttemptSummarySerializer):
     exam = HistoryExamSerializer()
+
+
+# --------------------------------------------------------------------------------------
+# Student exam list / details (public exam fields + this student's start state)
+# --------------------------------------------------------------------------------------
+LOCKED_REASONS = [
+    "needs_subscription",
+    "exam_not_started",
+    "exam_ended",
+    "retake_not_allowed",
+    "attempt_limit_reached",
+]
+
+
+class StudentExamSerializer(PublicExamSerializer):
+    """The public exam fields plus what *this* student can do now. The view attaches the
+    status dict from ``attempts.selectors.student_exam_status`` as ``exam.student``."""
+
+    has_access = serializers.BooleanField(
+        source="student.has_access",
+        help_text="Entitlement only: the exam is free or a current subscription covers it.",
+    )
+    can_start = serializers.BooleanField(source="student.can_start")
+    can_resume = serializers.BooleanField(
+        source="student.can_resume",
+        help_text="An open attempt can be continued (start returns it).",
+    )
+    attempt_state = serializers.ChoiceField(
+        source="student.attempt_state", choices=["in_progress", "finished"], allow_null=True
+    )
+    locked_reason = serializers.ChoiceField(
+        source="student.locked_reason",
+        choices=LOCKED_REASONS,
+        allow_null=True,
+        help_text="Why neither start nor resume is possible now (the start error code).",
+    )
+    attempts_used = serializers.IntegerField(source="student.attempts_used")
+    attempts_allowed = serializers.IntegerField(
+        source="student.attempts_allowed", allow_null=True, help_text="null = unlimited."
+    )
+    seconds_if_started_now = serializers.IntegerField(
+        source="student.seconds_if_started_now",
+        allow_null=True,
+        help_text="Time a new attempt would get (less than the duration when joining late).",
+    )
+
+
+class StudentExamDetailSerializer(StudentExamSerializer):
+    server_time = serializers.DateTimeField(source="student.server_time")

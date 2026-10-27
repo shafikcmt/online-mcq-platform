@@ -4,7 +4,7 @@ Every number comes from the owning module's own rule (docs/MODULES.md rule 2):
 - exams students may see → ``exams.selectors.listable_exams`` + ``open_window``
   (the window the exam engine enforces on start);
 - access → ``subscriptions.selectors.active_window`` / ``active_grants``;
-- may start / resume → ``attempts.selectors.start_options`` (the exam engine's own start
+- may start / resume → ``attempts.selectors.student_exam_status`` (the exam engine's own start
   rules: resume an open attempt, schedule window, live single attempt, retake limits);
 - results → ``results.selectors.own_results`` + ``visible_results_filter``;
 - open attempts → ``attempts.selectors.grace`` (past deadline + grace = no longer open).
@@ -20,11 +20,11 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
-from django.db.models import Count, F, Max, Q, Sum
+from django.db.models import Count, F, Q, Sum
 
 from apps.accounts.models import Role, User
 from apps.attempts.models import FINISHED_STATUSES, AttemptStatus, ExamAttempt
-from apps.attempts.selectors import grace, start_options
+from apps.attempts.selectors import attempt_history, grace, student_exam_status
 from apps.core.i18n import resolve_bilingual
 from apps.exams.models import Exam, ExamStatus, ExamType
 from apps.exams.selectors import listable_exams, open_window
@@ -105,17 +105,7 @@ EXAM_ITEM_FIELDS = (
 
 
 def _exam_item(exam: Exam, now: datetime, language: str, grants, history: dict) -> dict:
-    attempts, finished, open_deadline = history.get(exam.pk, (0, 0, None))
-    has_access = bool(grants and grants.covers(exam))
-    can_start, can_resume = start_options(
-        exam, now, entitled=has_access, attempts=attempts, open_deadline=open_deadline
-    )
-    if can_resume:
-        state = "in_progress"
-    elif finished or open_deadline is not None:  # an overdue open attempt counts as done
-        state = "finished"
-    else:
-        state = None
+    status = student_exam_status(exam, now, grants=grants, history=history)
     return {
         "slug": exam.slug,
         "title": resolve_bilingual(exam, "title", language)[0],
@@ -124,27 +114,8 @@ def _exam_item(exam: Exam, now: datetime, language: str, grants, history: dict) 
         "start_at": exam.start_at,
         "end_at": exam.end_at,
         "duration_minutes": exam.duration_minutes,
-        "has_access": has_access,
-        "can_start": can_start,
-        "can_resume": can_resume,
-        "attempt_state": state,
+        **{key: status[key] for key in ("has_access", "can_start", "can_resume", "attempt_state")},
     }
-
-
-def _attempt_history(user, exam_ids) -> dict[int, tuple[int, int, datetime | None]]:
-    """Per listed exam, the student's ``(attempts, finished, open attempt deadline)`` —
-    one grouped query, at most one row per listed exam."""
-    rows = (
-        ExamAttempt.objects.filter(user_id=user.pk, exam_id__in=exam_ids)
-        .order_by()
-        .values("exam_id")
-        .annotate(
-            attempts=Count("id"),
-            finished=Count("id", filter=Q(status__in=FINISHED_STATUSES)),
-            open_deadline=Max("deadline_at", filter=Q(status=AttemptStatus.IN_PROGRESS)),
-        )
-    )
-    return {r["exam_id"]: (r["attempts"], r["finished"], r["open_deadline"]) for r in rows}
 
 
 def student_dashboard(user, now: datetime, language: str) -> dict:
@@ -161,7 +132,7 @@ def student_dashboard(user, now: datetime, language: str) -> dict:
     }
     grants = active_grants(user, at=now)
     listed_ids = {exam.pk for rows in lists.values() for exam in rows}
-    history = _attempt_history(user, listed_ids) if listed_ids else {}
+    history = attempt_history(user, listed_ids) if listed_ids else {}
 
     active = Subscription.objects.filter(active_window(now), user_id=user.pk)
     subscriptions = list(active.select_related("package").order_by("expires_at", "id")[:limit])
