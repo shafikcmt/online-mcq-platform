@@ -306,7 +306,7 @@ AUTH_THROTTLE_RATES = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Online MCQ Platform API",
+    "TITLE": "Live Model Test API",
     "DESCRIPTION": "Central API for the Mobile App, Public Website and Admin Panel.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,

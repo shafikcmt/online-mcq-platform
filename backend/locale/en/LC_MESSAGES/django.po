@@ -1091,10 +1091,10 @@ msgid ""
 "it."
 msgstr ""
 
-msgid "Online MCQ — internal administration"
+msgid "Live Model Test — internal administration"
 msgstr ""
 
-msgid "Online MCQ administration"
+msgid "Live Model Test administration"
 msgstr ""
 
 msgid "Enter a valid date (YYYY-MM-DD)."

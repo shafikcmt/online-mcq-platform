@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "Online MCQ",
-    "slug": "online-mcq",
+    "name": "Live Model Test",
+    "slug": "live-model-test",
     "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "onlinemcq",
+    "scheme": "livemodeltest",
     "userInterfaceStyle": "light",
     "android": {
-      "package": "com.onlinemcq.app",
+      "package": "com.livemodeltest.app",
       "adaptiveIcon": {
-        "backgroundColor": "#175FD6",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -30,9 +30,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#175FD6",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 96
+          "imageWidth": 160
         }
       ]
     ],

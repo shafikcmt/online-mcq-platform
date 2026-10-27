@@ -67,9 +67,9 @@ src/
 - **Server is the source of truth:** the app validates only for quick feedback; the server
   validates again (mobile numbers, passwords, OTP rules).
 
-## Open owner decisions
+## App identity
 
-- Android package name (`com.onlinemcq.app` is a placeholder in `app.json`) and the app's
-  URL scheme (`onlinemcq`, must match the backend's `APP_DEEP_LINK_SCHEME`).
-- Final app name, icon and splash artwork (the current ones are a simple placeholder mark of
-  our own, `assets/images/`).
+Name **Live Model Test** / **লাইভ মডেল টেস্ট**, Android package `com.livemodeltest.app` (it
+cannot change after the first Play Store upload), URL scheme `livemodeltest` (the backend's
+`APP_DEEP_LINK_SCHEME` must be the same). Icons, splash and the in-app mark come from the
+owner's logo (`assets/images/`; the Admin Panel uses the same mark).
