@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router/js-tabs";
-import { House, UserRound } from "lucide-react-native";
+import { ClipboardList, House, UserRound } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 import { colors, fontFamily } from "@/theme";
@@ -20,6 +20,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="home" options={{ title: t("tabs.home"), tabBarIcon: ({ color, size }) => <House color={color} size={size} /> }} />
+      <Tabs.Screen name="exams" options={{ title: t("tabs.exams"), tabBarIcon: ({ color, size }) => <ClipboardList color={color} size={size} /> }} />
       <Tabs.Screen name="profile" options={{ title: t("tabs.profile"), tabBarIcon: ({ color, size }) => <UserRound color={color} size={size} /> }} />
     </Tabs>
   );

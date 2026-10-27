@@ -5,7 +5,6 @@
   "noUnread": "No unread notifications",
   "stale": "Couldn't update just now. Showing what was loaded last — pull down to try again.",
   "shownOf": "{{shown}} of {{count}}",
-  "minutes": "{{n}} min",
   "sections": {
     "available": "Open now",
     "upcoming": "Upcoming",
@@ -15,30 +14,6 @@
   "empty": {
     "available": "No exams are open right now. Pull down to check again.",
     "results": "Your results will appear here after you finish an exam."
-  },
-  "examType": {
-    "practice": "Practice",
-    "regular": "Exam",
-    "live": "Live"
-  },
-  "access": {
-    "free": "Free",
-    "paid": "Paid"
-  },
-  "status": {
-    "resume": "In progress — you can continue",
-    "done": "Completed",
-    "locked": "Needs a package",
-    "ready": "Ready to start"
-  },
-  "time": {
-    "minutes": "{{m}} min",
-    "hours": "{{h}} h",
-    "hoursMinutes": "{{h}} h {{m}} min",
-    "startsIn": "Starts in {{gap}}",
-    "endsIn": "Ends in {{gap}}",
-    "startsAt": "Starts {{date}}",
-    "endsAt": "Ends {{date}}"
   },
   "subscription": {
     "activeTitle": "Your packages",

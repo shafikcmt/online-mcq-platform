@@ -8,7 +8,7 @@ import { resetServerClock } from "@/lib/server-clock";
 
 /** A fake backend for `fetch`: handlers keyed by "METHOD /path" (path after /api/v1).
  * Every call is recorded with its headers and parsed body. */
-export type Call = { method: string; path: string; body: unknown; headers: Record<string, string> };
+export type Call = { method: string; path: string; query: Record<string, string>; body: unknown; headers: Record<string, string> };
 type Reply = { status: number; body?: unknown; headers?: Record<string, string> } | "network";
 type Handler = Reply | ((call: Call) => Reply);
 
@@ -24,6 +24,7 @@ export function mockBackend(routes: Record<string, Handler | Handler[]>) {
     const call: Call = {
       method,
       path,
+      query: Object.fromEntries(url.searchParams),
       body: init?.body ? JSON.parse(String(init.body)) : undefined,
       headers: (init?.headers as Record<string, string>) ?? {},
     };

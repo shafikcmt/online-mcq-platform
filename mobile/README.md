@@ -7,8 +7,9 @@ TypeScript, Expo Router for navigation. Bangla and English; Bangla is the defaul
 with an SMS code, forgot password, Profile (details, edit, language, change password, sign
 out) — Milestone 8A — and the Home dashboard (8B): exams open now / upcoming / practice with
 what the student can do, active packages, recent results and the unread count, all times
-counted from the server's clock. Exam screens, the exam room, results, packages and payments
-come next (`docs/ROADMAP.md` Milestone 8).
+counted from the server's clock — and the Exams tab with exam details (8C): open now /
+upcoming / past, and for each exam what the student can do and why not. The exam room,
+results, packages and payments come next (`docs/ROADMAP.md` Milestone 8).
 
 ## Run it
 
@@ -39,13 +40,14 @@ src/
 │   ├── _layout.tsx      fonts, language, session; three guarded areas (Stack.Protected)
 │   ├── language.tsx     first launch: বাংলা / English
 │   ├── (auth)/          login, register, forgot-password      (signed out)
-│   └── (app)/           tabs (home, profile), edit-profile, change-password (signed in)
+│   └── (app)/           tabs (home, exams, profile), exam/[slug], edit-profile, change-password
 ├── api/                 fetch wrapper, error shape, error → sentence
 ├── auth/                session provider, token storage, types
 ├── features/auth/       phone and SMS-code steps shared by registration and reset
-├── features/dashboard/  Home: API call, exam card, result row, package card, time labels
+├── features/dashboard/  Home: API call, result row, package card, sections
+├── features/exams/      exam list/details API, paging, exam card, time labels
 ├── components/          AppText, Button, TextField, OtpInput, Banner, Card, dialogs…
-├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home}.json
+├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams}.json
 ├── lib/                 phone numbers, digits, dates, server clock, screen data loading
 └── theme/               design tokens (same values as the Admin Panel)
 ```

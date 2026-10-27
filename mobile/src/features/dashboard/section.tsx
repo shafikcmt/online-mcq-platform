@@ -1,4 +1,5 @@
-import { StyleSheet, View } from "react-native";
+import { Link, type Href } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/app-text";
@@ -6,8 +7,8 @@ import { localizeDigits } from "@/lib/text";
 import { colors, radius, space } from "@/theme";
 
 /** A titled block on Home. When the server has more than the short list it sent, says so
- * ("5 of 12") — the full lists come with the exam and result screens. */
-export function Section({ title, count, shown, children }: { title: string; count: number; shown: number; children: React.ReactNode }) {
+ * ("5 of 12"); `seeAll` links to the full list. */
+export function Section({ title, count, shown, seeAll, children }: { title: string; count: number; shown: number; seeAll?: Href; children: React.ReactNode }) {
   const { t, i18n } = useTranslation();
   const n = (value: number) => localizeDigits(value, i18n.language);
   return (
@@ -20,6 +21,15 @@ export function Section({ title, count, shown, children }: { title: string; coun
           <AppText variant="small" color={colors.inkMuted}>
             {t("home:shownOf", { shown: n(shown), count: n(count) })}
           </AppText>
+        ) : null}
+        {seeAll && count > 0 ? (
+          <Link href={seeAll} asChild>
+            <Pressable accessibilityRole="link" hitSlop={12} style={styles.seeAll}>
+              <AppText variant="small" weight="semibold" color={colors.brand700}>
+                {t("exams:seeAll")}
+              </AppText>
+            </Pressable>
+          </Link>
         ) : null}
       </View>
       {children}
@@ -42,6 +52,7 @@ const styles = StyleSheet.create({
   section: { gap: space.md },
   header: { flexDirection: "row", alignItems: "baseline", gap: space.sm },
   title: { flex: 1 },
+  seeAll: { minHeight: 32, justifyContent: "center" },
   empty: {
     borderWidth: 1,
     borderStyle: "dashed",

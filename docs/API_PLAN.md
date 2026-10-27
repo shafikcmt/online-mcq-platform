@@ -235,8 +235,20 @@ No internal ids, prices, contact data or payment data. Profile data stays on `GE
 - **Exam status changes:** unpublish/archive or an inactive category/subject block **new** starts
   (`404`); a running attempt still resumes (`GET /attempts/{id}`), saves and submits until its deadline.
 - **History:** `GET /attempts` — paginated summaries with `exam {slug, title}`.
-- Not built yet: `GET /exams`, `GET /exams/{id}` with `can_start`/`locked_reason` (planned with the
-  dashboard/results work).
+- **Exam list / details** *(8C — built)*: `GET /exams/` and `GET /exams/{slug}/` (student JWT, read-only).
+  Each item = the public exam fields (`/public/exams`) **plus** this student's state from
+  `attempts.selectors.student_exam_status` — the same rules the start endpoint and the dashboard use:
+  `has_access`, `can_start`, `can_resume`, `attempt_state` (`in_progress` / `finished` / null),
+  `locked_reason` (set only when neither start nor resume is possible; it is the error code start would
+  return, checked in start's order: `needs_subscription`, `exam_not_started`, `exam_ended`,
+  `retake_not_allowed`, `attempt_limit_reached`), `attempts_used`, `attempts_allowed` (null = unlimited)
+  and `seconds_if_started_now` (less than the duration when joining late; null if a start is not
+  possible). Filters `type`, `access`, `category`, `search` (titles) and `when` = `open` (window open now,
+  soonest end first) / `upcoming` (`start_at` > now, soonest first) / `ended` (`end_at` ≤ now,
+  latest first); paginated `{count, next, previous, results, server_time}`. Details add `server_time`.
+  Constant query count (one for access, one for the student's attempts). Never questions, options or
+  answers. *(Plan names `locked_reason` values `not_started`/`ended`/`attempt_limit`; built with the
+  exam engine's own error codes instead.)*
 
 **Start/resume response (example):**
 ```json

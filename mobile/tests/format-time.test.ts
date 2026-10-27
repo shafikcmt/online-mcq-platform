@@ -1,5 +1,5 @@
 import i18n from "@/i18n";
-import { shortGap, relativeOrDate } from "@/features/dashboard/time";
+import { shortGap, relativeOrDate } from "@/features/exams/time";
 import { formatDateTime, formatDecimal } from "@/lib/format";
 import { resetServerClock, serverNow, syncServerClock } from "@/lib/server-clock";
 
