@@ -1,0 +1,79 @@
+{
+  "title": "Results",
+  "subtitle": "Your scores and every exam you took.",
+  "filters": {
+    "label": "Show",
+    "results": "Results",
+    "history": "History"
+  },
+  "empty": {
+    "results": "Your results will appear here after you finish an exam.",
+    "history": "You have not taken an exam yet."
+  },
+  "attemptNo": "Attempt {{n}}",
+  "status": {
+    "in_progress": "In progress — tap to continue",
+    "submitted": "Submitted",
+    "auto_submitted": "Submitted when time ran out"
+  },
+  "detail": {
+    "title": "Result",
+    "score": "Score",
+    "marks": "{{obtained}}/{{total}}",
+    "percent": "{{value}}%",
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "unanswered": "Not answered",
+    "breakdown": "Details",
+    "positive": "Marks for correct answers",
+    "negative": "Deducted for wrong answers",
+    "passMarks": "Pass marks",
+    "timeUsed": "Time used",
+    "submitted": "Submitted",
+    "merit": "Merit position",
+    "meritPending": "Not ranked yet",
+    "meritNotCounted": "Not counted (only one attempt counts)",
+    "review": "Review answers",
+    "reviewUnavailable": "Answer review is not available for this exam.",
+    "leaderboard": "Leaderboard",
+    "notVisible": "Your answers were submitted. The result will be shown when the exam's results are published.",
+    "notFound": "This result is not available."
+  },
+  "duration": {
+    "minutesSeconds": "{{m}} min {{s}} s",
+    "seconds": "{{s}} s"
+  },
+  "review": {
+    "title": "Answer review",
+    "filters": {
+      "label": "Show questions",
+      "all": "All",
+      "wrong": "Wrong",
+      "unanswered": "Skipped",
+      "correct": "Correct"
+    },
+    "question": "Question {{n}}",
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "unanswered": "Not answered",
+    "yourAnswer": "Your answer",
+    "correctAnswer": "Correct answer",
+    "awarded": "Marks: {{awarded}} of {{marks}}",
+    "explanation": "Explanation",
+    "none": "No questions in this group.",
+    "notAllowed": "Answer review is not available for this exam."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "you": "You",
+    "yourPosition": "Your position: {{n}}",
+    "notRanked": "You are not on this list yet.",
+    "count": "{{n}} ranked",
+    "position": "Position {{n}}",
+    "row": "Position {{n}}, {{name}}, {{marks}}, {{percent}}",
+    "disabled": "This exam has no leaderboard.",
+    "notVisible": "The leaderboard will be shown when the exam's results are published.",
+    "empty": "The merit list has not been prepared yet."
+  },
+  "seeResult": "See full result"
+}

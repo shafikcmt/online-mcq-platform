@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { CheckCircle2 } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -58,7 +59,10 @@ export function FinishedView({ state, onDone }: { state: SessionState; onDone: (
           <AppText color={colors.inkMuted}>{t("room:done.pending")}</AppText>
         </Card>
       )}
-      <Button label={t("room:done.close")} onPress={onDone} />
+      {result ? (
+        <Button label={t("results:seeResult")} onPress={() => router.replace({ pathname: "/result/[id]", params: { id: state.room.attempt_id } })} />
+      ) : null}
+      <Button label={t("room:done.close")} variant={result ? "secondary" : "primary"} onPress={onDone} />
     </View>
   );
 }
