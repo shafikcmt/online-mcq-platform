@@ -17,7 +17,8 @@ Answer review additionally needs ``exam.allow_answer_review``.
 import unicodedata
 from datetime import datetime
 
-from django.db.models import Prefetch, Q
+from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
+from django.db.models.functions import Coalesce
 
 from apps.attempts.models import AttemptAnswer, ExamAttempt
 from apps.cms import selectors as cms
@@ -45,12 +46,42 @@ def results_visible(exam: Exam, now: datetime) -> bool:
     return False  # manual, not published
 
 
+def visible_exams_filter(now: datetime, prefix: str = "") -> Q:
+    """``results_visible`` as a query filter on exams (``prefix="exam__"`` on results)."""
+    return (
+        Q(**{f"{prefix}result_published_at__lte": now})
+        | Q(**{f"{prefix}result_visibility": ResultVisibility.IMMEDIATE})
+        | Q(
+            **{
+                f"{prefix}result_visibility": ResultVisibility.AFTER_EXAM_END,
+                f"{prefix}end_at__lte": now,
+            }
+        )
+    )
+
+
 def visible_results_filter(now: datetime) -> Q:
     """``results_visible`` as a query filter on results (same policy, for lists)."""
+    return visible_exams_filter(now, prefix="exam__")
+
+
+def public_leaderboard_exams(exams, now: datetime):
+    """The exams among ``exams`` whose merit list the public leaderboard shows: merit
+    enabled, results visible (the same policy as ``results_visible``) and a generated
+    merit list — annotated with ``ranked_count``."""
+    ranked = (
+        Result.objects.filter(exam_id=OuterRef("pk"), is_merit_counted=True)
+        .exclude(merit_position=None)
+        .order_by()
+        .values("exam_id")
+        .annotate(n=Count("id"))
+        .values("n")
+    )
     return (
-        Q(exam__result_published_at__lte=now)
-        | Q(exam__result_visibility=ResultVisibility.IMMEDIATE)
-        | Q(exam__result_visibility=ResultVisibility.AFTER_EXAM_END, exam__end_at__lte=now)
+        exams.filter(merit_enabled=True)
+        .filter(visible_exams_filter(now))
+        .annotate(ranked_count=Coalesce(Subquery(ranked), 0))
+        .filter(ranked_count__gt=0)
     )
 
 

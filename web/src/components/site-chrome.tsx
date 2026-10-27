@@ -15,6 +15,8 @@ export function navItems(lang: Lang) {
     { href: `/${lang}`, label: t("nav.home") },
     { href: `/${lang}/exams`, label: t("nav.exams") },
     { href: `/${lang}/packages`, label: t("nav.packages") },
+    { href: `/${lang}/leaderboard`, label: t("nav.leaderboard") },
+    { href: `/${lang}/notices`, label: t("nav.notices") },
   ];
 }
 

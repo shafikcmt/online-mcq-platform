@@ -5,6 +5,7 @@ from .views import (
     ExamLeaderboardView,
     MeritGenerateView,
     MyResultListView,
+    PublicLeaderboardExamListView,
     PublicLeaderboardView,
     ResultDetailView,
     ResultReviewView,
@@ -18,6 +19,7 @@ student_urlpatterns = [
 ]
 
 public_urlpatterns = [
+    path("leaderboards/", PublicLeaderboardExamListView.as_view(), name="leaderboard-list"),
     path(
         "exams/<slug:slug>/leaderboard/", PublicLeaderboardView.as_view(), name="exam-leaderboard"
     ),

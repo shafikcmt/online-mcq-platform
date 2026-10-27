@@ -122,6 +122,7 @@ and a `field_errors` entry; nothing is saved. Other unknown fields are ignored.
 | GET | `/public/faqs` | FAQ list |
 | GET | `/public/pages/{slug}` | About / Terms / Privacy |
 | GET | `/public/exams/{slug}/leaderboard` | Top N merit (only if results visible). Names rendered per `public_leaderboard_name_mode` (default **masked**, e.g. `Rah*** H.`); never phone/email *(4C: published exams only; N = `LEADERBOARD_PUBLIC_SIZE`, default 100; rows `{position, name, obtained_marks, total_marks, percentage, time_used_seconds}`; `404` when merit is off or results are not visible)* |
+| GET | `/public/leaderboards` | *(9C)* The exams that have such a public merit list: published, merit enabled, results visible (same policy as above) and merit generated — the public exam fields plus `ranked_count`; most recently ended first, unscheduled last; paginated. |
 | POST | `/public/contact` | Basic contact form `{name, phone?, email?, subject, message}` — throttled + honeypot field; stored in `contact_messages` |
 | GET | `/public/app-links` | Play Store URL + app open URL for the "Download / Open App" flow (from site settings) |
 

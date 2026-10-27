@@ -158,6 +158,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <EmptyNote text={m.notices.empty} />
             </div>
           )}
+          {notices?.results.length ? (
+            <div className="mt-6 flex justify-end">
+              <SeeAll href={`/${lang}/notices`} label={m.notices.all} />
+            </div>
+          ) : null}
         </div>
       </section>
 

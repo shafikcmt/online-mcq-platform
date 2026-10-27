@@ -15,7 +15,7 @@ from apps.attempts import services as attempts
 from apps.attempts.models import AttemptAnswer, ExamAttempt
 from apps.audit.models import AuditLog
 from apps.exams import services as exam_services
-from apps.exams.models import ExamQuestion
+from apps.exams.models import Exam, ExamQuestion
 from apps.results import selectors, services
 from apps.results.exceptions import ResultError
 from apps.results.models import Result
@@ -702,6 +702,33 @@ class TestLeaderboard:
         broken = APIClient()
         broken.credentials(HTTP_AUTHORIZATION="Bearer broken")
         assert broken.get(f"/api/v1/public/exams/{exam.slug}/leaderboard/").json() == rows
+
+    def test_public_leaderboard_list(self, subject):
+        LIST = "/api/v1/public/leaderboards/"
+        board, _users = self._board(subject)
+        published(subject)  # no results yet: no merit list
+        not_generated = published(subject)
+        take(make_student(), not_generated, "ccc")  # results, but merit not generated
+        hidden, _ = self._board(subject, result_visibility="manual")
+        response = APIClient().get(LIST)
+        assert response.status_code == 200
+        rows = response.json()["results"]
+        assert [r["slug"] for r in rows] == [board.slug]
+        assert rows[0]["ranked_count"] == 3 and rows[0]["title"]
+        assert "id" not in rows[0] and "merit_enabled" not in rows[0]
+        # Publishing the hidden exam's results lists it; unpublishing an exam removes it.
+        exam_services.publish_results(hidden.pk, ctx=exam_services_ctx())
+        assert {r["slug"] for r in APIClient().get(LIST).json()["results"]} == {
+            board.slug,
+            hidden.slug,
+        }
+        exam_services.unpublish_exam(board.pk, ctx=exam_services_ctx())
+        assert [r["slug"] for r in APIClient().get(LIST).json()["results"]] == [hidden.slug]
+
+    def test_public_leaderboard_list_merit_disabled(self, subject):
+        exam, _users = self._board(subject)
+        Exam.objects.filter(pk=exam.pk).update(merit_enabled=False)
+        assert APIClient().get("/api/v1/public/leaderboards/").json()["results"] == []
 
     @pytest.mark.parametrize(
         ("mode", "expected"),

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { AppButton } from "@/components/app-button";
 import { Chip, PageIntro, UnavailableNote } from "@/components/cards";
-import { getSettings, publicFetch, type Exam } from "@/lib/api";
+import { getSettings, publicFetch, publicGet, type Exam, type LeaderboardRow } from "@/lib/api";
 import { pageHref, scheduleState } from "@/lib/exam-filters";
 import { dateTime, decimal, digits } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
@@ -51,7 +51,11 @@ export default async function ExamPage({ params }: Props) {
   const { lang: raw, slug } = await params;
   const lang = raw as Lang;
   const t = translator(lang);
-  const [fetched, settings] = await Promise.all([load(slug, lang), getSettings(lang)]);
+  const [fetched, settings, merit] = await Promise.all([
+    load(slug, lang),
+    getSettings(lang),
+    SLUG.test(slug) ? publicGet<LeaderboardRow[]>(`exams/${slug}/leaderboard/`, lang) : null, // null = no public merit list
+  ]);
   if (fetched.state === "missing") notFound();
 
   const back = (
@@ -187,6 +191,15 @@ export default async function ExamPage({ params }: Props) {
             ) : null}
             <AppButton {...app} size="lg" className="w-full justify-center" />
           </div>
+          {merit?.length ? (
+            <Link
+              href={`/${lang}/exams/${exam.slug}/leaderboard`}
+              className="mt-4 flex min-h-12 items-center justify-center gap-2 rounded-card border border-line bg-surface px-4 font-semibold text-brand-700 hover:border-brand-600"
+            >
+              <Trophy className="size-5" aria-hidden />
+              {t("examDetail.merit")}
+            </Link>
+          ) : null}
         </aside>
       </div>
     </>

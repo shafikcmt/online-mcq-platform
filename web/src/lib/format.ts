@@ -27,3 +27,12 @@ export function date(iso: string, lang: Lang): string {
 export function dateTime(iso: string, lang: Lang): string {
   return new Intl.DateTimeFormat(locale(lang), { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Dhaka" }).format(new Date(iso));
 }
+
+/** Seconds as a clock: "4:05", or "1:02:09" from an hour on, in the page's digits. */
+export function clock(seconds: number, lang: Lang): string {
+  const total = Math.max(0, Math.round(seconds));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = String(total % 60).padStart(2, "0");
+  return digits(h ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`, lang);
+}

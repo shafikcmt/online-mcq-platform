@@ -7,7 +7,8 @@ the attempt's UUID):
 - ``GET /results/{attempt_public_id}/review/``   answer review (visible + allowed)
 - ``GET /exams/{slug}/leaderboard/``             merit list + my position
 
-Public (no login): ``GET /public/exams/{slug}/leaderboard/`` — top N, masked names.
+Public (no login): ``GET /public/exams/{slug}/leaderboard/`` — top N, masked names;
+``GET /public/leaderboards/`` — the exams that have such a public merit list.
 
 Admin (session + CSRF + admin role): ``GET /admin/results/`` (filters ``exam``, ``user``,
 ``merit_counted``, ``attempt``, ``is_passed``; ``search`` = student name; ``ordering``),
@@ -17,7 +18,7 @@ Admin (session + CSRF + admin role): ``GET /admin/results/`` (filters ``exam``, 
 import uuid
 
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import Http404
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
@@ -43,6 +44,7 @@ from apps.core.admin_api import (
 from apps.core.exceptions import ApiError
 from apps.core.i18n import resolve_bilingual
 from apps.core.public_api import PublicAPIMixin
+from apps.exams.api.serializers import PublicExamSerializer
 from apps.exams.api.views import public_exams
 from apps.exams.models import Exam, ExamStatus
 
@@ -58,6 +60,7 @@ from ..selectors import (
     display_name_for,
     leaderboard_name_mode,
     own_results,
+    public_leaderboard_exams,
     ranked_results,
     results_visible,
     review_allowed,
@@ -249,6 +252,22 @@ class ExamLeaderboardView(generics.ListAPIView):
             .first()
         )
         return response
+
+
+class PublicLeaderboardExamSerializer(PublicExamSerializer):
+    ranked_count = serializers.IntegerField(help_text="Students on the merit list.")
+
+
+class PublicLeaderboardExamListView(PublicAPIMixin, generics.ListAPIView):
+    """Exams whose merit list the public leaderboard shows (merit enabled, results
+    visible, merit generated), most recently ended first, unscheduled last."""
+
+    serializer_class = PublicLeaderboardExamSerializer
+
+    def get_queryset(self):
+        return public_leaderboard_exams(public_exams(), timezone.now()).order_by(
+            F("end_at").desc(nulls_last=True), "-id"
+        )
 
 
 class PublicLeaderboardView(PublicAPIMixin, APIView):
