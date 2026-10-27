@@ -15,7 +15,12 @@ pages, all in the address (`?when=upcoming&type=live&page=2`; shareable, works w
 JavaScript, unknown values are dropped in `src/lib/exam-filters.ts`; filtered views are
 `noindex`); `/exams/{slug}` — an exam's rules, schedule and instructions with the way to the
 app (no questions or answers: the public API has none); `/packages` — every package and how
-buying works; a localized 404 inside the site. The other pages come next
+buying works; a localized 404 inside the site.
+
+**9C:** `/notices` — website notices (audience public or everyone), pinned first, full
+text, pages; `/leaderboard` — the exams whose merit list is public; `/exams/{slug}/leaderboard`
+— the top students with names shortened by the platform's privacy setting (masked by
+default), marks, percent and time; never a phone number or an email. The other pages come next
 (`docs/ROADMAP.md` Milestone 9).
 
 ## Run it

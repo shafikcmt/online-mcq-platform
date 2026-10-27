@@ -10,7 +10,9 @@
     "close": "Close menu",
     "skip": "Skip to content",
     "exams": "Exams",
-    "packages": "Packages"
+    "packages": "Packages",
+    "notices": "Notices",
+    "leaderboard": "Leaderboard"
   },
   "lang": {
     "label": "Language",
@@ -30,7 +32,13 @@
     "examsDescription": "Live exams, model tests and practice sets on Live Model Test: what is open now, what is coming up and what has ended.",
     "packagesTitle": "Packages",
     "packagesDescription": "Live Model Test packages: prices, validity and what each package unlocks. Free exams are open to everyone.",
-    "examDescription": "{{title}} — {{minutes}}, {{questions}}. Take it in the Live Model Test app."
+    "examDescription": "{{title}} — {{minutes}}, {{questions}}. Take it in the Live Model Test app.",
+    "noticesTitle": "Notices",
+    "noticesDescription": "Latest notices and announcements from Live Model Test: exam schedules, results and updates.",
+    "leaderboardTitle": "Leaderboard",
+    "leaderboardDescription": "Merit lists of Live Model Test exams: the top students of each exam.",
+    "meritTitle": "Merit list: {{title}}",
+    "meritDescription": "The merit list of {{title}} on Live Model Test: positions, marks and time."
   },
   "home": {
     "hero": {
@@ -96,7 +104,8 @@
     },
     "notices": {
       "title": "Latest notices",
-      "empty": "No notices right now."
+      "empty": "No notices right now.",
+      "all": "See all notices"
     },
     "how": {
       "title": "How it works",
@@ -184,13 +193,7 @@
     },
     "filteredEmpty": "No exams match these filters.",
     "unavailable": "Exams can't be loaded right now. Please try again in a moment.",
-    "count": "{{n}} exams",
-    "pages": {
-      "label": "Pages",
-      "of": "Page {{page}} of {{pages}}",
-      "prev": "Previous",
-      "next": "Next"
-    }
+    "count": "{{n}} exams"
   },
   "examDetail": {
     "facts": "Exam details",
@@ -219,7 +222,8 @@
     "endedBody": "Students who took it can see their results and the merit list in the app.",
     "paid": "A package unlocks this paid exam.",
     "seePackages": "See packages",
-    "unavailable": "This exam can't be loaded right now. Please try again in a moment."
+    "unavailable": "This exam can't be loaded right now. Please try again in a moment.",
+    "merit": "View the merit list"
   },
   "packagesPage": {
     "title": "Packages",
@@ -243,5 +247,38 @@
     },
     "paidExams": "See paid exams",
     "unavailable": "Packages can't be loaded right now. Please try again in a moment."
+  },
+  "pages": {
+    "label": "Pages",
+    "of": "Page {{page}} of {{pages}}",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "notices": {
+    "title": "Notices",
+    "body": "Exam schedules, results and other updates.",
+    "empty": "No notices right now.",
+    "unavailable": "Notices can't be loaded right now. Please try again in a moment."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "body": "Merit lists of exams whose results are out. Take exams in the app to get on the list.",
+    "empty": "No merit lists have been published yet.",
+    "unavailable": "The leaderboard can't be loaded right now. Please try again in a moment.",
+    "ranked": "{{n}} on the merit list",
+    "view": "View merit list"
+  },
+  "merit": {
+    "title": "Merit list",
+    "privacy": "Names are shortened to protect students' privacy.",
+    "top": "Top {{n}}",
+    "position": "Position",
+    "name": "Name",
+    "marks": "Marks",
+    "percent": "Percent",
+    "time": "Time",
+    "notPublic": "The merit list for this exam isn't public yet.",
+    "unavailable": "The merit list can't be loaded right now. Please try again in a moment.",
+    "all": "All merit lists"
   }
 }

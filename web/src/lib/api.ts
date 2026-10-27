@@ -84,4 +84,18 @@ export type Notice = { title: string; body: string; is_pinned: boolean; publishe
 
 export type Faq = { question: string; answer: string };
 
+/** An exam with a public merit list (`/public/leaderboards/`). */
+export type LeaderboardExam = Exam & { ranked_count: number };
+
+/** One merit-list row: the name is shortened by the platform's privacy setting
+ * (masked by default); never a phone number or an email. */
+export type LeaderboardRow = {
+  position: number;
+  name: string;
+  obtained_marks: string;
+  total_marks: string;
+  percentage: string;
+  time_used_seconds: number;
+};
+
 export const getSettings = (lang: Lang) => publicGet<Settings>("settings/", lang);

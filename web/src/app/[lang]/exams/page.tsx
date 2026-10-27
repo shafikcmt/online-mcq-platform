@@ -1,8 +1,9 @@
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EmptyNote, ExamCard, PageIntro, UnavailableNote } from "@/components/cards";
+import { Pager } from "@/components/pager";
 import { publicFetch, publicGet, type Category, type Exam, type Page } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { ACCESSES, apiPath, PAGE_SIZE, pageHref, parseFilters, TYPES, WHENS, type ExamFilters } from "@/lib/exam-filters";
@@ -84,7 +85,7 @@ export default async function ExamsPage({ params, searchParams }: Props) {
           )}
         </section>
 
-        {page && pages > 1 ? <Pager lang={lang} t={t} filters={filters} pages={pages} /> : null}
+        {page ? <Pager lang={lang} t={t} page={filters.page} pages={pages} href={(n) => pageHref(lang, { ...filters, page: n })} /> : null}
       </div>
     </>
   );
@@ -140,31 +141,5 @@ function Filters({ lang, t, filters, categories }: { lang: Lang; t: T; filters: 
         ) : null}
       </div>
     </form>
-  );
-}
-
-function Pager({ lang, t, filters, pages }: { lang: Lang; t: T; filters: ExamFilters; pages: number }) {
-  const link = "inline-flex min-h-11 items-center gap-1 rounded-control border border-line bg-surface px-4 text-sm font-semibold text-ink hover:border-brand-600";
-  const current = Math.min(filters.page, pages);
-  return (
-    <nav aria-label={t("exams.pages.label")} className="mt-8 flex items-center justify-between gap-3">
-      {current > 1 ? (
-        <Link href={pageHref(lang, { ...filters, page: current - 1 })} rel="prev" className={link}>
-          <ChevronLeft className="size-4" aria-hidden />
-          {t("exams.pages.prev")}
-        </Link>
-      ) : (
-        <span />
-      )}
-      <p className="text-sm text-ink-muted">{t("exams.pages.of", { page: digits(current, lang), pages: digits(pages, lang) })}</p>
-      {current < pages ? (
-        <Link href={pageHref(lang, { ...filters, page: current + 1 })} rel="next" className={link}>
-          {t("exams.pages.next")}
-          <ChevronRight className="size-4" aria-hidden />
-        </Link>
-      ) : (
-        <span />
-      )}
-    </nav>
   );
 }

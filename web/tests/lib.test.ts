@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, test } from "vitest";
 
-import { date, decimal, digits, money } from "@/lib/format";
+import { clock, date, decimal, digits, money } from "@/lib/format";
 import { translator } from "@/lib/i18n";
 import { alternates } from "@/lib/site";
 import { middleware } from "@/middleware";
@@ -13,6 +13,13 @@ describe("format", () => {
     expect(money("500.00", "BDT", "en")).toBe("৳500");
     expect(money("500.00", "BDT", "bn")).toBe("৳৫০০");
     expect(money("10.00", "USD", "en")).toBe("10 USD");
+  });
+
+  test("time used as a clock", () => {
+    expect(clock(0, "en")).toBe("0:00");
+    expect(clock(245, "en")).toBe("4:05");
+    expect(clock(3729, "en")).toBe("1:02:09");
+    expect(clock(245, "bn")).toBe("৪:০৫");
   });
 
   test("dates in Bangladesh time", () => {
