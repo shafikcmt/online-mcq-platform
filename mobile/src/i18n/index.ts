@@ -8,11 +8,13 @@ import bnCommon from "./locales/bn/common.json";
 import bnExams from "./locales/bn/exams.json";
 import bnHome from "./locales/bn/home.json";
 import bnProfile from "./locales/bn/profile.json";
+import bnRoom from "./locales/bn/room.json";
 import enAuth from "./locales/en/auth.json";
 import enCommon from "./locales/en/common.json";
 import enExams from "./locales/en/exams.json";
 import enHome from "./locales/en/home.json";
 import enProfile from "./locales/en/profile.json";
+import enRoom from "./locales/en/room.json";
 
 /** UI translations (docs/LOCALIZATION.md §7): one JSON file per feature namespace and
  * language; every key exists in both languages (tests/i18n.test.ts checks it). The UI
@@ -21,8 +23,8 @@ export const LANGUAGES = ["bn", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const resources = {
-  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams },
-  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams },
+  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom },
+  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom },
 } as const;
 
 const i18n = createInstance();
@@ -30,7 +32,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: "bn",
   fallbackLng: "bn",
-  ns: ["common", "auth", "profile", "home", "exams"],
+  ns: ["common", "auth", "profile", "home", "exams", "room"],
   defaultNS: "common",
   interpolation: { escapeValue: false }, // React escapes; no HTML is ever rendered
   returnNull: false,

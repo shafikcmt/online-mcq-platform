@@ -1,7 +1,8 @@
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { CloudOff } from "lucide-react-native";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { RefreshControl, StyleSheet, View } from "react-native";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
 import { describeError } from "@/api/describe";
@@ -11,8 +12,11 @@ import { Badge, badgeIconColor } from "@/components/badge";
 import { Banner } from "@/components/banner";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Screen } from "@/components/screen";
+import { startAttempt } from "@/features/attempt/api";
+import { handOff } from "@/features/attempt/handoff";
 import { fetchExam } from "@/features/exams/api";
 import { statusOf } from "@/features/exams/exam-card";
 import { relativeOrDate, shortGap } from "@/features/exams/time";
@@ -25,18 +29,48 @@ import { colors, radius, space } from "@/theme";
 
 /** One exam: what it is (questions, marks, time, negative marking, schedule, language),
  * its instructions, and what this student can do now with the reason when they cannot —
- * all decided by the server (`GET /exams/{slug}/`). Starting and continuing open the exam
- * room (next Mobile App slice). */
+ * all decided by the server (`GET /exams/{slug}/`). Start (after a confirmation) and
+ * Continue open the exam room; the server starts a new attempt or returns the open one. */
 export default function ExamDetailScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const load = useCallback(() => fetchExam(slug), [slug]);
   const { data, error, loading, refreshing, refresh, retry } = useRemote(load);
   const now = useServerNow(data?.server_time);
   const missing = isApiError(error) && error.status === 404;
+  const [confirming, setConfirming] = useState(false);
+  const [opening, setOpening] = useState(false);
+  const [startError, setStartError] = useState<unknown>(null);
 
+  async function open() {
+    if (opening || !data) return;
+    setConfirming(false);
+    setOpening(true);
+    setStartError(null);
+    try {
+      const room = await startAttempt(data.slug);
+      handOff(room);
+      router.push({ pathname: "/attempt/[id]", params: { id: room.attempt_id } });
+    } catch (failure) {
+      setStartError(failure); // e.g. the window just closed: the server's own message
+      void refresh();
+    } finally {
+      setOpening(false);
+    }
+  }
+
+  const action = data?.can_resume ? "continue" : data?.can_start ? "start" : null;
   return (
     <Screen
+      footer={
+        action ? (
+          <Button
+            label={opening ? t("room:starting") : t(`room:${action}`)}
+            loading={opening}
+            onPress={() => (action === "start" ? setConfirming(true) : void open())}
+          />
+        ) : undefined
+      }
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[colors.brand600]} tintColor={colors.brand600} />}
     >
       <PageHeader title={data?.title ?? t("exams:title")} eyebrow={data ? [data.category.name, data.subject?.name].filter(Boolean).join(" · ") : undefined} />
@@ -58,7 +92,18 @@ export default function ExamDetailScreen() {
         </View>
       ) : null}
       {data && error ? <Banner tone="info" message={t("home:stale")} /> : null}
+      {startError ? <Banner tone="error" message={describeError(startError, t)} /> : null}
       {data ? <Details exam={data} now={now} /> : null}
+      {data ? (
+        <ConfirmDialog
+          open={confirming}
+          title={t("room:startTitle")}
+          body={t("room:startBody", { time: timeIfStarted(data, now, t, i18n.language) })}
+          confirmLabel={t("room:start")}
+          onConfirm={() => void open()}
+          onCancel={() => setConfirming(false)}
+        />
+      ) : null}
     </Screen>
   );
 }
@@ -124,15 +169,20 @@ function Details({ exam, now }: { exam: StudentExamDetail; now: number }) {
   );
 }
 
+/** "30 min" — the time a new attempt would get now (less when joining late). */
+function timeIfStarted(exam: StudentExamDetail, now: number, t: TFunction, language: string): string {
+  const seconds = exam.seconds_if_started_now ?? exam.duration_minutes * 60;
+  return shortGap(now + seconds * 1000, now, t, language) ?? t("exams:minutes", { n: localizeDigits(Math.floor(seconds / 60), language) });
+}
+
 /** What the student can do now, in one sentence from the server's flags. */
 function StatePanel({ exam, now }: { exam: StudentExamDetail; now: number }) {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
   if (exam.can_resume) return <Banner tone="info" message={t("exams:state.resume")} />;
   if (exam.can_start && exam.seconds_if_started_now !== null) {
-    const seconds = exam.seconds_if_started_now;
-    const time = shortGap(now + seconds * 1000, now, t, language) ?? t("exams:minutes", { n: localizeDigits(Math.floor(seconds / 60), language) });
-    const late = seconds < exam.duration_minutes * 60;
+    const time = timeIfStarted(exam, now, t, language);
+    const late = exam.seconds_if_started_now < exam.duration_minutes * 60;
     return <Banner tone="success" message={t(late ? "exams:state.readyLate" : "exams:state.ready", { time })} />;
   }
   if (!exam.locked_reason) return null;

@@ -21,3 +21,5 @@ jest.mock("expo-localization", () => ({
 }));
 
 jest.mock("expo-splash-screen", () => ({ preventAutoHideAsync: jest.fn(async () => true), hideAsync: jest.fn(async () => true) }));
+
+jest.mock("expo-keep-awake", () => ({ useKeepAwake: jest.fn() }));
