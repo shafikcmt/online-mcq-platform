@@ -8,8 +8,9 @@ with an SMS code, forgot password, Profile (details, edit, language, change pass
 out) — Milestone 8A — and the Home dashboard (8B): exams open now / upcoming / practice with
 what the student can do, active packages, recent results and the unread count, all times
 counted from the server's clock — and the Exams tab with exam details (8C): open now /
-upcoming / past, and for each exam what the student can do and why not. The exam room,
-results, packages and payments come next (`docs/ROADMAP.md` Milestone 8).
+upcoming / past, and for each exam what the student can do and why not — and the exam
+room (8D). Results, review, leaderboard, packages and payments come next
+(`docs/ROADMAP.md` Milestone 8).
 
 ## Run it
 
@@ -40,14 +41,16 @@ src/
 │   ├── _layout.tsx      fonts, language, session; three guarded areas (Stack.Protected)
 │   ├── language.tsx     first launch: বাংলা / English
 │   ├── (auth)/          login, register, forgot-password      (signed out)
-│   └── (app)/           tabs (home, exams, profile), exam/[slug], edit-profile, change-password
+│   └── (app)/           tabs (home, exams, profile), exam/[slug], attempt/[id] (exam room),
+│                        edit-profile, change-password
 ├── api/                 fetch wrapper, error shape, error → sentence
 ├── auth/                session provider, token storage, types
 ├── features/auth/       phone and SMS-code steps shared by registration and reset
 ├── features/dashboard/  Home: API call, result row, package card, sections
 ├── features/exams/      exam list/details API, paging, exam card, time labels
+├── features/attempt/    exam room: session (save/retry/submit rules), timer, question, palette
 ├── components/          AppText, Button, TextField, OtpInput, Banner, Card, dialogs…
-├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams}.json
+├── i18n/                i18next setup + locales/{bn,en}/{common,auth,profile,home,exams,room}.json
 ├── lib/                 phone numbers, digits, dates, server clock, screen data loading
 └── theme/               design tokens (same values as the Admin Panel)
 ```
@@ -66,6 +69,13 @@ src/
   gives Bangla a taller line height. System font scaling is respected.
 - **Server clock:** exam windows and countdowns use the server's time (`server_time` in
   responses → `lib/server-clock.ts`), never the phone's own clock, which may be wrong.
+- **Exam room:** the server decides everything that counts — the deadline, what is saved,
+  the score. The app keeps unconfirmed answer changes on the phone (`mcq.attempt.<id>` in
+  AsyncStorage — the student's own choices, never answer keys, which the app never receives)
+  so a dropped connection or a closed app loses nothing chosen before the deadline; they are
+  retried every few seconds and re-sent on the next start. Submit carries a stored
+  Idempotency-Key, so a retried submit cannot count twice. The rules live in
+  `features/attempt/session.ts` (tested on their own in `tests/attempt-session.test.ts`).
 - **Server is the source of truth:** the app validates only for quick feedback; the server
   validates again (mobile numbers, passwords, OTP rules).
 
