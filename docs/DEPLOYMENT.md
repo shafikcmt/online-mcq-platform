@@ -218,7 +218,7 @@ Playwright builds and starts the site itself on port 3002, reading the disposabl
 
 ```bash
 E2E_DISPOSABLE_DB=destroy-and-recreate … E2E_BASE_URL=http://localhost:3002 \
-E2E_PROJECT_DIR=web admin/e2e/stack/run.sh about-faq-contact notices-leaderboard exams-packages home
+E2E_PROJECT_DIR=web admin/e2e/stack/run.sh accessibility about-faq-contact notices-leaderboard exams-packages home
 ```
 
 Each run clears the site's data cache (`.next/cache/fetch-cache`) before the build, like the

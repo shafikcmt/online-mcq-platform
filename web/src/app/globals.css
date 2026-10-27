@@ -1,12 +1,10 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/noto-sans-bengali";
+/* Fonts: src/lib/fonts.ts (next/font, preloaded; --font-inter and --font-bengali are set on <html>). */
 
 /* Design tokens: the same values as the Admin Panel and the Mobile App
    (docs/UI_UX_GUIDELINES.md §2), brand colours from the Live Model Test logo. */
 @theme {
-  --font-sans: "Inter Variable", "Noto Sans Bengali Variable", ui-sans-serif, system-ui,
-    sans-serif;
+  --font-sans: var(--font-inter), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
 
   --color-brand-950: #071d4a;
   --color-brand-900: #0b2a6b;

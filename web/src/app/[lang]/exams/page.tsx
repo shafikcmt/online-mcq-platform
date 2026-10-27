@@ -77,7 +77,7 @@ export default async function ExamsPage({ params, searchParams }: Props) {
               <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {page.results.map((exam) => (
                   <li key={exam.slug}>
-                    <ExamCard exam={exam} lang={lang} />
+                    <ExamCard exam={exam} lang={lang} headingLevel={2} />
                   </li>
                 ))}
               </ul>

@@ -24,6 +24,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "1.56.1",
     "@tailwindcss/postcss": "^4",
