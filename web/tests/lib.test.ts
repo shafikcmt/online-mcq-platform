@@ -43,6 +43,14 @@ test("translator fills placeholders and shows the key when missing", () => {
   expect(t("no.such.key")).toBe("no.such.key");
 });
 
+test("translator picks the English singular or plural by count; Bangla is unchanged", () => {
+  const en = translator("en");
+  expect(en("package.days", { n: "1" })).toBe("1 day");
+  expect(en("package.days", { n: "30" })).toBe("30 days");
+  expect(en("exam.questions", { n: "1" })).toBe("1 question");
+  expect(translator("bn")("package.days", { n: "১" })).toBe("১ দিন");
+});
+
 test("hreflang alternates: both languages and x-default (Bangla)", () => {
   expect(alternates("en", "/exams")).toEqual({
     canonical: "https://livemodeltest.com/en/exams",

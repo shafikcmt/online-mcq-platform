@@ -25,7 +25,7 @@ test.beforeAll(async ({ browser, request }) => {
 
 test("the bell shows the unread count and opens the notifications", async () => {
   await signIn(page, NUMBER, PASSWORD);
-  await page.getByRole("link", { name: "1 unread notifications" }).filter({ visible: true }).click();
+  await page.getByRole("link", { name: "1 unread notification" }).filter({ visible: true }).click();
   const list = page.getByTestId("notification-list");
   await expect(list.getByRole("link", { name: /^Unread, / })).toHaveCount(1);
   await noHorizontalOverflow(page);

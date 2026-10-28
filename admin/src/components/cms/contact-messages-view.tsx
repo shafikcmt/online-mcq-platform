@@ -4,6 +4,7 @@ import { Mail, MessageSquareText, Phone } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { ListRowsLoading } from "@/components/content/list-skeleton";
+import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -37,7 +38,7 @@ export function ContactStatusBadge({ status }: { status: ContactStatus }) {
  * The only change is the status (new → read → resolved, or back to new); nothing can be
  * deleted or edited. Opening a message does not change its status by itself. */
 export function ContactMessagesView({ data, state: serverState }: { data: Paginated<ContactMessage>; state: ListState }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { state, key: urlKey, update, pending: navigating } = useListUrl(CONTACT_LIST);
   const goToFirstPage = useCallback(() => update({ page: 1 }, { replace: true }), [update]);
   const { data: list, reload, reloading, identity } = useListData({
@@ -80,7 +81,7 @@ export function ContactMessagesView({ data, state: serverState }: { data: Pagina
       sortField: "created_at",
       sortFirst: "desc",
       className: "whitespace-nowrap",
-      cell: (row) => <span className="text-ink-muted">{formatDateTime(row.created_at, locale)}</span>,
+      cell: (row) => <span className="text-ink-muted"><DateTimeText iso={row.created_at} /></span>,
     },
   ];
 

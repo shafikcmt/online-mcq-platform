@@ -72,7 +72,7 @@
 | Requirement | Status | Where / evidence |
 |---|---|---|
 | Dashboard: overview, student count, exam count | ✅ | `test_dashboard.py::test_exact_seeded_counts` |
-| Dashboard: recent exams / activities | 🟡 | Today's activity is shown as counts (attempts started/submitted today, in progress); the full activity list is the **Audit log** screen. A "recent exams" card is a small optional addition — owner's call |
+| Dashboard: recent exams / activities | ✅ | Today's activity as counts (attempts started/submitted today, in progress); a **Recent exams** card (10G: the five newest exams, from the existing exam list API — no new backend); the full activity list is the **Audit log** screen. `admin/tests/dashboard-view.test.tsx` |
 | View / search users; view basic profile | ✅ | `admin/e2e/users.spec.ts` (contact details masked) |
 | **Activate / deactivate account** | ✅ | **Added in 10C.** Students only, after a confirmation, audited; deactivating signs the student out everywhere. `test_admin_users.py::TestActivation`, `admin/tests/users-view.test.tsx`, `users.spec.ts` |
 | Categories and subjects: create / edit / delete | ✅ | `admin/e2e/content.spec.ts`, `test_catalog.py` |
@@ -84,7 +84,7 @@
 | Payments: initiation, transaction ID / status, pending / success / failed / cancelled, server-side verification, history | ✅ | `admin/e2e/payments.spec.ts`, `test_payments.py` |
 | Integration target: bKash / Nagad / SSLCommerz | ✅ ⏳ | SSLCommerz first (decision #5), common gateway interface; the live sandbox run needs the client's store credentials (open question 2) |
 | Basic settings: platform name | ✅ | Site settings (Bangla + English) |
-| Basic settings: **logo** | 🟡 | The logo is the owner-supplied brand asset built into the apps and the website (decision #24); changing it is a small code/asset update, not a setting. Owner's call whether an upload setting is wanted |
+| Basic settings: **logo** | ✅ | Owner decision (10G, decisions log #26): the logo stays the owner-supplied brand asset built into the apps and the website (decision #24); a change is a small code/asset update. No upload setting in Phase-1 |
 | Basic settings: announcements / notices; app download link | ✅ | `admin/e2e/cms.spec.ts`, `site-admin.spec.ts` |
 | Accessible, readable panel (UI/UX guidelines §11) | ✅ | **10E:** axe-core WCAG 2.1 A/AA on every screen, both languages, phone and desktop — `admin/e2e/accessibility.spec.ts`, 0 violations |
 
@@ -139,9 +139,12 @@
 | Production deployment support (one agreed server) | ⏳ | `DEPLOYMENT.md` (staging demo ready, §9; website route §8). Needs the client's server, domain and credentials |
 | Source-code handover; setup / deployment notes | ⏳ | Repository + `START_HERE.md`, `DEPLOYMENT.md`; handover after completion / final payment |
 
-## Owner decisions still open
+## Owner decisions
 
-1. **Admin Panel digits in Bangla** — Bangla digits like the app and website, or Western digits with an exception in `LOCALIZATION.md` (10A).
-2. **Admin dashboard "recent exams"** — is the Audit log enough, or add a small "recent exams" card?
-3. **Logo setting** — keep the built-in brand logo, or add a logo upload to Site settings?
-4. Already listed in `ROADMAP.md`: SMS provider, SSLCommerz account, default language and glossary.
+Decided in 10G (`ROADMAP.md` decisions log #25, #26):
+- **Admin Panel digits in Bangla** — the panel keeps Western (ASCII) digits in both languages: an intentional exception, recorded in `LOCALIZATION.md` §5.
+- **Admin dashboard "recent exams"** — added as a small card using the existing exam list API.
+- **Logo setting** — no upload setting; the brand logo stays code/asset managed.
+
+Still open:
+1. Already listed in `ROADMAP.md`: SMS provider, SSLCommerz account, default language and glossary.

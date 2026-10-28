@@ -28,7 +28,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
     settings?.address ? { icon: MapPin, label: t("contact.address"), value: settings.address, href: null } : null,
   ].filter((item) => item !== null);
   const keys = [
-    "name", "phoneField", "emailField", "either", "subject", "message", "honeypot", "send", "sending",
+    "name", "phoneField", "emailField", "either", "requiredNote", "subject", "message", "honeypot", "send", "sending",
     "required", "needContact", "invalidEmail", "sent", "another", "fix", "throttled", "failed",
   ] as const;
   const labels = Object.fromEntries(keys.map((key) => [key, t(`contact.${key}`)])) as Record<(typeof keys)[number], string>;

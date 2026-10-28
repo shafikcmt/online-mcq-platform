@@ -152,14 +152,14 @@
       "paid": "Paid"
     },
     "minutes": "{{n}} min",
-    "questions": "{{n}} questions",
+    "questions": "{{n}} {{n|question|questions}}",
     "starts": "Starts {{date}}",
     "ends": "Ends {{date}}",
     "ended": "Ended {{date}}",
     "details": "Details"
   },
   "package": {
-    "days": "{{n}} days",
+    "days": "{{n}} {{n|day|days}}",
     "popular": "Popular",
     "per": "/ {{days}}"
   },
@@ -202,7 +202,7 @@
     },
     "filteredEmpty": "No exams match these filters.",
     "unavailable": "Exams can't be loaded right now. Please try again in a moment.",
-    "count": "{{n}} exams"
+    "count": "{{n}} {{n|exam|exams}}"
   },
   "examDetail": {
     "facts": "Exam details",
@@ -314,6 +314,7 @@
     "name": "Your name",
     "phoneField": "Mobile number",
     "emailField": "Email",
+    "requiredNote": "Fields marked * are required.",
     "either": "Give a mobile number or an email (or both) so we can reply.",
     "subject": "Subject",
     "message": "Message",

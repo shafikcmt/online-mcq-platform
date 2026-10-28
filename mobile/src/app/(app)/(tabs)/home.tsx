@@ -51,7 +51,7 @@ export default function HomeScreen() {
           <Pressable
             style={styles.bell}
             accessibilityRole="link"
-            accessibilityLabel={unread > 0 ? t("home:unread", { n: localizeDigits(unread, i18n.language) }) : t("home:noUnread")}
+            accessibilityLabel={unread > 0 ? t("home:unread", { count: unread, n: localizeDigits(unread, i18n.language) }) : t("home:noUnread")}
             onPress={() => router.push("/notifications")}
             hitSlop={4}
           >

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { DateTimeText } from "@/components/ui/date-time";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,7 +19,7 @@ import { useToast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/api/client";
 import { describeDeleteError } from "@/lib/content-errors";
 import { QUESTION_LIST } from "@/lib/content-specs";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import { activeFilterCount, type ListState } from "@/lib/list-params";
 import { localized } from "@/lib/localized";
@@ -116,7 +117,7 @@ export function QuestionsView({
       sortField: "updated_at",
       sortFirst: "desc",
       className: "min-w-28",
-      cell: (row) => <span className="text-ink-muted">{formatDateTime(row.updated_at, locale)}</span>,
+      cell: (row) => <span className="text-ink-muted"><DateTimeText iso={row.updated_at} /></span>,
     },
   ];
 

@@ -11,6 +11,7 @@ import type { ServerStudent } from "@/components/results/results-view";
 import { PackagePicker } from "@/components/subscriptions/package-picker";
 import type { ServerPackage } from "@/components/subscriptions/subscriptions-view";
 import { MaskedValue } from "@/components/users/user-cells";
+import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -126,7 +127,7 @@ export function PaymentsView({
       sortFirst: "desc",
       cell: (row) => (
         <span className="block text-ink-muted">
-          <span className="block">{formatDateTime(row.created_at, locale)}</span>
+          <span className="block"><DateTimeText iso={row.created_at} /></span>
           {row.verified_at && (
             <span className="block text-xs text-ink-subtle">{t("payments.verifiedAt", { time: formatDateTime(row.verified_at, locale) })}</span>
           )}

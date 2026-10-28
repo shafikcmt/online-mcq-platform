@@ -1,8 +1,8 @@
 import type { Locale } from "./i18n/messages";
 
-/** Western digits in all UI numbers, in both languages (Indian grouping in `bn`). Note:
- * docs/LOCALIZATION.md §11 lists this as an open owner decision — its rule asks for Bangla
- * digits in `bn` everywhere. */
+/** Western digits in all UI numbers, in both languages (Indian grouping in `bn`): an
+ * intentional Admin Panel convention (owner decision, docs/LOCALIZATION.md §5 exception,
+ * ROADMAP decisions log #25), unlike the app and the website. */
 export function formatNumber(value: number, locale: Locale = "en"): string {
   return new Intl.NumberFormat(locale === "bn" ? "en-IN" : "en-US").format(value);
 }

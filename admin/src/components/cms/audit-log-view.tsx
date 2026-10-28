@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { ListRowsLoading } from "@/components/content/list-skeleton";
+import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -76,7 +77,7 @@ export function AuditLogView({ data, state: serverState }: { data: Paginated<Aud
       header: t("audit.colWhen"),
       hideOnMobile: true,
       className: "whitespace-nowrap",
-      cell: (row) => <span className="text-ink-muted">{formatDateTime(row.created_at, locale)}</span>,
+      cell: (row) => <span className="text-ink-muted"><DateTimeText iso={row.created_at} /></span>,
     },
     { key: "who", header: t("audit.colWho"), cell: (row) => <span className={row.actor ? "text-ink" : "text-ink-subtle"}>{who(row)}</span> },
     { key: "action", header: t("audit.colAction"), className: "min-w-44", cell: (row) => <span className="font-medium text-ink">{label(t, "auditAction", row.action)}</span> },

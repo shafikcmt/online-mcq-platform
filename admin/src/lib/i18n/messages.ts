@@ -79,22 +79,27 @@ const coreEn = {
   "dashboard.title": "Dashboard",
   "dashboard.subtitle": "Today at a glance. Times follow the {tz} calendar.",
   "dashboard.students": "Students",
-  "dashboard.studentsActive": "{n} active accounts",
+  "dashboard.studentsActive": "{n} active {n|account|accounts}",
   "dashboard.attemptsToday": "Attempts today",
   "dashboard.attemptsTodaySub": "{submitted} submitted · {inProgress} in progress now",
   "dashboard.activeSubs": "Active subscriptions",
-  "dashboard.activeSubsSub": "{n} students with access",
+  "dashboard.activeSubsSub": "{n} {n|student|students} with access",
   "dashboard.revenue": "Revenue this month",
-  "dashboard.revenueSub": "{n} successful payments",
+  "dashboard.revenueSub": "{n} successful {n|payment|payments}",
   "dashboard.revenueNone": "No successful payments yet",
   "dashboard.exams": "Exams",
-  "dashboard.examsTotal": "{n} exams in total",
+  "dashboard.examsTotal": "{n} {n|exam|exams} in total",
   "dashboard.openNow": "Open now",
   "dashboard.upcoming": "Upcoming",
   "dashboard.payments": "Payments by status",
-  "dashboard.paymentsTotal": "{n} payments in total",
+  "dashboard.paymentsTotal": "{n} {n|payment|payments} in total",
   "dashboard.paymentsNote": "All-time counts. Only provider-verified payments are successful.",
   "dashboard.empty": "No data yet",
+  "dashboard.recentExams": "Recent exams",
+  "dashboard.recentExamsHint": "The five most recently created exams.",
+  "dashboard.allExams": "All exams",
+  "dashboard.recentExamsEmpty": "No exams yet. Create the first one to see it here.",
+  "dashboard.recentExamsUnavailable": "Recent exams can't be loaded right now. Reload the page to try again.",
   "status.draft": "Draft",
   "status.published": "Published",
   "status.unpublished": "Unpublished",
@@ -195,6 +200,11 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "dashboard.paymentsTotal": "মোট {n}টি পেমেন্ট",
   "dashboard.paymentsNote": "সব সময়ের হিসাব। শুধু প্রোভাইডার-যাচাইকৃত পেমেন্টই সফল ধরা হয়।",
   "dashboard.empty": "এখনও কোনো তথ্য নেই",
+  "dashboard.recentExams": "সাম্প্রতিক পরীক্ষা",
+  "dashboard.recentExamsHint": "সবচেয়ে সম্প্রতি তৈরি পাঁচটি পরীক্ষা।",
+  "dashboard.allExams": "সব পরীক্ষা",
+  "dashboard.recentExamsEmpty": "এখনও কোনো পরীক্ষা নেই। প্রথমটি তৈরি করলে এখানে দেখা যাবে।",
+  "dashboard.recentExamsUnavailable": "সাম্প্রতিক পরীক্ষা এখন লোড করা যাচ্ছে না। আবার চেষ্টা করতে পাতাটি রিলোড করুন।",
   "status.draft": "খসড়া",
   "status.published": "প্রকাশিত",
   "status.unpublished": "অপ্রকাশিত",
@@ -217,6 +227,9 @@ export function isLocale(value: string | undefined | null): value is Locale {
   return value === "en" || value === "bn";
 }
 
+/** `{name}` is replaced by `vars.name`. `{name|one|other}` picks a word by count for English
+ * plurals ("{n} {n|student|students}"); Bangla nouns do not change, so Bangla text never
+ * needs it. */
 export function translate(
   messages: Messages,
   key: MessageKey,
@@ -224,7 +237,9 @@ export function translate(
 ): string {
   const template = messages[key] ?? en[key] ?? key;
   if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (_, name: string) =>
-    name in vars ? String(vars[name]) : `{${name}}`,
-  );
+  return template
+    .replace(/\{(\w+)\|([^|{}]*)\|([^|{}]*)\}/g, (_, name: string, one: string, other: string) =>
+      Number(vars[name]) === 1 ? one : other,
+    )
+    .replace(/\{(\w+)\}/g, (_, name: string) => (name in vars ? String(vars[name]) : `{${name}}`));
 }

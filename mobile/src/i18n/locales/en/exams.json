@@ -13,7 +13,8 @@
     "ended": "No past exams yet."
   },
   "loadingMore": "Loading more…",
-  "count": "{{n}} exams",
+  "count_one": "{{n}} exam",
+  "count_other": "{{n}} exams",
   "detail": {
     "facts": "About this exam",
     "questions": "Questions",

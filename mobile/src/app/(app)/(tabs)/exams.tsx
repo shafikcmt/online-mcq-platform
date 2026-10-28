@@ -52,7 +52,7 @@ export default function ExamsScreen() {
       />
       {!list.loading && list.items.length > 0 ? (
         <AppText variant="small" color={colors.inkMuted}>
-          {t("exams:count", { n: localizeDigits(list.count, i18n.language) })}
+          {t("exams:count", { count: list.count, n: localizeDigits(list.count, i18n.language) })}
         </AppText>
       ) : null}
       {list.items.length > 0 && list.error ? <Banner tone="info" message={t("home:stale")} /> : null}

@@ -9,7 +9,7 @@ import { Button } from "@/components/button";
 import { Card } from "@/components/card";
 import { formatDecimal } from "@/lib/format";
 import { localizeDigits } from "@/lib/text";
-import { colors, space } from "@/theme";
+import { colors, radius, space } from "@/theme";
 
 import type { SessionState } from "./session";
 
@@ -86,5 +86,5 @@ const styles = StyleSheet.create({
   card: { gap: space.md },
   score: { flexDirection: "row", alignItems: "baseline", gap: space.md, flexWrap: "wrap" },
   counts: { flexDirection: "row", gap: space.sm },
-  count: { flex: 1, alignItems: "center", gap: 2, paddingVertical: space.sm, borderRadius: 8, backgroundColor: colors.canvas },
+  count: { flex: 1, alignItems: "center", gap: 2, paddingVertical: space.sm, borderRadius: radius.control, backgroundColor: colors.canvas },
 });

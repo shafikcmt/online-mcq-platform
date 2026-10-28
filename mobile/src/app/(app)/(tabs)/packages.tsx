@@ -51,7 +51,7 @@ export default function PackagesScreen() {
     }
   }
 
-  const days = (pkg: Package) => t("packages:validity", { n: localizeDigits(pkg.validity_days, language) });
+  const days = (pkg: Package) => t("packages:validity", { count: pkg.validity_days, n: localizeDigits(pkg.validity_days, language) });
   const header = (
     <>
       <View style={styles.titleRow}>

@@ -65,7 +65,7 @@ export function OtpStep({ purpose, mobileNumber, onVerified, onChangeNumber }: P
     } catch (caught) {
       const remaining = isApiError(caught) ? caught.details.attempts_remaining : undefined;
       const message = describeError(caught, t);
-      setError(typeof remaining === "number" ? `${message} ${t("auth:otp.attemptsLeft", { count: remaining })}` : message);
+      setError(typeof remaining === "number" ? `${message} ${t("auth:otp.attemptsLeft", { count: remaining, n: localizeDigits(remaining, language) })}` : message);
       setCode("");
       input.current?.focus();
     } finally {

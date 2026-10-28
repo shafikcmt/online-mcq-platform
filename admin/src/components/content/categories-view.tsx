@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 
+import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -16,7 +17,7 @@ import { useToast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/api/client";
 import { describeDeleteError } from "@/lib/content-errors";
 import { CATEGORY_LIST } from "@/lib/content-specs";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import { activeFilterCount, type ListState } from "@/lib/list-params";
 import { localized } from "@/lib/localized";
@@ -90,7 +91,7 @@ export function CategoriesView({ data, state: serverState }: { data: Paginated<C
       sortField: "updated_at",
       sortFirst: "desc",
       className: "whitespace-nowrap",
-      cell: (row) => <span className="text-ink-muted">{formatDateTime(row.updated_at, locale)}</span>,
+      cell: (row) => <span className="text-ink-muted"><DateTimeText iso={row.updated_at} /></span>,
     },
   ];
 
