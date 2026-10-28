@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { LIMITS, serverFieldErrors, validateContact, type ContactFields, type FieldErrors, type FieldKey } from "@/lib/contact";
 
 type Labels = Record<
-  | "name" | "phoneField" | "emailField" | "either" | "subject" | "message" | "honeypot" | "send" | "sending"
+  | "name" | "phoneField" | "emailField" | "either" | "requiredNote" | "subject" | "message" | "honeypot" | "send" | "sending"
   | "required" | "needContact" | "invalidEmail" | "sent" | "another" | "fix" | "throttled" | "failed",
   string
 >;
@@ -100,6 +100,7 @@ export function ContactForm({ lang, labels }: { lang: string; labels: Labels }) 
     <div>
       <label htmlFor={`contact-${key}`} className="text-sm font-medium text-ink">
         {label}
+        {props.required ? <RequiredMark /> : null}
       </label>
       <input
         id={`contact-${key}`}
@@ -127,6 +128,7 @@ export function ContactForm({ lang, labels }: { lang: string; labels: Labels }) 
           {alert}
         </p>
       ) : null}
+      <p className="text-sm text-ink-muted">{labels.requiredNote}</p>
       {field("name", labels.name, { autoComplete: "name", required: true })}
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="mb-2 text-sm text-ink-muted sm:col-span-2">{labels.either}</legend>
@@ -137,6 +139,7 @@ export function ContactForm({ lang, labels }: { lang: string; labels: Labels }) 
       <div>
         <label htmlFor="contact-message" className="text-sm font-medium text-ink">
           {labels.message}
+          <RequiredMark />
         </label>
         <textarea
           id="contact-message"
@@ -170,5 +173,14 @@ export function ContactForm({ lang, labels }: { lang: string; labels: Labels }) 
         {state === "sending" ? labels.sending : labels.send}
       </button>
     </form>
+  );
+}
+
+/** The visible "*" of a required field; screen readers hear "required" from the input. */
+function RequiredMark() {
+  return (
+    <span className="ml-1 text-danger-700" aria-hidden>
+      *
+    </span>
   );
 }

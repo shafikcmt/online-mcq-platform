@@ -55,7 +55,7 @@ export const examEn = {
   "exam.unsaved": "Unsaved changes",
   "exam.readOnlyPublished": "Published exams can't be edited. Unpublish it to make changes, or duplicate it.",
   "exam.readOnlyArchived": "Archived exams can't be edited. Duplicate it to reuse its settings and questions.",
-  "exam.facts": "{questions} · {duration} min · {marks} marks",
+  "exam.facts": "{questions} · {duration} min · {marks} {marks|mark|marks}",
   "exam.factsQuestions": "{n} of {total} questions",
   "exam.slugValue": "Slug: {slug}",
 
@@ -152,7 +152,7 @@ export const examEn = {
   "examQuestions.title": "Questions",
   "examQuestions.hint": "The questions in this exam, in the order students see them (unless shuffled).",
   "examQuestions.assigned": "Assigned {n} of {total}",
-  "examQuestions.totalMarks": "{n} total marks",
+  "examQuestions.totalMarks": "{n} total {n|mark|marks}",
   "examQuestions.add": "Add questions",
   "examQuestions.save": "Save question list",
   "examQuestions.saving": "Saving…",

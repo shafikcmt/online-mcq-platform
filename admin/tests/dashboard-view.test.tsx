@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import type { AdminDashboard } from "@/types/admin";
 
+import { exam } from "./content-helpers";
 import { renderWithI18n } from "./helpers";
 
 const data: AdminDashboard = {
@@ -28,7 +29,7 @@ const data: AdminDashboard = {
 
 describe("DashboardView", () => {
   it("renders every server number without recomputing business state", () => {
-    renderWithI18n(<DashboardView data={data} />);
+    renderWithI18n(<DashboardView data={data} recentExams={[]} />);
     expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByText("1,250")).toBeInTheDocument();
     expect(screen.getByText("1,190 active accounts")).toBeInTheDocument();
@@ -42,7 +43,7 @@ describe("DashboardView", () => {
   });
 
   it("labels statuses with text, not colour alone", () => {
-    renderWithI18n(<DashboardView data={data} />);
+    renderWithI18n(<DashboardView data={data} recentExams={[]} />);
     const payments = screen.getByRole("region", { name: "Payments by status" });
     for (const label of ["Successful", "Pending", "Initiated", "Failed", "Cancelled"]) {
       expect(within(payments).getByText(label)).toBeInTheDocument();
@@ -62,15 +63,41 @@ describe("DashboardView", () => {
       exams: { total: 0, draft: 0, published: 0, unpublished: 0, archived: 0, open_now: 0, upcoming: 0 },
       payments: { by_status: { initiated: 0, pending: 0, success: 0, failed: 0, cancelled: 0 }, success_this_month: 0, revenue_this_month: [] },
     };
-    renderWithI18n(<DashboardView data={empty} />);
+    renderWithI18n(<DashboardView data={empty} recentExams={[]} />);
     expect(screen.getByText("৳ 0.00")).toBeInTheDocument();
     expect(screen.getByText("No successful payments yet")).toBeInTheDocument();
     expect(screen.queryByRole("img", { name: "Payments by status" })).not.toBeInTheDocument();
   });
 
   it("renders in Bangla", () => {
-    renderWithI18n(<DashboardView data={data} />, "bn");
+    renderWithI18n(<DashboardView data={data} recentExams={[]} />, "bn");
     expect(screen.getByRole("heading", { level: 1, name: "ড্যাশবোর্ড" })).toBeInTheDocument();
     expect(screen.getAllByText("সফল").length).toBeGreaterThan(0);
+  });
+
+  it("lists the newest exams with their status as text, or says why there are none", () => {
+    const { unmount } = renderWithI18n(
+      <DashboardView data={data} recentExams={[exam({ id: 7, title_en: "Physics weekly", status: "draft" })]} />,
+    );
+    const recent = screen.getByRole("region", { name: "Recent exams" });
+    expect(within(recent).getByRole("link", { name: /Physics weekly/ })).toHaveAttribute("href", "/exams/7");
+    expect(within(recent).getByText("Draft")).toBeInTheDocument();
+    expect(within(recent).getByRole("link", { name: /All exams/ })).toHaveAttribute("href", "/exams");
+    unmount();
+
+    renderWithI18n(<DashboardView data={data} recentExams={[]} />);
+    expect(screen.getByText("No exams yet. Create the first one to see it here.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "New exam" })).toHaveAttribute("href", "/exams/new");
+  });
+
+  it("a failed recent-exams read only empties its own card", () => {
+    renderWithI18n(<DashboardView data={data} recentExams={null} />);
+    expect(screen.getByText("Recent exams can't be loaded right now. Reload the page to try again.")).toBeInTheDocument();
+    expect(screen.getByText("1,250")).toBeInTheDocument();
+  });
+
+  it("uses the singular for a count of one", () => {
+    renderWithI18n(<DashboardView data={{ ...data, subscriptions: { active_now: 1, students_with_active: 1 } }} recentExams={[]} />);
+    expect(screen.getByText("1 student with access")).toBeInTheDocument();
   });
 });

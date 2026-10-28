@@ -29,7 +29,7 @@ export const colors = {
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32, huge: 48 } as const;
 
-export const radius = { control: 8, card: 12, sheet: 16, full: 999 } as const;
+export const radius = { control: 6, card: 10, sheet: 16, full: 999 } as const;
 
 /** Type scale (UI_UX_GUIDELINES §2.2). Bangla gets a taller line height in `AppText`. */
 export const fontSize = { caption: 12, small: 14, body: 16, lead: 18, h4: 20, h3: 24, h2: 30 } as const;

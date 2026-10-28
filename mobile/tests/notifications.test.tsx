@@ -39,7 +39,7 @@ test("the bell on Home opens the notifications; opening one marks it read and go
     },
     "/home",
   );
-  await fireEvent.press(await screen.findByRole("link", { name: "1 unread notifications" }));
+  await fireEvent.press(await screen.findByRole("link", { name: "1 unread notification" }));
   await fireEvent.press(await screen.findByRole("link", { name: "Unread, Result published, Your result for Physics is ready." }));
   expect(backend.find("POST", `/me/notifications/${N1}/read/`)).toHaveLength(1);
   expect(await screen.findByText(/The result will be shown when the exam's results are published/)).toBeOnTheScreen();

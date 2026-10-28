@@ -1,7 +1,8 @@
 {
   "greeting": "Hello, {{name}}",
   "subtitle": "Here is what's on for you.",
-  "unread": "{{n}} unread notifications",
+  "unread_one": "{{n}} unread notification",
+  "unread_other": "{{n}} unread notifications",
   "noUnread": "No unread notifications",
   "stale": "Couldn't update just now. Showing what was loaded last — pull down to try again.",
   "shownOf": "{{shown}} of {{count}}",

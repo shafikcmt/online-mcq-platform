@@ -17,7 +17,7 @@ import type { Package } from "./types";
 export function PackageCard({ pkg, busy, onBuy }: { pkg: Package; busy: boolean; onBuy: () => void }) {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
-  const days = t("packages:validity", { n: localizeDigits(pkg.validity_days, language) });
+  const days = t("packages:validity", { count: pkg.validity_days, n: localizeDigits(pkg.validity_days, language) });
   const sub = pkg.subscription;
   return (
     <View style={[styles.card, pkg.is_featured && styles.featured]}>

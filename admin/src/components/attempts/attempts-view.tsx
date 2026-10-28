@@ -9,6 +9,7 @@ import { ListRowsLoading } from "@/components/content/list-skeleton";
 import { ExamPicker } from "@/components/results/exam-picker";
 import type { ServerExam, ServerStudent } from "@/components/results/results-view";
 import { StudentPicker } from "@/components/results/student-picker";
+import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -71,7 +72,7 @@ export function AttemptsView({
     return { text: title.text || `#${row.exam_id}`, lang: title.lang };
   };
   const time = (iso: string | null) =>
-    iso ? <span className="text-ink-muted">{formatDateTime(iso, locale)}</span> : <span className="text-ink-subtle">{t("attempts.notSubmitted")}</span>;
+    iso ? <span className="text-ink-muted"><DateTimeText iso={iso} /></span> : <span className="text-ink-subtle">{t("attempts.notSubmitted")}</span>;
 
   const allColumns: Column<AdminAttempt>[] = [
     { key: "student", header: t("attempts.colStudent"), hideOnMobile: true, className: "min-w-36", cell: (row) => <StudentCell row={row} /> },

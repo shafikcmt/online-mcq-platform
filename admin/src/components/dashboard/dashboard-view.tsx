@@ -1,8 +1,11 @@
 "use client";
 
-import { Activity, CalendarClock, CreditCard, PlayCircle, ShieldCheck, Users } from "lucide-react";
+import { Activity, ArrowRight, CalendarClock, CreditCard, PlayCircle, Plus, ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 
+import { ExamStatusBadge, ExamTitle, ScheduleCell } from "@/components/exams/exam-cells";
+import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge, STATUS_TONES, TONE_BAR } from "@/components/ui/status-badge";
@@ -11,6 +14,7 @@ import type { MessageKey } from "@/lib/i18n/messages";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import type { AdminDashboard } from "@/types/admin";
+import type { Exam } from "@/types/exams";
 
 const EXAM_STATUSES = ["published", "draft", "unpublished", "archived"] as const;
 const PAYMENT_STATUSES = ["success", "pending", "initiated", "failed", "cancelled"] as const;
@@ -82,7 +86,7 @@ function StatusList({
   );
 }
 
-export function DashboardView({ data }: { data: AdminDashboard }) {
+export function DashboardView({ data, recentExams }: { data: AdminDashboard; recentExams: Exam[] | null }) {
   const { t, locale } = useI18n();
   const n = (value: number) => formatNumber(value, locale);
   const revenue = data.payments.revenue_this_month;
@@ -201,6 +205,59 @@ export function DashboardView({ data }: { data: AdminDashboard }) {
           </CardBody>
         </Card>
       </div>
+
+      <RecentExams exams={recentExams} />
     </div>
+  );
+}
+
+/** The five most recently created exams from the existing exam list (no extra API). */
+function RecentExams({ exams }: { exams: Exam[] | null }) {
+  const { t } = useI18n();
+  return (
+    <Card aria-labelledby="recent-exams-title">
+      <CardHeader>
+        <div>
+          <CardTitle id="recent-exams-title">{t("dashboard.recentExams")}</CardTitle>
+          <p className="mt-0.5 text-[13px] text-ink-subtle">{t("dashboard.recentExamsHint")}</p>
+        </div>
+        {exams && exams.length > 0 && (
+          <Link
+            href="/exams"
+            className="inline-flex shrink-0 items-center gap-1 rounded-control text-sm font-medium text-brand-700 hover:underline"
+          >
+            {t("dashboard.allExams")}
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        )}
+      </CardHeader>
+      {exams === null ? (
+        <CardBody>
+          <p className="text-sm text-ink-muted">{t("dashboard.recentExamsUnavailable")}</p>
+        </CardBody>
+      ) : exams.length === 0 ? (
+        <CardBody className="flex flex-col items-start gap-3">
+          <p className="text-sm text-ink-muted">{t("dashboard.recentExamsEmpty")}</p>
+          <Button asChild size="sm">
+            <Link href="/exams/new">
+              <Plus aria-hidden />
+              {t("exams.new")}
+            </Link>
+          </Button>
+        </CardBody>
+      ) : (
+        <ul className="mt-4 divide-y divide-line border-t border-line" data-testid="recent-exams">
+          {exams.map((exam) => (
+            <li key={exam.id} className="grid gap-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto_14rem] sm:items-center sm:gap-4">
+              <ExamTitle exam={exam} />
+              <span>
+                <ExamStatusBadge status={exam.status} />
+              </span>
+              <ScheduleCell exam={exam} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

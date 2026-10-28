@@ -1,4 +1,4 @@
-import { resources } from "@/i18n";
+import i18n, { resources } from "@/i18n";
 
 type Tree = { [key: string]: string | Tree };
 
@@ -35,5 +35,15 @@ describe("translations", () => {
         if (!allowedSame.has(key)) expect(`${ns}:${key} ${bn[key]}`).not.toBe(`${ns}:${key} ${en[key]}`);
       }
     }
+  });
+
+  test("counted texts: English singular/plural by count, Bangla digits in Bangla", () => {
+    const en = i18n.getFixedT("en");
+    const bn = i18n.getFixedT("bn");
+    expect(en("packages:validity", { count: 1, n: "1" })).toBe("1 day");
+    expect(en("packages:validity", { count: 30, n: "30" })).toBe("30 days");
+    expect(en("auth:otp.attemptsLeft", { count: 1, n: "1" })).toBe("1 attempt left.");
+    expect(bn("auth:otp.attemptsLeft", { count: 3, n: "৩" })).toBe("আর ৩ বার চেষ্টা করা যাবে।");
+    expect(bn("packages:validity", { count: 1, n: "১" })).toBe("১ দিন");
   });
 });

@@ -21,8 +21,10 @@ export function AppButton({ downloadUrl, openUrl, labels, lang, className, size 
   const canOpen = android && !!openUrl;
   const href = downloadUrl || `/${lang}#get-app`;
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 rounded-control bg-brand-600 font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline-offset-4",
-    size === "lg" ? "min-h-12 px-6 text-base" : "min-h-10 px-4 text-sm",
+    // A long label (Bangla "coming soon") may wrap on a phone: padding and a tight line
+    // height keep two lines inside the button.
+    "inline-flex items-center justify-center gap-2 rounded-control bg-brand-600 text-center leading-snug font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline-offset-4",
+    size === "lg" ? "min-h-12 px-6 py-2.5 text-base" : "min-h-10 px-4 py-2 text-sm",
     className,
   );
 
@@ -38,7 +40,7 @@ export function AppButton({ downloadUrl, openUrl, labels, lang, className, size 
 
   return (
     <a href={canOpen ? openUrl : href} onClick={open} className={classes} rel={downloadUrl ? "noopener" : undefined}>
-      {canOpen ? <Smartphone className="size-5" aria-hidden /> : <Download className="size-5" aria-hidden />}
+      {canOpen ? <Smartphone className="size-5 shrink-0" aria-hidden /> : <Download className="size-5 shrink-0" aria-hidden />}
       {canOpen ? labels.open : downloadUrl ? labels.download : labels.soon}
     </a>
   );

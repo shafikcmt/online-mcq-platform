@@ -4,7 +4,7 @@
 export const userEn = {
   "users.title": "Users",
   "users.subtitle": "Students and admins. Read-only — mobile numbers and emails are partly hidden to protect privacy.",
-  "users.search": "Search by name, mobile number or email",
+  "users.search": "Name, mobile or email",
   "users.colUser": "User",
   "users.colRole": "Role",
   "users.colContact": "Contact (partly hidden)",
@@ -87,7 +87,7 @@ export type UserMessageKey = keyof typeof userEn;
 export const userBn: Record<UserMessageKey, string> = {
   "users.title": "ব্যবহারকারী",
   "users.subtitle": "শিক্ষার্থী ও অ্যাডমিন। শুধু দেখা যাবে — গোপনীয়তা রক্ষায় মোবাইল নম্বর ও ইমেইল আংশিক লুকানো থাকে।",
-  "users.search": "নাম, মোবাইল নম্বর বা ইমেইল দিয়ে খুঁজুন",
+  "users.search": "নাম, মোবাইল বা ইমেইল",
   "users.colUser": "ব্যবহারকারী",
   "users.colRole": "ভূমিকা",
   "users.colContact": "যোগাযোগ (আংশিক লুকানো)",

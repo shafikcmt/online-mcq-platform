@@ -6,6 +6,7 @@ import { useCallback } from "react";
 
 import { ActiveBadge } from "@/components/content/catalog-cells";
 import { ListRowsLoading } from "@/components/content/list-skeleton";
+import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -14,7 +15,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/states";
 import { USER_LIST } from "@/lib/content-specs";
-import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import { activeFilterCount, type ListState } from "@/lib/list-params";
 import { useListData } from "@/lib/use-list-data";
@@ -28,7 +28,7 @@ import { ContactCell, RoleBadge, UserName, VerifiedBadge, languageKey } from "./
  * filters, searches (name, mobile number, email), sorts and pages. Contact details are
  * shown exactly as the API masks them. No edit, delete or deactivate. */
 export function UsersView({ data, state: serverState }: { data: Paginated<AdminUser>; state: ListState }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const { state, key: urlKey, update, pending: navigating } = useListUrl(USER_LIST);
   const goToFirstPage = useCallback(() => update({ page: 1 }, { replace: true }), [update]);
   const { data: list, reloading, identity } = useListData({
@@ -62,7 +62,7 @@ export function UsersView({ data, state: serverState }: { data: Paginated<AdminU
       sortField: "date_joined",
       sortFirst: "desc",
       className: "min-w-28",
-      cell: (row) => <span className="text-ink-muted">{formatDateTime(row.date_joined, locale)}</span>,
+      cell: (row) => <span className="text-ink-muted"><DateTimeText iso={row.date_joined} /></span>,
     },
   ];
 

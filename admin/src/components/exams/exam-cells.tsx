@@ -42,7 +42,7 @@ export function ExamTitle({ exam }: { exam: Exam }) {
 
 export function ScheduleCell({ exam }: { exam: Pick<Exam, "start_at" | "end_at"> }) {
   const { locale, t } = useI18n();
-  if (!exam.start_at && !exam.end_at) return <span className="text-ink-subtle">{t("exams.noSchedule")}</span>;
+  if (!exam.start_at && !exam.end_at) return <span className="text-[13px] text-ink-subtle">{t("exams.noSchedule")}</span>;
   return (
     <span className="block text-[13px] text-ink-muted">
       {exam.start_at && <span className="block">{t("exams.startsAt", { start: formatDateTime(exam.start_at, locale) })}</span>}

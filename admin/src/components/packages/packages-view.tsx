@@ -166,7 +166,18 @@ export function PackagesView({ data, state: serverState }: { data: Paginated<Pac
         ) : filtered ? (
           <EmptyState title={t("packages.noMatch")} description={t("packages.noMatchHint")} />
         ) : (
-          <EmptyState title={t("packages.empty")} description={t("packages.emptyHint")} />
+          <EmptyState
+            title={t("packages.empty")}
+            description={t("packages.emptyHint")}
+            action={
+              <Button asChild>
+                <Link href="/packages/new">
+                  <Plus aria-hidden />
+                  {t("packages.new")}
+                </Link>
+              </Button>
+            }
+          />
         )}
         {list && (
           <Pagination

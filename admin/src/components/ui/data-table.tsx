@@ -34,7 +34,8 @@ function sortState(current: string, field?: string): "ascending" | "descending" 
 }
 
 /** Responsive data list: a real <table> (caption, column headers, aria-sort) from the
- * `md` breakpoint, and a card list on phones, so nothing scrolls sideways at 390px. The
+ * `lg` breakpoint, and a card list on phones and tablets: at tablet width the tables need
+ * more room than the screen has, so cards keep them from scrolling sideways. The
  * hidden layout is display:none, so assistive tech only meets one of them. Rows are the
  * server's page as-is: no client-side filtering or sorting. */
 export function DataTable<T>({
@@ -64,7 +65,7 @@ export function DataTable<T>({
     <div aria-busy={busy || undefined} className={cn("transition-opacity", busy && "opacity-60")}>
       {busy && <p className="sr-only" role="status">{t("list.updating")}</p>}
       {/* `relative`: keeps absolutely positioned sr-only text inside the scroll box */}
-      <div className="relative hidden overflow-x-auto md:block">
+      <div className="relative hidden overflow-x-auto lg:block">
         <table className="w-full border-collapse text-left text-sm">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -121,7 +122,7 @@ export function DataTable<T>({
         </table>
       </div>
 
-      <ul className="divide-y divide-line md:hidden" aria-label={caption}>
+      <ul className="divide-y divide-line lg:hidden" aria-label={caption}>
         {rows.map((row) => (
           <li key={rowKey(row)} data-row-key={rowKey(row)} className="px-4 py-4">
             <div className="flex items-start justify-between gap-3">

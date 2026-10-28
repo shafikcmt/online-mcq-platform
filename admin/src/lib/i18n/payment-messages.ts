@@ -173,7 +173,7 @@ export const paymentEn = {
   "paymentDetail.noVerification": "No verification answer stored yet.",
   "paymentDetail.providerNote": "Only a short, safe summary of the provider's answer is shown.",
   "paymentDetail.timelineCount": "Showing the latest {shown} of {total} events, oldest first.",
-  "paymentDetail.timelineAll": "{total} events, oldest first.",
+  "paymentDetail.timelineAll": "{total} {total|event|events}, oldest first.",
   "paymentDetail.noEvents": "No events recorded.",
   "paymentDetail.studentPayments": "All payments of this student",
   "paymentDetail.packagePayments": "All payments for this package",

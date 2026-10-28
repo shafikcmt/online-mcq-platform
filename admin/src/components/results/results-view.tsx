@@ -7,6 +7,7 @@ import { useCallback, useState } from "react";
 import { examTitle } from "@/components/exams/exam-cells";
 import { ExamResults } from "@/components/exams/exam-results";
 import { ListRowsLoading } from "@/components/content/list-skeleton";
+import { DateTimeText } from "@/components/ui/date-time";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,7 +19,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/states";
 import { RESULT_LIST } from "@/lib/content-specs";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import { activeFilterCount, type ListState } from "@/lib/list-params";
 import { localized } from "@/lib/localized";
@@ -121,7 +122,7 @@ export function ResultsView({
       sortField: "submitted_at",
       sortFirst: "desc",
       className: "min-w-28",
-      cell: (row) => <span className="text-ink-muted">{formatDateTime(row.submitted_at, locale)}</span>,
+      cell: (row) => <span className="text-ink-muted"><DateTimeText iso={row.submitted_at} /></span>,
     },
     { key: "marks", header: t("results.colScore"), cell: (row) => <Marks result={row} /> },
     {

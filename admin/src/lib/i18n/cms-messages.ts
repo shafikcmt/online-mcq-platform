@@ -135,7 +135,7 @@ export const cmsEn = {
 
   "contact.title": "Contact messages",
   "contact.subtitle": "Messages from the website's contact form. Reply by phone or e-mail, then mark them resolved.",
-  "contact.search": "Search name, e-mail, phone or subject",
+  "contact.search": "Name, e-mail, phone or subject",
   "contact.colFrom": "From",
   "contact.colSubject": "Subject",
   "contact.colStatus": "Status",
@@ -302,7 +302,7 @@ export const cmsBn: Record<CmsMessageKey, string> = {
 
   "contact.title": "যোগাযোগের বার্তা",
   "contact.subtitle": "ওয়েবসাইটের যোগাযোগ ফর্মের বার্তা। ফোন বা ইমেইলে উত্তর দিয়ে সমাধান হয়েছে চিহ্নিত করুন।",
-  "contact.search": "নাম, ইমেইল, ফোন বা বিষয় খুঁজুন",
+  "contact.search": "নাম, ইমেইল, ফোন বা বিষয়",
   "contact.colFrom": "প্রেরক",
   "contact.colSubject": "বিষয়",
   "contact.colStatus": "অবস্থা",
