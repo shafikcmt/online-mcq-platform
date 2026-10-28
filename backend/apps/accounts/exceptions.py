@@ -31,3 +31,11 @@ class InvalidCredentials(AccountError):
 class InvalidCurrentPassword(AccountError):
     code = "invalid_current_password"
     default_message = _("Your current password is incorrect.")
+
+
+class NotAStudent(AccountError):
+    code = "not_a_student"
+    default_message = _(
+        "Only student accounts can be activated or deactivated here. Staff accounts are "
+        "managed separately."
+    )

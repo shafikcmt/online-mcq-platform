@@ -25,4 +25,14 @@ admin_auth_urlpatterns = [
 admin_users_urlpatterns = [
     path("users/", admin_users.AdminUserListView.as_view(), name="user-list"),
     path("users/<int:pk>/", admin_users.AdminUserDetailView.as_view(), name="user-detail"),
+    path(
+        "users/<int:pk>/activate/",
+        admin_users.AdminUserActivateView.as_view(),
+        name="user-activate",
+    ),
+    path(
+        "users/<int:pk>/deactivate/",
+        admin_users.AdminUserDeactivateView.as_view(),
+        name="user-deactivate",
+    ),
 ]

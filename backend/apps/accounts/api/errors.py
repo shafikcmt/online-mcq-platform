@@ -6,7 +6,7 @@ from rest_framework import status
 from apps.core.exceptions import ApiError
 from apps.verification import exceptions as verification
 
-from ..exceptions import AccountError, AccountExists, InvalidCredentials
+from ..exceptions import AccountError, AccountExists, InvalidCredentials, NotAStudent
 
 VERIFICATION_STATUS = {
     verification.InvalidMobileNumber: status.HTTP_400_BAD_REQUEST,
@@ -50,7 +50,7 @@ def from_verification_error(exc: verification.VerificationError, *, generic: boo
 def from_account_error(exc: AccountError):
     if isinstance(exc, InvalidCredentials):
         status_code = status.HTTP_401_UNAUTHORIZED
-    elif isinstance(exc, AccountExists):
+    elif isinstance(exc, AccountExists | NotAStudent):
         status_code = status.HTTP_409_CONFLICT
     else:
         status_code = status.HTTP_400_BAD_REQUEST

@@ -11,13 +11,16 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import F
+from django.http import Http404
 
+from apps.audit import services as audit
+from apps.audit.services import AuditContext
 from apps.core.phone import mask_mobile
 from apps.verification.models import OtpPurpose
 from apps.verification.services import consume_verification_token
 
 from . import tokens
-from .exceptions import AccountExists, EmailTaken, InvalidCurrentPassword
+from .exceptions import AccountExists, EmailTaken, InvalidCurrentPassword, NotAStudent
 from .models import Role, StudentProfile, User
 
 logger = logging.getLogger(__name__)
@@ -161,3 +164,44 @@ def update_profile(user: User, data: dict) -> User:
             profile.display_name = data["display_name"] or ""
             profile.save(update_fields=["display_name", "updated_at"])
     return locked
+
+
+def set_student_active(user_id: int, active: bool, *, ctx: AuditContext) -> User:
+    """Activate or deactivate a **student** account (Admin Panel → Users).
+
+    Deactivating signs the student out everywhere at once: ``auth_version`` is bumped (so
+    every access token stops working, even after a later re-activation) and every refresh
+    token is revoked. An inactive account can neither sign in nor refresh (the API refuses
+    inactive users on every request). Staff accounts are not handled here
+    (``not_a_student``) — so an admin can never lock themselves or another admin out.
+    Asking for the state the account already has changes nothing and is not audited.
+    Results, payments and subscriptions are kept: a re-activated student finds them again.
+    """
+    with transaction.atomic():
+        user = User.objects.select_for_update().filter(pk=user_id).first()
+        if user is None:
+            raise Http404
+        if user.role != Role.STUDENT:
+            raise NotAStudent()
+        if user.is_active == active:
+            return user
+        user.is_active = active
+        fields = ["is_active", "updated_at"]
+        if not active:
+            user.auth_version = F("auth_version") + 1
+            fields.append("auth_version")
+        user.save(update_fields=fields)
+        user.refresh_from_db(fields=["auth_version"])
+        if not active:
+            tokens.revoke_all_refresh_tokens(user)
+        audit.record(
+            ctx,
+            action="user.activate" if active else "user.deactivate",
+            entity_type="accounts.user",
+            entity_id=user.pk,
+            summary="student account activated" if active else "student account deactivated",
+            metadata={"changes": {"is_active": {"from": not active, "to": active}}},
+            allowed_fields=("is_active",),
+        )
+    logger.info("Student account %s user_id=%s", "activated" if active else "deactivated", user.pk)
+    return user

@@ -10,10 +10,12 @@ import { useI18n } from "@/lib/i18n/provider";
 import type { AdminUserDetail } from "@/types/users";
 
 import { MaskedValue, RoleBadge, VerifiedBadge, languageKey } from "./user-cells";
+import { UserStatusActions } from "./user-status-actions";
 
-/** One user, read-only: profile, account state and activity counts. Contact details are
- * shown exactly as the API masks them. Every count links to its filtered list (results,
- * attempts, subscriptions, payments). */
+/** One user: profile, account state and activity counts — read-only, except that a
+ * student account can be deactivated / activated again (after a confirmation). Contact
+ * details are shown exactly as the API masks them. Every count links to its filtered list
+ * (results, attempts, subscriptions, payments). */
 export function UserDetail({ user }: { user: AdminUserDetail }) {
   const { locale, t } = useI18n();
 
@@ -32,6 +34,7 @@ export function UserDetail({ user }: { user: AdminUserDetail }) {
             <ActiveBadge active={user.is_active} />
           </div>
         </header>
+        <UserStatusActions user={user} />
       </div>
 
       <div className="space-y-2 rounded-card border border-line bg-neutral-50/70 px-4 py-3 text-sm text-ink-muted">
