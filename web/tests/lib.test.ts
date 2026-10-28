@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 
 import { clock, date, dateTime, decimal, digits, money } from "@/lib/format";
 import { translator } from "@/lib/i18n";
-import { alternates } from "@/lib/site";
+import { alternates, jsonLd } from "@/lib/site";
 import { middleware } from "@/middleware";
 
 describe("format", () => {
@@ -48,6 +48,15 @@ test("hreflang alternates: both languages and x-default (Bangla)", () => {
     canonical: "https://livemodeltest.com/en/exams",
     languages: { "bn-BD": "https://livemodeltest.com/bn/exams", en: "https://livemodeltest.com/en/exams", "x-default": "https://livemodeltest.com/bn/exams" },
   });
+});
+
+test("structured data cannot close its <script> tag (admin text inside)", () => {
+  const attack = "</script><script>alert(1)</script>";
+  const out = jsonLd({ name: attack, text: "line\u2028break" });
+  expect(out).not.toContain("<");
+  expect(out).not.toMatch(/<\/script/i);
+  expect(out).not.toContain("\u2028");
+  expect(JSON.parse(out)).toEqual({ name: attack, text: "line\u2028break" }); // still the same data
 });
 
 describe("language routing", () => {

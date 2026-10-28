@@ -5,7 +5,7 @@ import Link from "next/link";
 import { EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
 import { publicGet, type Faq, type Page } from "@/lib/api";
 import { isLang, translator, type Lang } from "@/lib/i18n";
-import { alternates } from "@/lib/site";
+import { alternates, jsonLd } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -23,12 +23,11 @@ export default async function FaqPage({ params }: { params: Promise<{ lang: stri
   const t = translator(lang);
   const faqs = await publicGet<Page<Faq>>("faqs/?page_size=100", lang);
   const items = faqs?.results ?? [];
-  // JSON in a <script> tag: escape "<" so no text can close the tag early.
-  const structured = JSON.stringify({
+  const structured = jsonLd({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: items.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })),
-  }).replace(/</g, "\\u003c");
+  });
 
   return (
     <>

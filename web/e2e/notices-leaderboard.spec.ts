@@ -15,6 +15,11 @@ const SHOTS = process.env.SCREENSHOT_DIR ?? "e2e/test-results/screens";
 
 test.describe.configure({ mode: "serial" });
 
+// SECURITY_PLAN §4: admin-written text is stored as plain text and the site must show it as
+// text — these must never run (each would set window.__xss).
+const XSS_TITLE = '<img src=x onerror="window.__xss=1">Exam update';
+const XSS_BODY = '<script>window.__xss=1</script><b>Not bold</b>';
+
 test.beforeAll(async () => {
   const admin = await adminSession();
   const minuteAgo = new Date(Date.now() - 60_000).toISOString();
@@ -33,6 +38,14 @@ test.beforeAll(async () => {
     body_en: "Only in the app.",
     body_bn: "শুধু অ্যাপে।",
     audience: "students",
+    published_at: minuteAgo,
+  });
+  await admin.post("/admin/announcements/", {
+    title_en: XSS_TITLE,
+    title_bn: XSS_TITLE,
+    body_en: XSS_BODY,
+    body_bn: XSS_BODY,
+    audience: "public",
     published_at: minuteAgo,
   });
   const exams = (await admin.get("/admin/exams/?search=E2E%20Results%20Physics")) as { results: { id: number; title_en: string }[] };
@@ -58,6 +71,17 @@ test("Notices: website notices with their full text, pinned first; app-only noti
   await page.goto("/bn/notices");
   await expect(page.getByRole("heading", { level: 2, name: "পদার্থবিজ্ঞানের ফলাফল প্রকাশিত" })).toBeVisible();
   await expect(page.getByText("পিন করা")).toBeVisible();
+});
+
+test("HTML in a notice is shown as text and never runs", async ({ page }) => {
+  await page.goto("/en/notices");
+  const notice = page.getByRole("article").filter({ hasText: "Exam update" });
+  await expect(notice.getByRole("heading", { name: XSS_TITLE })).toBeVisible(); // the tags, literally
+  await expect(notice.getByText(XSS_BODY)).toBeVisible();
+  await expect(notice.locator("img, script, b")).toHaveCount(0); // no element was created
+  expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
+  await page.goto("/en"); // Home lists the latest notices too
+  expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
 });
 
 test("Leaderboard lists only exams with a public merit list", async ({ page }) => {

@@ -208,26 +208,26 @@
 - [x] Admin payments API: allow-listed only — no raw provider answer, event payloads, source IPs, provider session key, checkout URL, idempotency key or raw mobile number in list, detail or re-verify responses (planted-value regression tests); provider transaction ID on the detail only; exact-match search on reference/transaction ID only; the panel is read-only (no re-verify or status actions) *(7H tests)*
 - [x] Mobile App tokens: refresh token only in `expo-secure-store` (Android Keystore), access token only in memory, nothing in AsyncStorage (the web QA build keeps both in memory — no `localStorage`/cookies); one shared refresh for concurrent `401`s (rotation would otherwise sign the student out); a refused refresh clears the tokens; sign-out revokes the refresh token on the server and forgets it even offline; a password change signs this phone out too; API base URL is public build config only (`EXPO_PUBLIC_*`, no secrets) *(8A Jest + Playwright tests)*
 - [x] Dashboards: `/me/dashboard/` student JWT, own rows only, public ids only (no answers, prices, contact or payment data); `/admin/dashboard/` admin session + role only (student JWT/anonymous rejected), counts and sums only — no lists of people, contact messages, provider data or audit metadata *(6C tests)*
-- [ ] Student API responses never contain `is_correct`/`explanation` before submission (automated test)
-- [ ] Submit twice → one result; concurrent submit → one result
-- [ ] Save at/after `deadline_at` → rejected (also during grace); submit after `deadline_at + grace` → not accepted, server finalizes (`server_auto`); Celery finalizes abandoned attempts
-- [ ] Changing device clock does not change remaining time
-- [ ] Student A cannot read Student B's attempt/result/payment (IDOR tests)
-- [ ] Student token rejected on `/admin/*`
-- [ ] Paid exam without subscription → 403
+- [x] Student API responses never contain `is_correct`/`explanation` before submission *(10B evidence: `test_attempts.py::test_no_student_response_leaks_answers_or_internal_ids`, `test_results.py::test_nothing_before_review_leaks_answers`)*
+- [x] Submit twice → one result; concurrent submit → one result *(`test_attempts.py::test_manual_submit_is_idempotent`, `test_double_submit_transitions_once`, `test_manual_submit_vs_auto_finalize`; `test_results.py::test_submit_vs_finalizer_creates_one_result`)*
+- [x] Save at/after `deadline_at` → rejected (also during grace); submit after `deadline_at + grace` → not accepted, server finalizes (`server_auto`); Celery finalizes abandoned attempts *(`test_attempts.py::test_save_at_deadline_or_in_grace_fails`, `test_submit_after_grace_returns_server_auto_state`, `test_submit_after_grace_is_finalized_by_server`, `test_only_overdue_attempts_are_finalized`)*
+- [x] Changing device clock does not change remaining time *(`test_attempts.py::test_client_clock_never_affects_timing`, `test_device_clock_never_decides_timing`; the app counts down on the server clock: `mobile/tests/format-time.test.ts` server-clock cases)*
+- [x] Student A cannot read Student B's attempt/result/payment (IDOR tests) *(404, never 403: `test_attempts.py::test_other_students_attempt_is_not_found`, `test_results.py` own-results-only cases, `test_payments.py::test_history_and_detail_are_own_only`, `test_notifications.py::test_detail_and_idor`)*
+- [x] Student token rejected on `/admin/*` *(`test_admin_auth.py::test_student_jwt_is_not_admin_auth`, the reverse `test_admin_session_is_not_student_auth`; every admin list's permission tests)*
+- [x] Paid exam without subscription → 403 *(`needs_subscription`: `test_attempts.py::test_paid_exam_needs_access`, `test_subscriptions.py::test_paid_exam_without_subscription_denied`, `test_student_exams.py::test_paid_exam_needs_a_subscription`)*
 - [x] Fake payment callback without provider verification → payment stays pending *(M5 tests)*
 - [x] Replayed success callback → no second subscription *(M5 tests, incl. concurrent callback/IPN/reconciliation)*
 - [x] Tampered amount → payment fails verification *(M5 tests: amount, currency, reference, reused transaction ID)*
-- [ ] OTP brute-force → locked after N tries; OTP resend cooldown works
-- [ ] XSS payload in question text/announcement is neutralized *(3B: stored as plain text; clients must escape)*
-- [ ] Production settings check fails with placeholder secrets / DEBUG on
-- [ ] Deactivated user cannot log in or refresh
-- [ ] Late join on a live exam gets only time until global end
-- [ ] Retake blocked when `allow_retake=false` or `max_attempts` reached; live exam allows only one attempt
+- [x] OTP brute-force → locked after N tries; OTP resend cooldown works *(`test_verification.py::test_lockout_after_max_attempts`, malformed codes count, `test_second_request_inside_cooldown_is_refused`, cooldown not bypassed with another number format; `test_auth_api.py::test_lockout_and_expiry_codes`)*
+- [x] XSS payload in question text/announcement is neutralized *(stored as plain text: `test_questions.py::test_html_is_stored_as_plain_text`, `test_cms.py` XSS cases incl. `javascript:` app links refused. Clients escape: React / React Native render text, never HTML — the only raw HTML anywhere is the website's FAQ structured data, escaped by `jsonLd()` (`web/tests/lib.test.ts`); 10B E2E: a notice with `<img onerror>` / `<script>` shows as text and runs nothing (`web/e2e/notices-leaderboard.spec.ts`))*
+- [x] Production settings check fails with placeholder secrets / DEBUG on *(`test_configuration.py::test_production_settings_reject_unsafe_values`, `test_auth_api.py::test_production_requires_a_strong_separate_jwt_key`, `test_payments.py::test_unsafe_production_payment_settings`)*
+- [x] Deactivated user cannot log in or refresh *(`test_auth_api.py::test_inactive_user_is_rejected_everywhere` (API + token refresh), `test_accounts.py::test_inactive_users_cannot_authenticate`, `test_admin_auth.py::test_deactivated_admin_loses_access_immediately`)*
+- [x] Late join on a live exam gets only time until global end *(`test_attempts.py::test_live_late_joiner_gets_remaining_window`)*
+- [x] Retake blocked when `allow_retake=false` or `max_attempts` reached; live exam allows only one attempt *(`test_attempts.py::test_no_retake`, `test_exact_max_attempts`, `test_live_always_one`, `test_concurrent_retake_starts_get_one_new_number`)*
 - [x] SSLCommerz success redirect without a valid Validation API response → no subscription *(M5 tests with mocked provider HTTP; live sandbox run pending credentials)*
-- [ ] Public leaderboard never returns full name when mode is `masked`, and never phone/email
+- [x] Public leaderboard never returns full name when mode is `masked`, and never phone/email *(`test_results.py::test_public_leaderboard` — exact fields, masked names, and (10B) no full name, phone (either form) or email anywhere in the response; name modes tested; website E2E checks the rendered page)*
 - [x] Contact form throttling and honeypot work; HTML in messages is not rendered *(6A tests: per-IP throttle counts invalid and honeypot posts too; spoofed X-Forwarded-For ignored; honeypot stores nothing and answers like a real submission; messages and CMS text stored as plain text; logs carry only the message id and language)*
-- [ ] Bangla-digit phone/OTP input is accepted and normalized
+- [x] Bangla-digit phone/OTP input is accepted and normalized *(`test_verification.py` Bangla-digit numbers and codes, `test_auth_api.py`, `test_phone.py`; app: `mobile/tests/phone-text.test.ts`)*
 
 ---
 
