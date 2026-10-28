@@ -13,3 +13,14 @@ export function alternates(lang: Lang, path: string): Metadata["alternates"] {
   languages["x-default"] = `${SITE_URL}/bn${path}`;
   return { canonical: `${SITE_URL}/${lang}${path}`, languages };
 }
+
+/** Structured data for a `<script type="application/ld+json">` tag — the only raw HTML the
+ * site writes. Admin-written text goes inside, so "<" is escaped (and U+2028/2029, which
+ * end lines in older script parsers): no text can close the tag and start a script. */
+export function jsonLd(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(LINE_SEPARATORS, (char) => (char === "\u2028" ? "\\u2028" : "\\u2029"));
+}
+
+const LINE_SEPARATORS = new RegExp("[\u2028\u2029]", "g");

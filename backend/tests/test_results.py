@@ -699,6 +699,14 @@ class TestLeaderboard:
             "time_used_seconds",
         }
         assert all("***" in r["name"] for r in rows)
+        # SECURITY_PLAN §4: masked mode never shows a full name, a phone number or an email.
+        for index, user in enumerate(users):
+            User.objects.filter(pk=user.pk).update(email=f"student{index}@example.org")
+        text = APIClient().get(f"/api/v1/public/exams/{exam.slug}/leaderboard/").content.decode()
+        for user in users:
+            assert user.full_name not in text and user.mobile_number not in text
+            assert user.mobile_number[-10:] not in text  # nor the local form
+        assert "@" not in text and "example.org" not in text
         broken = APIClient()
         broken.credentials(HTTP_AUTHORIZATION="Bearer broken")
         assert broken.get(f"/api/v1/public/exams/{exam.slug}/leaderboard/").json() == rows
