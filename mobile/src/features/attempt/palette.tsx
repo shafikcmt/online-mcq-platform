@@ -28,7 +28,8 @@ export function Palette({ open, questions, answers, current, canSubmit, onPick, 
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t("close")} />
+        {/* Tap outside = Close, for touch only: screen readers use the Close button. */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} aria-hidden focusable={false} />
         <View style={styles.sheet} role="dialog" aria-modal accessibilityLabel={t("room:paletteTitle")}>
           <View style={styles.head}>
             <AppText variant="h4" weight="bold" role="heading" style={styles.title}>

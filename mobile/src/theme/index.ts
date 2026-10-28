@@ -15,7 +15,7 @@ export const colors = {
   lineStrong: "#CFD7E3",
   ink: "#0F172A",
   inkMuted: "#475569",
-  inkSubtle: "#64748B",
+  inkSubtle: "#5B6B80",
   success700: "#15803D",
   success50: "#ECFDF3",
   warning700: "#B45309",

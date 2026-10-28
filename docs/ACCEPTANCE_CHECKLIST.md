@@ -36,6 +36,7 @@
 | Recent results; exam history | ✅ | Home + Results tab (every attempt); `mobile/e2e/results.spec.ts` |
 | Basic merit / leaderboard | ✅ | Exam leaderboard with own position |
 | Basic notifications / announcements | ✅ | Bell → notifications and notices; `mobile/e2e/notifications.spec.ts` |
+| Accessible, readable screens (UI/UX guidelines §11) | ✅ ⏳ | **10F:** axe-core WCAG 2.1 A/AA on every screen of the web build, both languages — `mobile/e2e/accessibility.spec.ts`, 0 violations. A TalkBack and font-scale run on a real phone is still to do |
 | Open available exams | ✅ | `mobile/e2e/exams.spec.ts` |
 | MCQ interface, Previous/Next, question palette | ✅ | `mobile/e2e/exam-room.spec.ts`, `mobile/tests/exam-room.test.tsx` |
 | Answered / unanswered status; mark for review | ✅ | Palette states; same tests |
