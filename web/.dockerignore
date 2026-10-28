@@ -1,0 +1,14 @@
+# Unit tests (tests/) stay in the build context: the image build runs them.
+node_modules/
+.next/
+test-results/
+playwright-report/
+blob-report/
+e2e/
+coverage/
+tsconfig.tsbuildinfo
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore

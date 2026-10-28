@@ -130,6 +130,35 @@ services:
     logging: *logging
     mem_limit: 512m
 
+  website:
+    build:
+      context: ./web
+      args:
+        # Baked into the static pages: the demo site's own address, and kept out of search
+        # engines (a staging copy must never be indexed).
+        SITE_URL: ${SITE_URL}
+        SITE_NOINDEX: "1"
+    image: mcq-website:${IMAGE_TAG:-demo}
+    environment:
+      # Server-side reads of the public API go through nginx on the admin host (an internal
+      # alias, see below), exactly like the Admin Panel's.
+      API_ORIGIN: ${API_ORIGIN}
+    networks:
+      - internal
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/bn').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 512m
+
   nginx:
     image: nginx:1.27-alpine
     ports:
@@ -137,12 +166,15 @@ services:
       - "${NGINX_HTTPS_PORT:-443}:443"
     environment:
       DEMO_HOST: ${DEMO_HOST}
+      DEMO_SITE_HOST: ${DEMO_SITE_HOST}
       DJANGO_ADMIN_URL: ${DJANGO_ADMIN_URL}
       HSTS_SECONDS: ${HSTS_SECONDS:-3600}
     volumes:
       # demo-admin-http.conf (bootstrap / local) or demo-admin.conf (HTTPS) — filled from
       # the environment above by the image's template step.
       - ./deploy/nginx/${NGINX_SITE:-demo-admin-http.conf}:/etc/nginx/templates/default.conf.template:ro
+      # The public website's host: demo-site-http.conf (bootstrap) or demo-site.conf (HTTPS).
+      - ./deploy/nginx/${NGINX_SITE_WEB:-demo-site-http.conf}:/etc/nginx/templates/site.conf.template:ro
       - static_files:/srv/static:ro
       - media_files:/srv/media:ro
       - ${LETSENCRYPT_DIR:-/etc/letsencrypt}:/etc/letsencrypt:ro
@@ -156,6 +188,8 @@ services:
       backend:
         condition: service_healthy
       admin:
+        condition: service_healthy
+      website:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/nginx-health || exit 1"]

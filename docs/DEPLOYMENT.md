@@ -252,24 +252,39 @@ be run by accident against a database whose records it could not remove.
 > A **staging / demo** environment for the client review. It is **not** the production
 > deployment: production sizing (20,000 students), media storage, monitoring and real payment/SMS
 > providers are separate, later work. Files: `docker-compose.staging.yml`,
-> `.env.staging.example`, `deploy/nginx/demo-admin*.conf`, `deploy/staging/*.sh`,
-> `backend/Dockerfile` (`production` target), `admin/Dockerfile`. Demo scope: `docs/DEMO_SCOPE.md`.
+> `.env.staging.example`, `deploy/nginx/demo-admin*.conf`, `deploy/nginx/demo-site*.conf`,
+> `deploy/staging/*.sh`, `backend/Dockerfile` (`production` target), `admin/Dockerfile`,
+> `web/Dockerfile`. Demo scope: `docs/DEMO_SCOPE.md`.
 
 ### 9.1 Shape
 
 ```
 Internet ──▶ nginx (only published ports 80/443; edge + internal networks)
+   demo-admin.<domain> (DEMO_HOST)
               ├─ /api/*, /<DJANGO_ADMIN_URL> ─▶ backend (gunicorn, prod settings)
               ├─ /static/  (shared volume, read-only)      ◀─ collectstatic
               ├─ /media/   (shared volume, read-only)      ◀─ question image uploads
               └─ /*        ─▶ admin (next start)
+   demo.<domain> (DEMO_SITE_HOST) — the public website, never indexed
+              ├─ /api/v1/public/*  ─▶ backend   (the Contact form; nothing else under /api/)
+              └─ /*                ─▶ website (next start, built with SITE_NOINDEX=1)
 internal network (internal: true — NO internet route):
-   backend · celery (worker) · celery-beat · admin · postgres (online_mcq_demo) · redis
+   backend · celery (worker) · celery-beat · admin · website · postgres (online_mcq_demo) · redis
 ```
 
 - **One public host**, e.g. `demo-admin.<domain>`, for the panel and its API — same origin, so no
   CORS and no `CSRF_TRUSTED_ORIGINS` (§5). Inside Docker that name is a network alias of nginx,
   so the panel's server-side reads (`API_ORIGIN=https://demo-admin.<domain>`) never leave the server.
+- **The public website** has its own host (`DEMO_SITE_HOST`). Its pages read the public API on
+  the server through the admin host (the same internal alias); the browser's only API call, the
+  Contact form, goes to `/api/v1/public/` on the website's own host (real client IP for the
+  per-IP limit — §8). The demo copy is kept out of search engines three ways: the image is built
+  with `SITE_NOINDEX=1` (meta tags, `X-Robots-Tag`, a closed `robots.txt`), and nginx adds its
+  own header and `robots.txt`.
+- **nginx finds containers by name at request time** (Docker's DNS, `resolver 127.0.0.11
+  valid=10s` and upstreams named through variables). A restarted container (deploy, restore,
+  reset) gets a new address; nginx follows within seconds, no nginx restart needed. (Fixed in
+  10D: with plain `upstream` blocks a restore once swapped the website and the panel.)
 - **No internet route** for the app containers: the API, Celery and the panel cannot contact a
   payment gateway or an SMS provider at all. (Production will need egress — a later decision.)
 - **Media:** a shared volume served read-only by nginx — **demo storage only**, not the final
@@ -301,7 +316,11 @@ webroot read-only. Two site templates (filled from the environment at container 
 - `demo-admin.conf` — **HTTPS**: HTTP → HTTPS redirect (ACME still answered on port 80), TLS 1.2/1.3,
   short HSTS (`HSTS_SECONDS`, 1 hour at first), `X-Robots-Tag: noindex, nofollow` on everything.
 
-Switch with `NGINX_SITE` in `.env.staging` and `up -d nginx`. Renewal: certbot's own timer with a
+The website has the same pair — `demo-site-http.conf` / `demo-site.conf` — chosen with
+`NGINX_SITE_WEB`. **One certificate covers both hosts** (`certbot … -d demo-admin.<domain> -d
+demo.<domain>`, stored under the admin host's name).
+
+Switch with `NGINX_SITE` / `NGINX_SITE_WEB` in `.env.staging` and `up -d nginx`. Renewal: certbot's own timer with a
 deploy hook that reloads nginx (step 15).
 
 ### 9.4 Ordered first-deploy checklist
@@ -314,14 +333,17 @@ Run as the non-root `deploy` user in `/srv/mcq-demo/app` (a checkout of a **pinn
 2. **Deploy user** — create `deploy` with SSH-key login; disable password and root SSH login;
    firewall (UFW): allow 22 (ideally from your IP only), 80, 443 — nothing else.
 3. **Docker** — Docker Engine + Compose plugin; add `deploy` to the `docker` group.
-4. **DNS** — `A` (and `AAAA` if used) record `demo-admin.<domain>` → the VPS; wait until it resolves.
+4. **DNS** — `A` (and `AAAA` if used) records `demo-admin.<domain>` **and** `demo.<domain>` → the VPS;
+   wait until both resolve.
 5. **Checkout** — `git clone … /srv/mcq-demo/app && git -C /srv/mcq-demo/app checkout <tag>`
    (e.g. `demo-2026.10-1` — never a floating branch).
 6. **`.env.staging`** — `cp .env.staging.example .env.staging && chmod 600 .env.staging`; set
-   `DEMO_HOST`, `API_ORIGIN`, `DJANGO_ALLOWED_HOSTS`, `PAYMENT_*_URL`, `IMAGE_TAG` (= the tag),
-   `NGINX_SITE=demo-admin-http.conf`, and **new** values for `DJANGO_SECRET_KEY`, `JWT_SIGNING_KEY`
+   `DEMO_HOST`, `API_ORIGIN`, `DEMO_SITE_HOST`, `SITE_URL`, `DJANGO_ALLOWED_HOSTS` (both hosts),
+   `PAYMENT_*_URL`, `IMAGE_TAG` (= the tag), `NGINX_SITE=demo-admin-http.conf`,
+   `NGINX_SITE_WEB=demo-site-http.conf`, and **new** values for `DJANGO_SECRET_KEY`, `JWT_SIGNING_KEY`
    (different), `POSTGRES_PASSWORD`, `DJANGO_ADMIN_URL`. `mkdir -p /srv/mcq-demo/certbot-www /srv/mcq-demo/backups`.
-7. **Build** — `dc build` (the panel image runs lint, typecheck and `next build` itself).
+7. **Build** — `dc build` (the panel and website images run their lint, typecheck, tests and
+   `next build` themselves).
    **First-VPS verification item:** the backend image's `apt-get install gettext` step (Debian
    mirrors) has not been executed in a real build yet — confirm it succeeds here (§9.6).
 8. **PostgreSQL/Redis** — `dc up -d --wait postgres redis`.
@@ -336,17 +358,20 @@ Run as the non-root `deploy` user in `/srv/mcq-demo/app` (a checkout of a **pinn
     superusers. Running it again for a number sets a new password (use this to rotate after the demo).
 13. **Bootstrap nginx (HTTP)** — `dc up -d --wait` (all services; nginx starts with the HTTP site).
 14. **TLS certificate** — on the host: `sudo apt install certbot` then
-    `sudo certbot certonly --webroot -w /srv/mcq-demo/certbot-www -d demo-admin.<domain> --agree-tos -m <email>`.
+    `sudo certbot certonly --webroot -w /srv/mcq-demo/certbot-www -d demo-admin.<domain> -d demo.<domain> --agree-tos -m <email>`
+    (one certificate for both hosts).
     **External verification item:** real issuance has not been tested yet (§9.6); if it fails,
     nginx keeps serving the HTTP bootstrap site — fix DNS/firewall and retry before step 15.
-15. **Enable HTTPS** — set `NGINX_SITE=demo-admin.conf`, `dc up -d nginx`; add a renewal hook:
+15. **Enable HTTPS** — set `NGINX_SITE=demo-admin.conf` and `NGINX_SITE_WEB=demo-site.conf`, `dc up -d nginx`; add a renewal hook:
     `/etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh` running
     `docker compose --env-file /srv/mcq-demo/app/.env.staging -f /srv/mcq-demo/app/docker-compose.staging.yml exec -T nginx nginx -s reload`;
     check `sudo certbot renew --dry-run`.
 16. **All services** — `dc ps` shows every service `healthy`/`running`.
 17. **Service check** — `dc run --rm backend python manage.py check_services`.
 18. **Browser smoke test** — `docs/DEMO_SCOPE.md` acceptance list (login, every panel route,
-    EN/BN, phone width, payments read-only, "Validity bought", HTTPS + `noindex` headers).
+    EN/BN, phone width, payments read-only, "Validity bought", HTTPS + `noindex` headers) and the
+    website: home, exams, packages, leaderboard, notices, About/FAQ/Contact (a test message reaches
+    the panel's inbox), `robots.txt` closed, `noindex` on every page.
 19. **Backup** — `deploy/staging/backup.sh` (custom-format dump to `/srv/mcq-demo/backups`, 7-day
     retention); add a nightly cron entry for it.
 20. **Client demo** — send the URL and, through a separate channel, the client account's password.
@@ -358,13 +383,18 @@ Run as the non-root `deploy` user in `/srv/mcq-demo/app` (a checkout of a **pinn
   the `DEMO_ENVIRONMENT=staging-demo` marker or for any database other than `online_mcq_demo`.
   Admin accounts are not recreated by the script (that would need passwords in a script) — run
   step 12 again afterwards.
+- **Restore a backup:** `deploy/staging/restore.sh --yes <file.dump>` — backs up the current data
+  first (so a restore can be undone), stops the app services, recreates `online_mcq_demo`,
+  `pg_restore`s the dump (stops at the first error), migrates (a dump from an older release
+  catches up), starts the services and runs `check_services`. Same guards as the other scripts,
+  and it refuses anything that is not a PostgreSQL custom-format dump. Media files are not in
+  the dump (they stay in the media volume).
 - **Update to a new tag:** `deploy/staging/backup.sh` → `git checkout <new-tag>` → set
   `IMAGE_TAG` → `dc build` → `dc run --rm backend python manage.py migrate --noinput` →
   `collectstatic` → `dc up -d --wait`.
 - **Rollback:** previous images stay tagged (`mcq-backend:<old-tag>`, `mcq-admin:<old-tag>`): set
   `IMAGE_TAG` back and `dc up -d --wait`. If the new tag ran a migration, the simplest safe path
-  is restoring the pre-update dump:
-  `dc exec -T postgres pg_restore -U mcq_demo -d online_mcq_demo --clean --if-exists < <dump>`.
+  is restoring the pre-update dump: `deploy/staging/restore.sh --yes <pre-update dump>`.
 - **Rebuild from scratch:** a new VPS → this checklist → restore the latest dump instead of
   `seed_demo` (or reset).
 - **After the demo window:** rotate the client account's password (step 12 again) or deactivate it.
@@ -385,6 +415,20 @@ Validated locally (sandbox Docker, self-signed certificate, no internet route):
   gateway call; outbound DNS/connections from the app containers failed (no egress);
 - `backup.sh` (including same-second and concurrent runs), retention, the demo guards and
   `reset-demo.sh --yes`.
+
+**10D rehearsal (local, this time with the public website):** all three images built (the website
+image runs its 24 unit tests during the build); all **eight** services healthy; `migrate`,
+`collectstatic`, `seed_demo`; HTTP bootstrap and HTTPS (self-signed certificate for both hosts)
+configurations: website and panel 200, HTTP → HTTPS redirect, one HSTS header, `noindex` header +
+meta + closed `robots.txt` on the website, only `/api/v1/public/` reachable on the website's host
+(admin and auth APIs 404 there), the Contact form stored with the language and nginx's view of the
+client IP (a forged `X-Forwarded-For` ignored). **Backup → damage → restore drill:** a backup, then
+5 results deleted, the contact message deleted and an exam renamed; `restore.sh` refused without
+`--yes`, a non-dump file and an env file without the demo marker; the real restore brought back
+exactly the backed-up data (17 results, the message, the original title, the payment-history
+guard trigger), all services healthy. The drill found the nginx address bug above (the website
+and the panel swapped after the restore); after the fix, recreating both containers so that they
+swapped addresses kept every host correct without restarting nginx.
 
 The local image builds used a sandbox-only workaround (the sandbox network blocks Debian mirrors
 and needs a proxy CA); that workaround is **not** part of the repository.

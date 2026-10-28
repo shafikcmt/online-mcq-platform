@@ -5,7 +5,7 @@ import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { getSettings } from "@/lib/api";
 import { bengali, inter } from "@/lib/fonts";
 import { isLang, LANGS, translator } from "@/lib/i18n";
-import { SITE_URL } from "@/lib/site";
+import { NOINDEX, SITE_URL } from "@/lib/site";
 
 import "../globals.css";
 
@@ -25,6 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     description: t("meta.homeDescription"),
     applicationName: t("brand.name"),
     openGraph: { siteName: t("brand.name"), locale: lang === "bn" ? "bn_BD" : "en_US", type: "website", images: ["/brand/logo-mark.png"] },
+    // Demo / preview copies (SITE_NOINDEX=1): no page is indexed or followed.
+    ...(NOINDEX ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

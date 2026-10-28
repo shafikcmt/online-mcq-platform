@@ -7,6 +7,9 @@ on:
       - "backend/**"
       - "docker-compose.yml"
       - ".env.example"
+      - "docker-compose.staging.yml"
+      - ".env.staging.example"
+      - "deploy/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     branches: [develop, main]
@@ -14,6 +17,9 @@ on:
       - "backend/**"
       - "docker-compose.yml"
       - ".env.example"
+      - "docker-compose.staging.yml"
+      - ".env.staging.example"
+      - "deploy/**"
       - ".github/workflows/backend-ci.yml"
 
 permissions:
@@ -115,3 +121,7 @@ jobs:
         run: |
           cp .env.example .env
           docker compose config --quiet
+      - name: Validate docker-compose.staging.yml (config only — nothing is deployed)
+        run: |
+          cp .env.staging.example .env.staging
+          docker compose --env-file .env.staging -f docker-compose.staging.yml config --quiet
