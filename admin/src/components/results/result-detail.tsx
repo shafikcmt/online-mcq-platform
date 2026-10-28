@@ -47,7 +47,7 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Section title={t("resultDetail.sectionScore")}>
+        <Section id="result-score" title={t("resultDetail.sectionScore")}>
           <Item label={t("resultDetail.obtained")}>
             <span className="tabular-nums">{t("resultDetail.marksOf", { n: result.obtained_marks, total: result.total_marks })}</span>
           </Item>
@@ -62,7 +62,7 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
           <Item label={t("resultDetail.unanswered")}>{n(result.unanswered_count)}</Item>
         </Section>
 
-        <Section title={t("resultDetail.sectionAttempt")}>
+        <Section id="result-attempt" title={t("resultDetail.sectionAttempt")}>
           <Item label={t("resultDetail.attempt")}>{n(result.attempt_no)}</Item>
           <Item label={t("resultDetail.status")}>{t(`resultStatus.${result.status}`)}</Item>
           {result.submit_source && <Item label={t("resultDetail.submitSource")}>{t(`submitSource.${result.submit_source}`)}</Item>}
@@ -72,7 +72,7 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
           </Item>
         </Section>
 
-        <Section title={t("resultDetail.sectionMerit")}>
+        <Section id="result-merit" title={t("resultDetail.sectionMerit")}>
           <Item label={t("resultDetail.meritCounted")}>
             {t(result.is_merit_counted ? "meritState.counted" : "meritState.notCounted")}
           </Item>
@@ -81,7 +81,18 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
           </Item>
         </Section>
 
-        <Section title={t("resultDetail.sectionVisibility")}>
+        <Section
+          id="result-visibility"
+          title={t("resultDetail.sectionVisibility")}
+          footer={
+            <Link
+              href={`/results?exam=${result.exam_id}`}
+              className="rounded-control text-sm font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
+            >
+              {t("resultDetail.manage")}
+            </Link>
+          }
+        >
           {exam && (
             <>
               <Item label={t("resultDetail.setting")}>{t(`visibility.${exam.result_visibility}`)}</Item>
@@ -93,14 +104,6 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
               </Item>
             </>
           )}
-          <div className="sm:col-span-2">
-            <Link
-              href={`/results?exam=${result.exam_id}`}
-              className="rounded-control text-sm font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
-            >
-              {t("resultDetail.manage")}
-            </Link>
-          </div>
         </Section>
       </div>
 
@@ -128,14 +131,16 @@ export function ResultDetail({ result, exam }: { result: AdminResult; exam: Exam
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  const id = `result-section-${title.replace(/\s+/g, "-").toLowerCase()}`;
+/** A titled card of label/value pairs. Only `Item`s go inside the `<dl>`; a link or note
+ * that is not a pair goes in `footer`, below the list. */
+function Section({ id, title, children, footer }: { id: string; title: string; children?: ReactNode; footer?: ReactNode }) {
   return (
     <section aria-labelledby={id} className="rounded-card border border-line bg-surface">
       <h2 id={id} className="border-b border-line px-5 py-3.5 text-[15px] font-semibold text-ink">
         {title}
       </h2>
-      <dl className="grid gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">{children}</dl>
+      {children && <dl className="grid gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">{children}</dl>}
+      {footer && <div className={children ? "px-5 pb-5" : "px-5 py-5"}>{footer}</div>}
     </section>
   );
 }
