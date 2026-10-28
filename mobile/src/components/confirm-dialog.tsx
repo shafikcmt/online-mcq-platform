@@ -24,7 +24,8 @@ export function ConfirmDialog({ open, title, body, confirmLabel, tone = "primary
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={busy ? undefined : onCancel} statusBarTranslucent>
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={busy ? undefined : onCancel} accessibilityLabel={t("cancel")} />
+        {/* Tap outside = Cancel, for touch only: screen readers use the Cancel button. */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={busy ? undefined : onCancel} aria-hidden focusable={false} />
         <View style={styles.sheet} role="alertdialog" aria-modal accessibilityLabel={title}>
           <AppText variant="h4" weight="bold" role="heading">
             {title}
