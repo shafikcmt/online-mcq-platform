@@ -168,6 +168,8 @@ Branch: `feature/public-website`
 ## Milestone 10 — Hardening, QA & Deployment
 Branch: `release/1.0`
 
+**Status:** 10A done — bilingual QA (`LOCALIZATION.md` §11): every checklist item is now backed by a named automated test. Found and fixed: Bangla times showed an English "AM/PM" in all three clients — they now name the part of the day ("সকাল ৬:২৯"). New tests: Bangla-digit marks/minutes/price input, the question-language switch keeps the selected answer. Open owner decision: the Admin Panel shows Western digits in Bangla (the rule asks for Bangla digits).
+
 - **Scope**
   - Full requirement test checklist ("Basic Testing & Delivery") + bilingual QA (`LOCALIZATION.md` §11) + security checklist (`SECURITY_PLAN.md` §4).
   - Production compose, Nginx + TLS, backups, production settings checks, logging.

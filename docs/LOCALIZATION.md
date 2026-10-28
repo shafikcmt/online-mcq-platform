@@ -156,15 +156,18 @@ API returns `"title": "...", "title_lang": "en"` only where a fallback happened 
 
 ## 11. Testing checklist
 
-- [ ] Every screen in both languages: no missing keys, no clipped/overflowing Bangla text
-- [ ] Bangla digits shown in `bn` UI; Bangla-digit input accepted for phone/OTP/marks/price
-- [ ] Fallback works when one content language is missing
-- [ ] Exam with `content_language=both` toggles question language without losing selected answers
-- [ ] Error messages localized; `code` unchanged across languages
+*(Milestone 10A — bilingual QA: each item below is backed by an automated test; the file is named.)*
+
+- [x] Every screen in both languages: no missing keys, no clipped/overflowing Bangla text *(key parity + no empty text: `mobile/tests/i18n.test.ts`, `web/tests/messages.test.ts`, `admin/tests/format.test.ts`; no horizontal overflow at 360–1280 px in both languages: the website and mobile Playwright suites; Bangla screenshots reviewed by hand)*
+- [ ] Bangla digits shown in `bn` UI; Bangla-digit input accepted for phone/OTP/marks/price *(**Open — owner decision:** the App and the website show Bangla digits in `bn`; the **Admin Panel shows Western digits in `bn` too** (`admin/src/lib/format.ts`), which differs from the "Display digits" rule above and was never recorded as a decision. Either the panel switches to Bangla digits or the rule gets an Admin Panel exception. Input is done: Phone/OTP: `backend/tests/test_phone.py`, `test_verification.py`, `mobile/tests/phone-text.test.ts`; marks/minutes: `test_exams.py::test_marks_and_minutes_typed_with_bangla_digits`; price/validity: `test_subscriptions.py::test_package_numbers_typed_with_bangla_digits`)*
+- [x] **Times in Bangla name the part of the day** (ভোর / সকাল / দুপুর / বিকাল / সন্ধ্যা / রাত) before the time — "সকাল ৬:২৯", never an English "AM/PM" *(fixed in 10A in all three clients: `mobile/tests/format-time.test.ts`, `web/tests/lib.test.ts`, `admin/tests/format.test.ts`)*
+- [x] Fallback works when one content language is missing *(`backend/tests/test_i18n.py::test_resolve_bilingual_falls_back_to_other_language`)*
+- [x] Exam with `content_language=both` toggles question language without losing selected answers *(`mobile/tests/exam-room.test.tsx`: answer in Bangla, switch to English, the same option stays selected and nothing new is saved)*
+- [x] Error messages localized; `code` unchanged across languages *(`backend/tests/test_auth_api.py::test_api_messages_in_bangla_and_english`)*
 - [x] Notifications re-render in the new language after switching *(6B: rendered from gettext templates + bilingual name snapshots at read time; tested with `Accept-Language` and `preferred_language`)*
-- [ ] OTP SMS correct in both languages and within the intended segment length
-- [ ] Website `hreflang`, `lang` attributes and localized metadata correct
-- [ ] Search finds Bangla questions (NFC-normalized, trigram)
+- [x] OTP SMS correct in both languages and within the intended segment length *(`backend/tests/test_verification.py::TestSmsTemplates`: Bangla within one UCS-2 segment, English within one GSM segment; the real provider's sender ID and delivery stay a Milestone 10 deployment check)*
+- [x] Website `hreflang`, `lang` attributes and localized metadata correct *(`web/e2e/home.spec.ts`, `about-faq-contact.spec.ts`, `exams-packages.spec.ts`)*
+- [x] Search finds Bangla questions (NFC-normalized, trigram) *(`backend/tests/test_questions.py::test_search`, NFC storage test in the same file; exams: `test_exams.py` search)*
 
 ---
 

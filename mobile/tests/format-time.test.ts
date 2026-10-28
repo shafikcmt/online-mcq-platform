@@ -32,6 +32,19 @@ test("beyond a day the date and time are shown (phone time zone)", () => {
   expect(relativeOrDate("ends", iso, Date.parse("2026-10-27T00:00:00Z"), tbn, "bn")).toMatch(/^শেষ: ২ নভে/);
 });
 
+test("Bangla times name the part of the day instead of an English AM/PM", () => {
+  // Jest runs in Asia/Dhaka (tests/global-setup): UTC+6.
+  expect(formatDateTime("2026-10-27T00:29:00Z", "bn")).toBe("২৭ অক্টো, সকাল ৬:২৯");
+  expect(formatDateTime("2026-10-27T06:05:00Z", "bn")).toBe("২৭ অক্টো, দুপুর ১২:০৫");
+  expect(formatDateTime("2026-10-27T10:30:00Z", "bn")).toBe("২৭ অক্টো, বিকাল ৪:৩০");
+  expect(formatDateTime("2026-10-27T12:15:00Z", "bn")).toBe("২৭ অক্টো, সন্ধ্যা ৬:১৫");
+  expect(formatDateTime("2026-10-27T15:00:00Z", "bn")).toBe("২৭ অক্টো, রাত ৯:০০");
+  expect(formatDateTime("2026-10-26T18:00:00Z", "bn")).toBe("২৭ অক্টো, রাত ১২:০০");
+  expect(formatDateTime("2026-10-26T22:45:00Z", "bn")).toBe("২৭ অক্টো, ভোর ৪:৪৫");
+  expect(formatDateTime("2026-10-27T00:29:00Z", "bn")).not.toMatch(/AM|PM/i);
+  expect(formatDateTime("not a date", "bn")).toBe("");
+});
+
 test("server clock follows the last server_time seen", () => {
   resetServerClock();
   syncServerClock("2030-01-01T00:00:00Z", Date.parse("2029-12-31T23:00:00Z"));

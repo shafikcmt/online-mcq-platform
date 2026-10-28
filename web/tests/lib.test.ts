@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, test } from "vitest";
 
-import { clock, date, decimal, digits, money } from "@/lib/format";
+import { clock, date, dateTime, decimal, digits, money } from "@/lib/format";
 import { translator } from "@/lib/i18n";
 import { alternates } from "@/lib/site";
 import { middleware } from "@/middleware";
@@ -20,6 +20,16 @@ describe("format", () => {
     expect(clock(245, "en")).toBe("4:05");
     expect(clock(3729, "en")).toBe("1:02:09");
     expect(clock(245, "bn")).toBe("৪:০৫");
+  });
+
+  test("Bangla times name the part of the day instead of an English AM/PM (Bangladesh time)", () => {
+    expect(dateTime("2026-10-27T00:29:00Z", "bn")).toBe("২৭ অক্টো, সকাল ৬:২৯");
+    expect(dateTime("2026-10-27T06:05:00Z", "bn")).toBe("২৭ অক্টো, দুপুর ১২:০৫");
+    expect(dateTime("2026-10-27T10:30:00Z", "bn")).toBe("২৭ অক্টো, বিকাল ৪:৩০");
+    expect(dateTime("2026-10-27T12:15:00Z", "bn")).toBe("২৭ অক্টো, সন্ধ্যা ৬:১৫");
+    expect(dateTime("2026-10-26T18:00:00Z", "bn")).toBe("২৭ অক্টো, রাত ১২:০০"); // midnight in Dhaka
+    expect(dateTime("2026-10-26T22:45:00Z", "bn")).toBe("২৭ অক্টো, ভোর ৪:৪৫");
+    expect(dateTime("2026-10-27T00:29:00Z", "en")).toMatch(/^27 Oct, 6:29\s?am$/i);
   });
 
   test("dates in Bangladesh time", () => {

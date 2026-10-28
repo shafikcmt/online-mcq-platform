@@ -262,10 +262,19 @@ test("an exam in both languages can switch the question language; Bangla UI", as
   const both = room({ content_language: "bn" });
   both.exam.content_language = "both";
   both.questions = both.questions.map((q) => ({ ...q, text: `বাংলা প্রশ্ন ${q.number}`, text_bn: `বাংলা প্রশ্ন ${q.number}`, text_en: `Question text ${q.number}`, options: q.options.map((o) => ({ ...o, text_bn: `বিকল্প ${o.id}`, text_en: `Choice ${o.id}` })) }));
-  await signedIn({ [`GET /attempts/${ID}/`]: { status: 200, body: both } }, `/attempt/${ID}`, "bn");
+  const backend = await signedIn({ [`GET /attempts/${ID}/`]: { status: 200, body: both }, [`PUT /attempts/${ID}/answers/`]: savedReply }, `/attempt/${ID}`, "bn");
   expect(await screen.findByText("বাংলা প্রশ্ন 1")).toBeOnTheScreen();
   expect(screen.getByText("প্রশ্ন ১ / ৩")).toBeOnTheScreen();
+  // Answer in Bangla, then switch: the same option stays selected (docs/LOCALIZATION.md §11).
+  await fireEvent.press(screen.getByRole("radio", { name: "খ. বিকল্প 11" })); // Bangla option letters
+  await wait(500);
   await fireEvent.press(screen.getByRole("radio", { name: "English" }));
   expect(screen.getByText("Question text 1")).toBeOnTheScreen();
-  expect(screen.getByRole("radio", { name: "A. Choice 10" })).toBeOnTheScreen();
+  expect(screen.getByRole("radio", { name: "A. Choice 10" })).not.toBeChecked();
+  expect(screen.getByRole("radio", { name: "B. Choice 11" })).toBeChecked();
+  await wait(500);
+  // Switching the language saves nothing new and clears nothing on the server.
+  const put = backend.find("PUT", `/attempts/${ID}/answers/`);
+  expect(put).toHaveLength(1);
+  expect((put[0].body as { answers: unknown[] }).answers).toEqual([{ question_id: 1, selected_option_id: 11, client_saved_at: expect.any(String) }]);
 });
