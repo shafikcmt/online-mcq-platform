@@ -224,6 +224,20 @@ class TestCrud:
         again = api.post(EXAMS, api_payload(subject), format="json").json()
         assert again["slug"] == "physics-model-test-2"
 
+    def test_marks_and_minutes_typed_with_bangla_digits(self, api, subject):
+        """docs/LOCALIZATION.md §11: Bangla-digit input is accepted for marks and counts."""
+        payload = api_payload(
+            subject, duration_minutes="৪৫", default_marks="২", negative_marks="০.২৫"
+        )
+        response = api.post(EXAMS, payload, format="json")
+        assert response.status_code == 201, response.content
+        body = response.json()
+        assert (body["duration_minutes"], body["default_marks"], body["negative_marks"]) == (
+            45,
+            "2.00",
+            "0.25",
+        )
+
     @pytest.mark.parametrize(
         "extra, expected",
         [

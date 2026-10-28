@@ -871,6 +871,20 @@ class TestAdminAPI:
         assert api.delete(detail).status_code == 204
         assert api.get(detail).status_code == 404
 
+    def test_package_numbers_typed_with_bangla_digits(self, api):
+        """docs/LOCALIZATION.md §11: Bangla-digit input is accepted for prices and counts
+        (the Admin Panel sends what was typed; Python's Decimal/int read any Unicode digit)."""
+        response = api.post(
+            PACKAGES,
+            {"name_en": "Gold", "price": "৪৯৯.৫০", "validity_days": "৩০", "sort_order": "২"},
+            format="json",
+        )
+        assert response.status_code == 201, response.json()
+        body = response.json()
+        assert (body["price"], body["validity_days"], body["sort_order"]) == ("499.50", 30, 2)
+        package = Package.objects.get(pk=body["id"])
+        assert (package.price, package.validity_days) == (Decimal("499.50"), 30)
+
     @pytest.mark.parametrize(
         "payload",
         [
