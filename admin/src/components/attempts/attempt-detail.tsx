@@ -22,6 +22,10 @@ export function AttemptDetail({ attempt }: { attempt: AdminAttemptDetail }) {
   const examName = title.text || `#${attempt.exam_id}`;
   const n = (value: number) => formatNumber(value, locale);
   const when = (iso: string) => formatDateTime(iso, locale);
+  const marks =
+    attempt.has_result && attempt.obtained_marks !== null && attempt.total_marks !== null
+      ? { obtained_marks: attempt.obtained_marks, total_marks: attempt.total_marks }
+      : null;
   const open = attempt.status === "in_progress";
 
   return (
@@ -97,11 +101,32 @@ export function AttemptDetail({ attempt }: { attempt: AdminAttemptDetail }) {
           <Item label={t("attemptDetail.created")}>{when(attempt.created_at)}</Item>
         </Section>
 
-        <Section id="attempt-result" title={t("attemptDetail.sectionResult")} wide>
-          {attempt.has_result && attempt.obtained_marks !== null && attempt.total_marks !== null ? (
+        <Section
+          id="attempt-result"
+          title={t("attemptDetail.sectionResult")}
+          wide
+          footer={
+            marks ? (
+              <Link
+                href={`/results/${attempt.attempt_id}`}
+                className="inline-flex items-center gap-1 rounded-control text-sm font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
+              >
+                {t("attemptDetail.openResult")}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            ) : (
+              // Plain text, not a disabled link: there is no result to open yet.
+              <div data-no-result>
+                <p className="text-sm font-medium text-ink">{t("attemptDetail.noResult")}</p>
+                <p className="mt-0.5 text-sm text-ink-muted">{t("attemptDetail.noResultHint")}</p>
+              </div>
+            )
+          }
+        >
+          {marks && (
             <>
               <Item label={t("resultDetail.obtained")}>
-                <Marks result={{ obtained_marks: attempt.obtained_marks, total_marks: attempt.total_marks }} />
+                <Marks result={marks} />
               </Item>
               <Item label={t("resultDetail.percentage")}>
                 <span className="tabular-nums">{attempt.percentage}%</span>
@@ -117,22 +142,7 @@ export function AttemptDetail({ attempt }: { attempt: AdminAttemptDetail }) {
               <Item label={t("resultDetail.meritPosition")}>
                 <MeritCell result={{ merit_position: attempt.merit_position, is_merit_counted: Boolean(attempt.is_merit_counted) }} />
               </Item>
-              <div className="sm:col-span-2">
-                <Link
-                  href={`/results/${attempt.attempt_id}`}
-                  className="inline-flex items-center gap-1 rounded-control text-sm font-medium text-brand-700 underline underline-offset-2 hover:text-brand-600"
-                >
-                  {t("attemptDetail.openResult")}
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
-              </div>
             </>
-          ) : (
-            // Plain text, not a disabled link: there is no result to open yet.
-            <div className="sm:col-span-2" data-no-result>
-              <p className="text-sm font-medium text-ink">{t("attemptDetail.noResult")}</p>
-              <p className="mt-0.5 text-sm text-ink-muted">{t("attemptDetail.noResultHint")}</p>
-            </div>
           )}
         </Section>
       </div>
@@ -155,13 +165,28 @@ export function AttemptDetail({ attempt }: { attempt: AdminAttemptDetail }) {
   );
 }
 
-function Section({ id, title, children, wide = false }: { id: string; title: string; children: ReactNode; wide?: boolean }) {
+/** A titled card of label/value pairs. Only `Item`s go inside the `<dl>`; a link or note
+ * that is not a pair goes in `footer`, below the list. */
+function Section({
+  id,
+  title,
+  children,
+  footer,
+  wide = false,
+}: {
+  id: string;
+  title: string;
+  children?: ReactNode;
+  footer?: ReactNode;
+  wide?: boolean;
+}) {
   return (
     <section aria-labelledby={id} className={wide ? "rounded-card border border-line bg-surface lg:col-span-2" : "rounded-card border border-line bg-surface"}>
       <h2 id={id} className="border-b border-line px-5 py-3.5 text-[15px] font-semibold text-ink">
         {title}
       </h2>
-      <dl className="grid gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">{children}</dl>
+      {children && <dl className="grid gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">{children}</dl>}
+      {footer && <div className={children ? "px-5 pb-5" : "px-5 py-5"}>{footer}</div>}
     </section>
   );
 }

@@ -40,7 +40,7 @@ export function Logo({
           )}
         >
           <span className="text-brand-900">LIVE </span>
-          <span className="text-brand-500">MODEL </span>
+          <span className="text-brand-600">MODEL </span>
           <span className="text-brand-900">TEST</span>
         </span>
       )}

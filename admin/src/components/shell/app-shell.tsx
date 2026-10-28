@@ -29,6 +29,18 @@ export function AppShell({ profile, children }: { profile: AdminProfile; childre
     }
   }, []);
 
+  // The drawer is hidden by CSS at ≥1024px (`lg:`), but an open drawer would still be modal
+  // and keep the rest of the page hidden from screen readers — so a window that grows to
+  // desktop width (a tablet turned sideways) closes it.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const close = () => {
+      if (desktop.matches) setMobileOpen(false);
+    };
+    desktop.addEventListener("change", close);
+    return () => desktop.removeEventListener("change", close);
+  }, []);
+
   function toggleCollapsed() {
     setCollapsed((value) => {
       try {

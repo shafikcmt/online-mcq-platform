@@ -85,6 +85,7 @@
 | Basic settings: platform name | ✅ | Site settings (Bangla + English) |
 | Basic settings: **logo** | 🟡 | The logo is the owner-supplied brand asset built into the apps and the website (decision #24); changing it is a small code/asset update, not a setting. Owner's call whether an upload setting is wanted |
 | Basic settings: announcements / notices; app download link | ✅ | `admin/e2e/cms.spec.ts`, `site-admin.spec.ts` |
+| Accessible, readable panel (UI/UX guidelines §11) | ✅ | **10E:** axe-core WCAG 2.1 A/AA on every screen, both languages, phone and desktop — `admin/e2e/accessibility.spec.ts`, 0 violations |
 
 ## Public Website
 

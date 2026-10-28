@@ -6,3 +6,18 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+
+// jsdom has no matchMedia: a phone-width window that never changes size.
+if (!window.matchMedia) {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList;
+}

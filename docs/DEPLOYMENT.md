@@ -186,7 +186,7 @@ E2E_DISPOSABLE_DB=destroy-and-recreate \
 POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=5432 POSTGRES_USER=… POSTGRES_PASSWORD=… \
 PYTHON=backend/.venv/bin/python E2E_BASE_URL=http://localhost:8088 \
 E2E_ADMIN_MOBILE=… E2E_ADMIN_PASSWORD=… \
-admin/e2e/stack/run.sh payments packages subscriptions attempts users results exams content admin-shell api-proxy
+admin/e2e/stack/run.sh accessibility payments packages subscriptions attempts users results exams content admin-shell api-proxy
 ```
 
 **Mobile App (web QA build).** The same script runs the app's suites
