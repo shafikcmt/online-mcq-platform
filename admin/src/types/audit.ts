@@ -30,6 +30,7 @@ export const AUDIT_ACTIONS = [
   "faq.create", "faq.update", "faq.delete",
   "page.create", "page.update", "page.delete",
   "contact_message.status", "site_settings.update",
+  "user.activate", "user.deactivate",
 ] as const;
 
 export const AUDIT_ENTITY_TYPES = [

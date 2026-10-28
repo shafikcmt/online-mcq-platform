@@ -305,3 +305,115 @@ class TestDetailCounts:
     def test_counts_only_on_detail(self, client, people):
         row = client.get(USERS).json()["results"][0]
         assert "attempts_count" not in row and "payments_count" not in row
+
+
+# --------------------------------------------------------------------------------------
+# Activate / deactivate (Milestone 10C: requirement "Activate/deactivate account")
+# --------------------------------------------------------------------------------------
+class TestActivation:
+    @staticmethod
+    def url(user, action):
+        return f"{USERS}{user.pk}/{action}/"
+
+    @staticmethod
+    def signed_in(user):
+        from apps.accounts.tokens import issue_tokens
+
+        return issue_tokens(user)
+
+    @staticmethod
+    def api_status(access=None, refresh=None, login=None):
+        api = APIClient()
+        if access:
+            api.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+            return api.get("/api/v1/me/").status_code
+        if refresh:
+            return api.post(
+                "/api/v1/auth/token/refresh/", {"refresh": refresh}, format="json"
+            ).status_code
+        return api.post(
+            "/api/v1/auth/login/", {"mobile_number": login, "password": PW}, format="json"
+        ).status_code
+
+    def test_deactivate_signs_the_student_out_everywhere_and_is_audited(self, client, people):
+        from apps.audit.models import AuditLog
+
+        rahim = people["rahim"]
+        tokens = self.signed_in(rahim)
+        assert self.api_status(access=tokens["access"]) == 200
+        response = client.post(self.url(rahim, "deactivate"))
+        assert response.status_code == 200, response.content
+        body = response.json()
+        assert set(body) == DETAIL_FIELDS and body["is_active"] is False
+        assert "01712345678" not in response.content.decode()  # still masked
+        assert self.api_status(access=tokens["access"]) == 401
+        assert self.api_status(refresh=tokens["refresh"]) == 401
+        assert self.api_status(login="01712345678") == 401
+        entry = AuditLog.objects.get(action="user.deactivate")
+        assert (entry.entity_type, entry.entity_id) == ("accounts.user", str(rahim.pk))
+        assert entry.actor_id == people["admin"].pk
+        assert entry.metadata == {"changes": {"is_active": {"from": True, "to": False}}}
+
+    def test_activate_restores_sign_in_but_not_old_tokens(self, client, people):
+        from apps.audit.models import AuditLog
+
+        rahim = people["rahim"]
+        old = self.signed_in(rahim)
+        client.post(self.url(rahim, "deactivate"))
+        response = client.post(self.url(rahim, "activate"))
+        assert response.status_code == 200 and response.json()["is_active"] is True
+        assert self.api_status(access=old["access"]) == 401  # revoked for good
+        assert self.api_status(refresh=old["refresh"]) == 401
+        assert self.api_status(login="01712345678") == 200  # a fresh sign-in works
+        assert AuditLog.objects.get(action="user.activate").metadata == {
+            "changes": {"is_active": {"from": False, "to": True}}
+        }
+
+    def test_same_state_changes_nothing(self, client, people):
+        from apps.audit.models import AuditLog
+
+        rahim, nadia = people["rahim"], people["inactive"]
+        assert client.post(self.url(rahim, "activate")).json()["is_active"] is True
+        assert client.post(self.url(nadia, "deactivate")).json()["is_active"] is False
+        assert not AuditLog.objects.filter(action__startswith="user.").exists()
+
+    def test_staff_accounts_are_refused(self, client, people):
+        admin = people["admin"]
+        other = User.objects.create_user("01612345600", password=PW, full_name="X", role=Role.ADMIN)
+        for target in (admin, other):  # never yourself, never another admin
+            response = client.post(self.url(target, "deactivate"))
+            assert response.status_code == 409
+            assert response.json()["error"]["code"] == "not_a_student"
+            target.refresh_from_db()
+            assert target.is_active is True
+
+    def test_unknown_user(self, client, people):
+        assert client.post(f"{USERS}999999/deactivate/").status_code == 404
+
+    def test_admin_session_csrf_and_role_required(self, people):
+        rahim = people["rahim"]
+        assert APIClient().post(self.url(rahim, "deactivate")).status_code == 401
+        assert jwt_client(people["karima"]).post(self.url(rahim, "deactivate")).status_code == 401
+        session = APIClient()
+        session.force_login(people["karima"])  # a student's session
+        assert session.post(self.url(rahim, "deactivate")).status_code == 403
+        strict = APIClient(enforce_csrf_checks=True)
+        strict.force_login(people["admin"])
+        assert strict.post(self.url(rahim, "deactivate")).status_code == 403  # no CSRF token
+        for method in ("get", "put", "patch", "delete"):
+            assert getattr(APIClient(), method)(self.url(rahim, "activate")).status_code in (
+                401,
+                405,
+            )
+        rahim.refresh_from_db()
+        assert rahim.is_active is True
+
+    def test_history_is_kept(self, client, people):
+        rahim = people["rahim"]
+        grant(rahim, make_package("gold", rules=all_paid()))
+        before = client.get(f"{USERS}{rahim.pk}/").json()
+        client.post(self.url(rahim, "deactivate"))
+        after = client.post(self.url(rahim, "activate")).json()
+        for field in ("attempts_count", "results_count", "active_subscriptions_count"):
+            assert after[field] == before[field]
+        assert Subscription.objects.filter(user=rahim).count() == 1

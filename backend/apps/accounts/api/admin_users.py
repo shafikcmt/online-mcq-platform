@@ -9,8 +9,12 @@
 Personal data is masked: responses carry ``mobile_display`` and ``email_display``, never
 the raw ``mobile_number`` or ``email`` (search may match the raw values, the response
 stays masked). No password, ``auth_version``, staff/superuser flags, groups, permissions,
-tokens or verification data. Nothing here changes a user: activate/deactivate is not
-part of this API.
+tokens or verification data.
+
+The only changes: ``POST /admin/users/{id}/activate/`` and ``…/deactivate/`` — students
+only (``409 not_a_student`` for staff), audited; deactivating signs the student out
+everywhere (``accounts.services.set_student_active``). Admin session + CSRF + admin role,
+like every Admin API call.
 """
 
 import re
@@ -20,7 +24,10 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import generics, serializers
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from apps.audit.services import AuditContext
 from apps.core.admin_api import (
     AdminAPIMixin,
     query_bool,
@@ -31,7 +38,10 @@ from apps.core.admin_api import (
 from apps.core.i18n import normalize_digits
 from apps.core.phone import mask_mobile, try_normalize_bd_mobile
 
+from .. import services
+from ..exceptions import AccountError
 from ..models import Role, User
+from .errors import from_account_error
 
 USER_ORDERING = ("date_joined", "full_name")
 USER_DEFAULT_ORDERING = ("-date_joined",)
@@ -157,14 +167,39 @@ class AdminUserDetailView(AdminAPIMixin, generics.RetrieveAPIView):
     queryset = _admin_users()
 
     def get_object(self):
-        from apps.attempts.models import ExamAttempt
-        from apps.payments.models import Payment
-        from apps.results.models import Result
-        from apps.subscriptions.selectors import active_subscriptions
+        return _with_counts(super().get_object())
 
-        user = super().get_object()
-        user.attempts_count = ExamAttempt.objects.filter(user_id=user.pk).count()
-        user.results_count = Result.objects.filter(user_id=user.pk).count()
-        user.active_subscriptions_count = active_subscriptions(user).count()
-        user.payments_count = Payment.objects.filter(user_id=user.pk).count()
-        return user
+
+def _with_counts(user: User) -> User:
+    from apps.attempts.models import ExamAttempt
+    from apps.payments.models import Payment
+    from apps.results.models import Result
+    from apps.subscriptions.selectors import active_subscriptions
+
+    user.attempts_count = ExamAttempt.objects.filter(user_id=user.pk).count()
+    user.results_count = Result.objects.filter(user_id=user.pk).count()
+    user.active_subscriptions_count = active_subscriptions(user).count()
+    user.payments_count = Payment.objects.filter(user_id=user.pk).count()
+    return user
+
+
+class _SetActiveView(AdminAPIMixin, APIView):
+    active: bool
+    http_method_names = ["post", "options"]
+
+    @extend_schema(request=None, responses=AdminUserDetailSerializer)
+    def post(self, request, pk):
+        try:
+            services.set_student_active(pk, self.active, ctx=AuditContext.from_request(request))
+        except AccountError as exc:
+            raise from_account_error(exc) from exc
+        user = _with_counts(generics.get_object_or_404(_admin_users(), pk=pk))
+        return Response(AdminUserDetailSerializer(user, context={"request": request}).data)
+
+
+class AdminUserActivateView(_SetActiveView):
+    active = True
+
+
+class AdminUserDeactivateView(_SetActiveView):
+    active = False

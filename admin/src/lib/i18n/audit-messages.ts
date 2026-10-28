@@ -31,6 +31,8 @@ export const auditEn = {
   "audit.noMatchHint": "Try other filters, or clear them.",
 
   "auditAction.admin.login": "Signed in",
+  "auditAction.user.activate": "Student account activated",
+  "auditAction.user.deactivate": "Student account deactivated",
   "auditAction.category.create": "Category created",
   "auditAction.category.update": "Category edited",
   "auditAction.category.delete": "Category deleted",
@@ -121,6 +123,8 @@ export const auditBn: Record<AuditMessageKey, string> = {
   "audit.noMatchHint": "অন্য ফিল্টার চেষ্টা করুন, অথবা মুছে দিন।",
 
   "auditAction.admin.login": "সাইন ইন",
+  "auditAction.user.activate": "শিক্ষার্থীর অ্যাকাউন্ট সক্রিয় করা হয়েছে",
+  "auditAction.user.deactivate": "শিক্ষার্থীর অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে",
   "auditAction.category.create": "ক্যাটাগরি তৈরি",
   "auditAction.category.update": "ক্যাটাগরি সম্পাদনা",
   "auditAction.category.delete": "ক্যাটাগরি মুছে ফেলা",

@@ -108,3 +108,23 @@ def test_error_messages_are_localized(client):
     # The machine code never changes with language.
     assert english["code"] == bangla["code"] == "not_found"
     assert english["message"]
+
+
+def test_every_backend_message_has_a_bangla_translation():
+    """docs/LOCALIZATION.md: no untranslated or "fuzzy" (machine-guessed, ignored by
+    compilemessages) Bangla entries — those would show English to Bangla users. Run
+    ``makemessages -l bn -l en`` after adding a message, then translate the new entries."""
+    import re
+    from pathlib import Path
+
+    po = Path(__file__).resolve().parent.parent / "locale" / "bn" / "LC_MESSAGES" / "django.po"
+    missing = []
+    for block in po.read_text(encoding="utf-8").split("\n\n"):
+        match = re.search(r'(?:^|\n)msgid (".*?")\nmsgstr (".*?")$', block.strip(), re.S)
+        if not match or "Project-Id-Version" in block:
+            continue
+        msgid = "".join(re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(1)))
+        msgstr = "".join(re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(2)))
+        if "#, fuzzy" in block or not msgstr.strip():
+            missing.append(msgid)
+    assert missing == [], f"untranslated Bangla messages: {missing}"

@@ -3,7 +3,8 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 /** Milestone 7E — read-only Users and the Results student filter against the real stack
  * (nginx → Django + Next.js). Uses the users seeded by `e2e/stack/seed.py` (the admin,
  * four students with results, one inactive student with an email) and runs ONLY on the
- * disposable stack (`e2e/stack/run.sh`). Nothing here changes a user. */
+ * disposable stack (`e2e/stack/run.sh`). The only change (10C): the inactive student is
+ * activated and deactivated again, so the seed ends as it started. */
 const MOBILE = process.env.E2E_ADMIN_MOBILE ?? "";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "";
 const SHOTS = process.env.SCREENSHOT_DIR ?? "test-results/screens";
@@ -221,6 +222,40 @@ test("unknown or malformed user address → not found", async () => {
     await expect(page.getByText("This item no longer exists. It may have been deleted by someone else.")).toBeVisible();
     await expect(page.getByRole("link", { name: "Back to users" })).toHaveAttribute("href", "/users");
   }
+});
+
+test("activate and deactivate a student: confirmation, new status, audit log", async () => {
+  await page.goto(`/users/${ids.nusrat}`);
+  const account = main().getByRole("region", { name: "Account" });
+  await expect(account).toContainText("Inactive");
+  await main().getByRole("button", { name: "Activate account" }).click();
+  const confirm = page.getByRole("alertdialog", { name: "Activate this student again?" });
+  await expect(confirm).toContainText("Nusrat Jahan will be able to sign in again");
+  await confirm.getByRole("button", { name: "Activate" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Account activated." })).toBeVisible();
+  await expect(account).toContainText("Active");
+  await expect(main().getByRole("button", { name: "Deactivate account" })).toBeVisible();
+
+  await main().getByRole("button", { name: "Deactivate account" }).click();
+  const again = page.getByRole("alertdialog", { name: "Deactivate this student?" });
+  await expect(again).toContainText("signed out on every device at once");
+  await again.getByRole("button", { name: "Keep active" }).click(); // cancelling changes nothing
+  await expect(account).toContainText("Active");
+  await main().getByRole("button", { name: "Deactivate account" }).click();
+  await page.getByRole("alertdialog", { name: "Deactivate this student?" }).getByRole("button", { name: "Deactivate" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Account deactivated." })).toBeVisible();
+  await expect(account).toContainText("Inactive");
+
+  // The admin's own account has no such button (staff are managed separately).
+  const admins = JSON.parse(await apiText("/admin/users/?role=admin")) as { results: { id: number }[] };
+  await page.goto(`/users/${admins.results[0].id}`);
+  await expect(main().getByRole("button", { name: /activate account/i })).toHaveCount(0);
+
+  // Both changes are in the audit log, newest first.
+  const audit = JSON.parse(await apiText(`/admin/audit-logs/?entity_type=accounts.user&entity_id=${ids.nusrat}`)) as {
+    results: { action: string }[];
+  };
+  expect(audit.results.map((entry) => entry.action)).toEqual(["user.deactivate", "user.activate"]);
 });
 
 /** Visual QA: list and detail at four widths, English and Bangla. */

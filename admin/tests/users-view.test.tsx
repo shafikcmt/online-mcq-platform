@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() };
@@ -14,7 +14,7 @@ import { USER_LIST } from "@/lib/content-specs";
 import { parseListParams } from "@/lib/list-params";
 import type { AdminUser, AdminUserDetail } from "@/types/users";
 
-import { page, renderPanel } from "./content-helpers";
+import { apiError, findToast, json, mockApi, page, renderPanel } from "./content-helpers";
 
 function user(overrides: Partial<AdminUser> = {}): AdminUser {
   return {
@@ -70,6 +70,7 @@ const bodyRows = () => within(table()).getAllByRole("row").slice(1);
 beforeEach(() => {
   router.push.mockReset();
   router.replace.mockReset();
+  router.refresh.mockReset();
 });
 
 describe("UsersView", () => {
@@ -150,7 +151,8 @@ describe("UserDetail", () => {
     expect(value(account, "Mobile verification")).toHaveTextContent("Verified");
     expect(screen.getByText("Mobile numbers and emails are partly hidden to protect privacy.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to users" })).toHaveAttribute("href", "/users");
-    expect(screen.queryByRole("button")).not.toBeInTheDocument(); // read-only
+    // Read-only except one action: deactivating the student account.
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Deactivate account"]);
   });
 
   it("count cards link to their filtered lists: results, attempts, subscriptions and payments", () => {
@@ -178,5 +180,57 @@ describe("UserDetail", () => {
     expect(value(profile, "প্রদর্শিত নাম")).toHaveTextContent("দেওয়া হয়নি");
     expect(value(profile, "ইমেইল")).toHaveTextContent("ইমেইল নেই");
     expect(screen.getByRole("link", { name: "ফলাফল দেখুন" })).toHaveAttribute("href", "/results?user=40");
+  });
+});
+
+describe("UserStatusActions (activate / deactivate a student)", () => {
+  it("deactivates after a confirmation: POST with CSRF, toast, page reloaded", async () => {
+    const { calls } = mockApi(() => json(200, detail({ is_active: false })));
+    renderPanel(<UserDetail user={detail()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Deactivate account" }));
+    const dialog = await screen.findByRole("alertdialog", { name: "Deactivate this student?" });
+    expect(dialog).toHaveTextContent("Ayesha Siddika will be signed out on every device at once");
+    expect(calls).toHaveLength(0); // nothing before confirming
+    fireEvent.click(within(dialog).getByRole("button", { name: "Deactivate" }));
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toMatch(/\/admin\/users\/40\/deactivate\/$/);
+    expect(calls[0].headers["X-CSRFToken"]).toBe("test-token");
+    expect(await findToast()).toHaveTextContent("Account deactivated. The student has been signed out everywhere.");
+    expect(router.refresh).toHaveBeenCalled();
+  });
+
+  it("an inactive student can be activated again; Bangla", async () => {
+    const { calls } = mockApi(() => json(200, detail()));
+    renderPanel(<UserDetail user={detail({ is_active: false })} />, "bn");
+    fireEvent.click(screen.getByRole("button", { name: "অ্যাকাউন্ট সক্রিয় করুন" }));
+    const dialog = await screen.findByRole("alertdialog", { name: "এই শিক্ষার্থীকে আবার সক্রিয় করবেন?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "সক্রিয় করুন" }));
+    await waitFor(() => expect(calls[0]?.url).toMatch(/\/admin\/users\/40\/activate\/$/));
+  });
+
+  it("cancel sends nothing", async () => {
+    const { calls } = mockApi(() => json(200, detail()));
+    renderPanel(<UserDetail user={detail()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Deactivate account" }));
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Keep active" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
+    expect(calls).toHaveLength(0);
+  });
+
+  it("the server's refusal is shown and the page reloads", async () => {
+    mockApi(() => apiError(409, "not_a_student", "Only student accounts can be activated or deactivated here."));
+    renderPanel(<UserDetail user={detail()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Deactivate account" }));
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Deactivate" }));
+    expect(await within(dialog).findByText(/Only student accounts can be activated or deactivated here/)).toBeInTheDocument();
+    expect(router.refresh).toHaveBeenCalled();
+  });
+
+  it("staff accounts have no such action", () => {
+    renderPanel(<UserDetail user={detail({ role: "admin" })} />);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
