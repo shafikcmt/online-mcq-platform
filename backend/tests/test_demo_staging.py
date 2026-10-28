@@ -284,6 +284,7 @@ class TestStagingConfig:
         assert set(services) == {
             "nginx",
             "admin",
+            "website",
             "backend",
             "celery",
             "celery-beat",
@@ -299,6 +300,9 @@ class TestStagingConfig:
             assert service["restart"] == "unless-stopped", name
             assert service["logging"]["options"]["max-size"], name
         assert services["backend"]["build"]["target"] == "production"
+        # The demo website is never indexed: the image is built with SITE_NOINDEX=1.
+        assert services["website"]["build"]["args"]["SITE_NOINDEX"] == "1"
+        assert "website" in services["nginx"]["depends_on"]
         assert set(compose["volumes"]) == {"postgres_data", "static_files", "media_files"}
         text = (REPO / "docker-compose.staging.yml").read_text()
         assert "mcq_m7_qa" not in text and "runserver" not in text
@@ -320,8 +324,17 @@ class TestStagingConfig:
         assert env["SSLCOMMERZ_STORE_ID"].startswith("demo-placeholder")
         assert env["SSLCOMMERZ_STORE_PASSWORD"].startswith("demo-placeholder")
         assert all(
-            "example.com" in env[k] for k in ("DEMO_HOST", "API_ORIGIN", "DJANGO_ALLOWED_HOSTS")
+            "example.com" in env[k]
+            for k in (
+                "DEMO_HOST",
+                "API_ORIGIN",
+                "DJANGO_ALLOWED_HOSTS",
+                "DEMO_SITE_HOST",
+                "SITE_URL",
+            )
         )
+        # Django must accept the website's host (the Contact form posts there).
+        assert env["DEMO_SITE_HOST"] in env["DJANGO_ALLOWED_HOSTS"].split(",")
         assert "mcq_m7_qa" not in (REPO / ".env.staging.example").read_text()
 
     def test_nginx_sites_route_one_origin(self):
@@ -334,11 +347,15 @@ class TestStagingConfig:
                 "X-Forwarded-Proto",
                 "X-Forwarded-For",
                 'X-Robots-Tag "noindex, nofollow"',
-                "server backend:8000",
-                "server admin:3000",
+                "http://backend:8000",
+                "http://admin:3000",
+                "resolver 127.0.0.11",
                 "${DEMO_HOST}",
             ):
                 assert needle in text, (name, needle)
+            # Containers are found by name at request time: a static `upstream` block is
+            # resolved once and kept routing to an old address after a container restarted.
+            assert not re.search(r"^\s*upstream\s", text, re.M), name
             assert not re.search(
                 r"\b(?!example)\w+\.(com|net|org|bd)\b", text.replace("demo-admin.example.com", "")
             )
@@ -348,3 +365,77 @@ class TestStagingConfig:
             "ssl_certificate"
             not in (REPO / "deploy" / "nginx" / "demo-admin-http.conf").read_text()
         )
+
+    def test_nginx_website_host_exposes_only_the_public_api(self):
+        for name in ("demo-site.conf", "demo-site-http.conf"):
+            text = (REPO / "deploy" / "nginx" / name).read_text()
+            for needle in (
+                "${DEMO_SITE_HOST}",
+                "location /api/v1/public/",
+                "http://backend:8000",
+                "http://website:3000",
+                "resolver 127.0.0.11",
+                'X-Robots-Tag "noindex, nofollow"',
+                "Disallow: /",
+                "X-Forwarded-For",
+            ):
+                assert needle in text, (name, needle)
+            # Everything else under /api/ is closed on the website's host.
+            assert re.search(r"location /api/ \{\s*return 404;", text), name
+            assert "location /static/" not in text and "location /media/" not in text
+            assert not re.search(r"^\s*upstream\s", text, re.M), name
+        https = (REPO / "deploy" / "nginx" / "demo-site.conf").read_text()
+        assert "listen 443 ssl" in https and "return 301 https://" in https
+        # One certificate for both demo hosts, stored under the admin host's name.
+        assert "/etc/letsencrypt/live/${DEMO_HOST}/fullchain.pem" in https
+
+
+class TestRestoreScriptGuards:
+    """deploy/staging/restore.sh refuses before touching anything (no Docker needed)."""
+
+    SCRIPT = REPO / "deploy" / "staging" / "restore.sh"
+
+    def run(self, *args, env_file=None):
+        import os
+        import shutil
+        import subprocess
+
+        bash = shutil.which("bash")
+        assert bash
+        env = {**os.environ, "ENV_FILE": str(env_file or "/nonexistent/.env.staging")}
+        # Fixed program and arguments built by the test itself (no outside input).
+        return subprocess.run(  # noqa: S603
+            [bash, str(self.SCRIPT), *args], capture_output=True, text=True, env=env, timeout=30
+        )
+
+    def test_needs_explicit_confirmation(self, tmp_path):
+        result = self.run(str(tmp_path / "x.dump"))
+        assert result.returncode == 2 and "--yes" in result.stderr
+
+    def test_refuses_a_file_that_is_not_a_dump(self, tmp_path):
+        fake = tmp_path / "fake.dump"
+        fake.write_text("hello")
+        result = self.run("--yes", str(fake))
+        assert result.returncode == 2 and "not a PostgreSQL custom-format dump" in result.stderr
+        empty = tmp_path / "empty.dump"
+        empty.write_bytes(b"")
+        assert self.run("--yes", str(empty)).returncode == 2
+        assert self.run("--yes", str(tmp_path / "missing.dump")).returncode == 2
+
+    def test_refuses_without_the_demo_marker(self, tmp_path):
+        dump = tmp_path / "ok.dump"
+        dump.write_bytes(b"PGDMP\x01\x0e")
+        env_file = tmp_path / ".env.staging"
+        env_file.write_text("POSTGRES_DB=online_mcq_demo\nPOSTGRES_USER=mcq_demo\n")
+        result = self.run("--yes", str(dump), env_file=env_file)
+        assert result.returncode == 2 and "DEMO_ENVIRONMENT=staging-demo" in result.stderr
+
+    def test_refuses_a_non_demo_database(self, tmp_path):
+        dump = tmp_path / "ok.dump"
+        dump.write_bytes(b"PGDMP\x01\x0e")
+        env_file = tmp_path / ".env.staging"
+        env_file.write_text(
+            "DEMO_ENVIRONMENT=staging-demo\nPOSTGRES_DB=online_mcq\nPOSTGRES_USER=mcq\n"
+        )
+        result = self.run("--yes", str(dump), env_file=env_file)
+        assert result.returncode == 2 and "not a demo database" in result.stderr

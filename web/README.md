@@ -56,6 +56,16 @@ npm run dev                  # http://localhost:3002
 | `npm run build` | Production build (works without a backend: sections fall back) |
 | `npx playwright test` | End-to-end on the real backend — only through `admin/e2e/stack/run.sh` with `E2E_PROJECT_DIR=web` (`docs/DEPLOYMENT.md` §8); Playwright builds and starts the site itself |
 
+## Docker image and demo copies
+
+`web/Dockerfile` builds the production image (lint, typecheck and unit tests run inside the
+build; `next start` as a non-root user). Build arguments end up in the static pages:
+`SITE_URL` (the site's address) and `SITE_NOINDEX=1` for any **demo or preview copy** — it
+closes `robots.txt`, marks every page `noindex, nofollow` (meta tag and `X-Robots-Tag`) and drops
+the sitemap link, so a copy never competes with livemodeltest.com in search results. Run time:
+`API_ORIGIN`. The staging demo runs it next to the panel (`docker-compose.staging.yml`,
+`docs/DEPLOYMENT.md` §9). A Vercel preview would set the same `SITE_NOINDEX=1`.
+
 ## How it works
 
 - **Data:** server components read the backend's **public** API only (`/api/v1/public/*`) on the

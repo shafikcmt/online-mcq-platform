@@ -5,6 +5,12 @@ import { LANGS, type Lang } from "./i18n";
 /** The site's own public address (canonical links, sitemap, Open Graph). */
 export const SITE_URL = (process.env.SITE_URL ?? "https://livemodeltest.com").replace(/\/$/, "");
 
+/** `SITE_NOINDEX=1` (set at build time) keeps a copy of the site out of search engines — for
+ * a staging / client demo or a preview (e.g. Vercel): robots.txt disallows everything, every
+ * page says `noindex, nofollow` (meta tag + `X-Robots-Tag` header) and there is no sitemap
+ * link. Never set it for the real livemodeltest.com. */
+export const NOINDEX = process.env.SITE_NOINDEX === "1";
+
 /** `path` without a language ("" for home, "/exams"…) → the page in both languages, for
  * `hreflang` alternates (`x-default` is Bangla, the platform default). */
 export function alternates(lang: Lang, path: string): Metadata["alternates"] {

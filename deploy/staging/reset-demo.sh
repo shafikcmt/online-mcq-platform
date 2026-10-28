@@ -14,7 +14,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 [ "${1:-}" = "--yes" ] || die "this DELETES all demo data. Re-run with --yes to confirm."
 require_demo_env
-APP_SERVICES=(backend celery celery-beat admin)
+APP_SERVICES=(backend celery celery-beat admin website)
 
 echo "demo: 1/7 backup"
 "$(dirname "${BASH_SOURCE[0]}")/backup.sh"
