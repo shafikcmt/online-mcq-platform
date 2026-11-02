@@ -471,7 +471,10 @@ class TestCategoryListing:
         """Added in Milestone 3C (deferred from 3A): active categories only, public fields."""
         rows = APIClient().get("/api/v1/public/categories/").json()["results"]
         assert [row["slug"] for row in rows] == ["biology", "physics"]  # "art" is inactive
-        assert all(set(row) == {"slug", "name", "description", "subjects"} for row in rows)
+        assert all(
+            set(row) == {"slug", "name", "description", "subjects", "exam_count"} for row in rows
+        )
+        assert all(row["exam_count"] == 0 for row in rows)
 
     def test_subject_count(self, api, data):
         subject(data[0])

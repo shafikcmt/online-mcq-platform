@@ -141,6 +141,34 @@
     "final": {
       "title": "Ready for your next exam?",
       "body": "Download the app and start practising today."
+    },
+    "spotlight": {
+      "label": "Featured exam",
+      "state": {
+        "live": "LIVE",
+        "open": "Open now",
+        "upcoming": "Up next"
+      },
+      "free": "Free",
+      "startsAt": "Starts {{time}}",
+      "endsAt": "Ends {{time}}",
+      "duration": "{{n}} min",
+      "questions": "{{n}} questions",
+      "startsIn": "Starts in",
+      "endsIn": "Ends in",
+      "units": {
+        "days": "days",
+        "hours": "hours",
+        "minutes": "min",
+        "seconds": "sec"
+      },
+      "join": "Take part",
+      "details": "View details"
+    },
+    "categories": {
+      "title": "Exam categories",
+      "body": "Pick your goal and start practising.",
+      "exams": "{{n}} exams"
     }
   },
   "exam": {
@@ -170,7 +198,8 @@
     "rights": "© {{year}} Live Model Test. All rights reserved.",
     "explore": "Explore",
     "contact": "Contact",
-    "getApp": "Get the app"
+    "getApp": "Get the app",
+    "developedBy": "Developed by"
   },
   "error": {
     "title": "Something went wrong",

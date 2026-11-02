@@ -46,7 +46,7 @@ describe("sign in", () => {
     await user.type(screen.getByLabelText("Mobile number"), "০১৭১২৩৪৫৬৭৮");
     await user.type(screen.getByLabelText("Password"), "correct horse");
     await user.press(screen.getByRole("button", { name: "Sign in" }));
-    expect(await screen.findByText("Hello, Rahim")).toBeOnTheScreen();
+    expect(await screen.findByText("Rahim")).toBeOnTheScreen();
     expect(backend.find("POST", "/auth/login/")[0].body).toEqual({ mobile_number: "+8801712345678", password: "correct horse" });
     expect(secureStore.get("mcq.refresh_token")).toBe("R1");
   });
@@ -72,7 +72,7 @@ describe("sign in", () => {
     await user.type(await screen.findByLabelText("Mobile number"), "01712345678");
     await user.type(screen.getByLabelText("Password"), "pw");
     await user.press(screen.getByRole("button", { name: "Sign in" }));
-    expect(await screen.findByText("হ্যালো, Rahim")).toBeOnTheScreen();
+    expect(await screen.findByText("Rahim")).toBeOnTheScreen();
     expect(await AsyncStorage.getItem("mcq.language")).toBe("bn");
   });
 
@@ -97,7 +97,7 @@ describe("start-up with a stored session", () => {
       "PATCH /me/": (call) => ({ status: 200, body: { ...STUDENT, ...(call.body as object) } }),
     });
     await renderApp();
-    expect(await screen.findByText("হ্যালো, Rahim")).toBeOnTheScreen();
+    expect(await screen.findByText("Rahim")).toBeOnTheScreen();
     expect(backend.find("POST", "/auth/token/refresh/")[0].body).toEqual({ refresh: "R0" });
     expect(backend.find("PATCH", "/me/")[0].body).toEqual({ preferred_language: "bn" });
     expect(secureStore.get("mcq.refresh_token")).toBe("R1");
@@ -122,7 +122,7 @@ describe("start-up with a stored session", () => {
     expect(await screen.findByText("Can't reach the server")).toBeOnTheScreen();
     expect(secureStore.get("mcq.refresh_token")).toBe("R0");
     await user.press(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByText("Hello, Rahim")).toBeOnTheScreen();
+    expect(await screen.findByText("Rahim")).toBeOnTheScreen();
   });
 });
 
@@ -159,7 +159,7 @@ describe("registration", () => {
     await user.clear(screen.getByLabelText("Confirm password"));
     await user.type(screen.getByLabelText("Confirm password"), "a-strong-pass-77");
     await user.press(screen.getByRole("button", { name: "Create account" }));
-    expect(await screen.findByText("Hello, Nusrat")).toBeOnTheScreen();
+    expect(await screen.findByText("Nusrat")).toBeOnTheScreen();
     expect(backend.find("POST", "/auth/register/")[0].body).toEqual({
       verification_token: "VT",
       mobile_number: "+8801812345678",

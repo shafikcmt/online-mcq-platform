@@ -15,7 +15,12 @@ type Handler = Reply | ((call: Call) => Reply);
 export function mockBackend(routes: Record<string, Handler | Handler[]>) {
   const calls: Call[] = [];
   // Home loads the dashboard after every sign-in; an empty one unless the test says otherwise.
-  const all = { "GET /me/dashboard/": { status: 200, body: emptyDashboard() }, ...routes };
+  const all = {
+    "GET /me/dashboard/": { status: 200, body: emptyDashboard() },
+    // Home's category grid (hidden while empty).
+    "GET /public/categories/": { status: 200, body: { count: 0, next: null, previous: null, results: [] } },
+    ...routes,
+  };
   const queues = new Map(Object.entries(all).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value]));
   global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));

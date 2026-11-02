@@ -1,6 +1,6 @@
 {
-  "greeting": "Hello, {{name}}",
-  "subtitle": "Here is what's on for you.",
+  "greeting": "{{name}}",
+  "subtitle": "Ready for today's exam?",
   "unread_one": "{{n}} unread notification",
   "unread_other": "{{n}} unread notifications",
   "noUnread": "No unread notifications",
@@ -29,5 +29,47 @@
     "passed": "Passed",
     "failed": "Not passed",
     "merit": "Merit {{n}}"
+  },
+  "profile": "Profile",
+  "dayPart": {
+    "morning": "Good morning,",
+    "noon": "Good afternoon,",
+    "afternoon": "Good afternoon,",
+    "evening": "Good evening,",
+    "night": "Good evening,"
+  },
+  "spotlight": {
+    "state": {
+      "live": "LIVE",
+      "open": "Open now",
+      "upcoming": "Up next"
+    },
+    "free": "Free",
+    "startsAt": "Starts {{time}}",
+    "endsAt": "Ends {{time}}",
+    "duration": "{{n}} min",
+    "startsIn": "Starts in",
+    "endsIn": "Ends in",
+    "units": {
+      "days": "days",
+      "hours": "hours",
+      "minutes": "min",
+      "seconds": "sec"
+    },
+    "join": "Join the exam",
+    "resume": "Continue the exam",
+    "details": "View details"
+  },
+  "categories": {
+    "title": "Exam categories",
+    "exams_one": "{{n}} exam",
+    "exams_other": "{{n}} exams"
+  },
+  "quick": {
+    "title": "Quick access",
+    "upcoming": "Upcoming",
+    "open": "Open now",
+    "results": "My results",
+    "packages": "Packages"
   }
 }
