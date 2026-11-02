@@ -110,6 +110,7 @@ def stage(server, sha):
     shutil.copy(REPO / "docker-compose.prod.yml", release)
     shutil.copy(REPO / ".env.prod.example", release)
     shutil.copytree(REPO / "deploy", release / "deploy")
+    (release / ".env.prod").symlink_to(server["root"] / ".env.prod")
     return release
 
 
@@ -509,6 +510,22 @@ class TestStageRelease:
             assert (release / item).exists(), item
         assert os.access(release / "deploy" / "prod" / "deploy.sh", os.X_OK)
         assert releases(server) == [SHA_A]  # no staging leftovers
+
+    def test_links_the_server_settings_file_next_to_the_compose_file(self, server):
+        # docker-compose.prod.yml has `env_file: .env.prod` (relative to its own folder).
+        assert stage_with_script(server, SHA_A).returncode == 0
+        link = server["root"] / "releases" / SHA_A / ".env.prod"
+        assert link.is_symlink()
+        assert os.readlink(link) == str(server["root"] / ".env.prod")  # a link, never a copy
+        assert deploy(server, SHA_A).returncode == 0
+
+    def test_deploy_refuses_a_release_without_the_settings_link(self, server):
+        assert stage_with_script(server, SHA_A).returncode == 0
+        (server["root"] / "releases" / SHA_A / ".env.prod").unlink()
+        result = deploy(server, SHA_A)
+        assert result.returncode != 0
+        assert "must be a link to" in result.stderr and "nothing was changed" in result.stderr
+        assert current(server) is None
 
     def test_redeploying_the_live_sha_never_deletes_or_rewrites_it(self, server):
         assert stage_with_script(server, SHA_A).returncode == 0
