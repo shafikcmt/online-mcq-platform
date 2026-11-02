@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     title: { default: t("meta.homeTitle"), template: `%s | ${t("brand.name")}` },
     description: t("meta.homeDescription"),
     applicationName: t("brand.name"),
-    openGraph: { siteName: t("brand.name"), locale: lang === "bn" ? "bn_BD" : "en_US", type: "website", images: ["/brand/logo-mark.png"] },
+    openGraph: { siteName: t("brand.name"), locale: lang === "bn" ? "bn_BD" : "en_US", type: "website", images: [{ url: "/brand/og-image.png", width: 1200, height: 630 }] },
     // Demo / preview copies (SITE_NOINDEX=1): no page is indexed or followed.
     ...(NOINDEX ? { robots: { index: false, follow: false } } : {}),
   };
