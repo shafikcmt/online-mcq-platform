@@ -1,0 +1,140 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "backend/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - "docker-compose.staging.yml"
+      - ".env.staging.example"
+      - "docker-compose.prod.yml"
+      - ".env.prod.example"
+      - "deploy/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "backend/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - "docker-compose.staging.yml"
+      - ".env.staging.example"
+      - "docker-compose.prod.yml"
+      - ".env.prod.example"
+      - "deploy/**"
+      - ".github/workflows/backend-ci.yml"
+  # Also run as the test gate of the production deployment (deploy-production.yml).
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  # github.workflow is the CALLER's name when run by the deployment, so the deployment's
+  # test gate never cancels (or is cancelled by) the ordinary CI run of the same push.
+  group: ${{ github.workflow }}-backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Lint, checks and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: online_mcq
+          POSTGRES_USER: online_mcq
+          POSTGRES_PASSWORD: ci-only-not-a-real-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U online_mcq -d online_mcq"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: online_mcq
+      POSTGRES_USER: online_mcq
+      POSTGRES_PASSWORD: ci-only-not-a-real-password
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements/*.txt
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q gettext
+          pip install -r requirements/dev.txt
+
+      - name: Formatting (ruff format)
+        run: ruff format --check .
+
+      - name: Lint and import order (ruff check)
+        run: ruff check .
+
+      - name: Django system check (development settings)
+        run: python manage.py check
+
+      - name: Django deployment check (production settings)
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.prod
+          DJANGO_ALLOWED_HOSTS: api.example.com
+          # No real SMS provider exists yet; explicitly allowed for this check only.
+          SMS_ALLOW_MOCK_IN_PRODUCTION: "true"
+          # Payments: production refuses the mock provider. Placeholder (non-secret)
+          # SSLCommerz values and the sandbox are allowed for this check only.
+          PAYMENT_PROVIDER: sslcommerz
+          SSLCOMMERZ_STORE_ID: ci-config-check
+          PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION: "true"
+          PAYMENT_CALLBACK_BASE_URL: https://api.example.com
+          PAYMENT_RETURN_URL: https://example.com/payment-return
+        run: |
+          DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+          JWT_SIGNING_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+          SSLCOMMERZ_STORE_PASSWORD="$(python -c 'import secrets; print(secrets.token_urlsafe(16))')" \
+            python manage.py check --deploy --fail-level WARNING
+
+      - name: No missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Migrations apply to an empty PostgreSQL database
+        run: |
+          python manage.py migrate --noinput
+          python manage.py migrate --check
+
+      - name: Compile translations (Bangla + English)
+        run: python manage.py compilemessages
+
+      - name: Tests (pytest)
+        run: pytest
+
+  compose:
+    name: Docker Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose.yml
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+      - name: Validate docker-compose.staging.yml (config only — nothing is deployed)
+        run: |
+          cp .env.staging.example .env.staging
+          docker compose --env-file .env.staging -f docker-compose.staging.yml config --quiet
+      - name: Validate docker-compose.prod.yml (config only — nothing is deployed)
+        run: |
+          cp .env.prod.example .env.prod
+          IMAGE_TAG=0000000000000000000000000000000000000000 \
+            docker compose --env-file .env.prod -f docker-compose.prod.yml config --quiet

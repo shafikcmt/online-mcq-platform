@@ -1,0 +1,38 @@
+{
+  "appName": "Live Model Test",
+  "tagline": "Practice, take exams and see your rank — all in one place.",
+  "loading": "Loading…",
+  "continue": "Continue",
+  "back": "Back",
+  "retry": "Try again",
+  "cancel": "Cancel",
+  "save": "Save",
+  "saving": "Saving…",
+  "close": "Close",
+  "required": "This field is required.",
+  "language": {
+    "title": "Choose your language",
+    "subtitle": "You can change it any time from Profile.",
+    "bn": "বাংলা",
+    "en": "English"
+  },
+  "tabs": {
+    "home": "Home",
+    "exams": "Exams",
+    "results": "Results",
+    "packages": "Packages",
+    "profile": "Profile"
+  },
+  "errors": {
+    "network": "No internet connection. Check your connection and try again.",
+    "server": "Something went wrong on our side. Please try again in a moment.",
+    "unknown": "Something went wrong. Please try again.",
+    "sessionExpired": "Your session has ended. Please sign in again.",
+    "rateLimited": "Too many attempts. Please wait {{seconds}} seconds and try again.",
+    "formSummary": "Please fix the highlighted fields."
+  },
+  "boot": {
+    "offlineTitle": "Can't reach the server",
+    "offlineBody": "Check your internet connection. Your sign-in is kept on this phone."
+  }
+}

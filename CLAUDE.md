@@ -13,24 +13,51 @@ Main components:
 The approved project scope is stored under `docs/requirements/`.
 Always review the requirement files before planning or implementing a feature.
 
-## Product & UI Reference
-Reference website for product flow and interaction ideas:
+## Language Requirements
+The platform must support both:
+- Bangla
+- English
+
+Plan the UI, content structure, labels, validation messages, notifications, exam content, and future localization so both languages can be supported cleanly without hard-coding text throughout the application.
+
+Use Unicode-safe fonts and layouts suitable for Bangla and English content.
+
+## Product & UI Direction
+Reference website for general inspiration only:
 - https://web.livemcq.com/
 
-Use the reference only as inspiration for flow, layout patterns, and usability. Do not copy proprietary code, branding, text, assets, or exact visual identity.
+If the reference website cannot be accessed because of network, policy, authentication, or environment restrictions, do not retry repeatedly and do not block the work. Continue using the approved requirements and the UI/UX guidance in this file.
 
-The UI/UX for the Mobile App, Public Website, and Admin Panel should be modern, smart, clean, fast, responsive, and easy to use.
+Do not copy branding, text, assets, proprietary code, or exact visual identity from any reference website.
+
+All modules must use a modern, smart, clean, fast, responsive, and professional UI/UX.
+This applies to:
+- Mobile App
+- Public Website
+- Admin Panel
+- Exam-taking screens
+- Authentication and OTP screens
+- Question management
+- Exam management
+- Result and leaderboard views
+- Subscription and payment screens
+- Notifications
+- Reports and analytics
+- Settings and profile screens
+
 Prefer:
 - clear information hierarchy
 - uncluttered screens
 - modern cards, tables, forms, filters, and dashboards
 - consistent spacing and typography
+- reusable components
 - mobile-first responsive behavior
 - accessible color contrast and readable states
 - smooth but restrained interactions
 - polished loading, empty, success, warning, and error states
 
-Avoid outdated, crowded, or overly decorative UI. Keep the experience suitable for a serious exam platform used by students and administrators.
+Avoid outdated, crowded, or overly decorative UI.
+Keep the experience suitable for a serious online examination platform.
 
 ## Preferred Technology Stack
 Backend:

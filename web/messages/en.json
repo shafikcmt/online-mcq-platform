@@ -1,0 +1,334 @@
+{
+  "brand": {
+    "name": "Live Model Test",
+    "tagline": "Model tests, live exams and results — in Bangla and English."
+  },
+  "nav": {
+    "home": "Home",
+    "label": "Main",
+    "menu": "Menu",
+    "close": "Close menu",
+    "skip": "Skip to content",
+    "exams": "Exams",
+    "packages": "Packages",
+    "notices": "Notices",
+    "leaderboard": "Leaderboard",
+    "about": "About",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "lang": {
+    "label": "Language",
+    "bn": "বাংলা",
+    "en": "English"
+  },
+  "app": {
+    "download": "Download App",
+    "open": "Open App",
+    "soon": "Coming soon to Google Play",
+    "soonBody": "The Live Model Test app will be on Google Play soon. Exams are taken in the app."
+  },
+  "meta": {
+    "homeTitle": "Live Model Test — online model tests and live exams",
+    "homeDescription": "Practice model tests, take live exams on time, see your result and merit position — in Bangla and English. Download the Live Model Test app.",
+    "examsTitle": "Exams",
+    "examsDescription": "Live exams, model tests and practice sets on Live Model Test: what is open now, what is coming up and what has ended.",
+    "packagesTitle": "Packages",
+    "packagesDescription": "Live Model Test packages: prices, validity and what each package unlocks. Free exams are open to everyone.",
+    "examDescription": "{{title}} — {{minutes}}, {{questions}}. Take it in the Live Model Test app.",
+    "noticesTitle": "Notices",
+    "noticesDescription": "Latest notices and announcements from Live Model Test: exam schedules, results and updates.",
+    "leaderboardTitle": "Leaderboard",
+    "leaderboardDescription": "Merit lists of Live Model Test exams: the top students of each exam.",
+    "meritTitle": "Merit list: {{title}}",
+    "meritDescription": "The merit list of {{title}} on Live Model Test: positions, marks and time.",
+    "aboutTitle": "About us",
+    "aboutDescription": "About Live Model Test: online model tests, live exams, results and merit lists in Bangla and English.",
+    "faqTitle": "Frequently asked questions",
+    "faqDescription": "Answers to common questions about Live Model Test: exams, results, packages and payments.",
+    "contactTitle": "Contact us",
+    "contactDescription": "Contact Live Model Test: send us a message and we will get back to you."
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Model tests · Live exams · Merit lists",
+      "title": "Prepare smarter with real exam practice",
+      "body": "Take timed model tests and live exams on your phone, see your marks the moment results are out, and know your merit position.",
+      "secondary": "See how it works"
+    },
+    "mock": {
+      "exam": "Physics model test",
+      "question": "Question 3 of 25",
+      "text": "Which quantity is a vector?",
+      "options": [
+        "Mass",
+        "Velocity",
+        "Temperature",
+        "Time"
+      ],
+      "time": "18:42"
+    },
+    "features": {
+      "title": "Everything you need to practise",
+      "items": [
+        {
+          "title": "Live and practice exams",
+          "body": "Scheduled live exams for everyone at once, and practice sets you can retake."
+        },
+        {
+          "title": "Fair, exact timing",
+          "body": "The timer follows the server's clock, answers save as you go and the exam submits on time."
+        },
+        {
+          "title": "Results and merit lists",
+          "body": "Marks, percentage and pass status, then your position on the merit list."
+        },
+        {
+          "title": "Answer review",
+          "body": "See the correct answers and explanations when the exam allows review."
+        },
+        {
+          "title": "বাংলা and English",
+          "body": "The app and many exams in both languages — switch any time."
+        },
+        {
+          "title": "Secure payments",
+          "body": "Buy packages through trusted payment providers, verified by our server."
+        }
+      ]
+    },
+    "exams": {
+      "title": "Exams",
+      "upcoming": "Upcoming",
+      "open": "Open now",
+      "empty": "New exams will appear here soon.",
+      "cta": "Take exams in the app",
+      "all": "See all exams"
+    },
+    "packages": {
+      "title": "Packages",
+      "body": "Free exams are open to everyone. Packages unlock paid exams.",
+      "empty": "Packages will be announced soon.",
+      "all": "See all packages"
+    },
+    "notices": {
+      "title": "Latest notices",
+      "empty": "No notices right now.",
+      "all": "See all notices"
+    },
+    "how": {
+      "title": "How it works",
+      "steps": [
+        {
+          "title": "Download the app",
+          "body": "Install Live Model Test and sign up with your mobile number."
+        },
+        {
+          "title": "Choose an exam",
+          "body": "Pick a live exam, a model test or a practice set."
+        },
+        {
+          "title": "Get your result and rank",
+          "body": "See your marks, review answers and check the merit list."
+        }
+      ]
+    },
+    "faq": {
+      "title": "Common questions"
+    },
+    "final": {
+      "title": "Ready for your next exam?",
+      "body": "Download the app and start practising today."
+    }
+  },
+  "exam": {
+    "type": {
+      "practice": "Practice",
+      "regular": "Exam",
+      "live": "Live"
+    },
+    "access": {
+      "free": "Free",
+      "paid": "Paid"
+    },
+    "minutes": "{{n}} min",
+    "questions": "{{n}} {{n|question|questions}}",
+    "starts": "Starts {{date}}",
+    "ends": "Ends {{date}}",
+    "ended": "Ended {{date}}",
+    "details": "Details"
+  },
+  "package": {
+    "days": "{{n}} {{n|day|days}}",
+    "popular": "Popular",
+    "per": "/ {{days}}"
+  },
+  "pinned": "Pinned",
+  "footer": {
+    "rights": "© {{year}} Live Model Test. All rights reserved.",
+    "explore": "Explore",
+    "contact": "Contact",
+    "getApp": "Get the app"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "Please try again in a moment.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you are looking for does not exist.",
+    "home": "Go to the home page"
+  },
+  "exams": {
+    "title": "Exams",
+    "body": "Browse live exams, model tests and practice sets. Exams are taken in the app.",
+    "tabs": {
+      "label": "Schedule",
+      "open": "Open now",
+      "upcoming": "Upcoming",
+      "ended": "Ended"
+    },
+    "filters": {
+      "label": "Filter exams",
+      "category": "Category",
+      "type": "Type",
+      "access": "Access",
+      "all": "All",
+      "apply": "Apply",
+      "reset": "Clear filters"
+    },
+    "empty": {
+      "open": "No exams are open right now.",
+      "upcoming": "No upcoming exams yet.",
+      "ended": "No ended exams yet."
+    },
+    "filteredEmpty": "No exams match these filters.",
+    "unavailable": "Exams can't be loaded right now. Please try again in a moment.",
+    "count": "{{n}} {{n|exam|exams}}"
+  },
+  "examDetail": {
+    "facts": "Exam details",
+    "duration": "Duration",
+    "questions": "Questions",
+    "totalMarks": "Total marks",
+    "negative": "Negative marking",
+    "negativeValue": "−{{n}} per wrong answer",
+    "none": "None",
+    "passMarks": "Pass marks",
+    "language": "Language",
+    "languages": {
+      "bn": "Bangla",
+      "en": "English",
+      "both": "Bangla and English"
+    },
+    "schedule": "Schedule",
+    "starts": "Starts",
+    "ends": "Ends",
+    "anytime": "Available any time",
+    "instructions": "Instructions",
+    "takeTitle": "Take this exam in the app",
+    "takeBody": "Sign in with your mobile number in the Live Model Test app, open this exam and start when it is open.",
+    "upcomingBody": "This exam opens on {{date}}. Get the app ready to start on time.",
+    "endedTitle": "This exam has ended",
+    "endedBody": "Students who took it can see their results and the merit list in the app.",
+    "paid": "A package unlocks this paid exam.",
+    "seePackages": "See packages",
+    "unavailable": "This exam can't be loaded right now. Please try again in a moment.",
+    "merit": "View the merit list"
+  },
+  "packagesPage": {
+    "title": "Packages",
+    "body": "Free exams are open to everyone. A package unlocks paid exams for the days it is valid.",
+    "how": {
+      "title": "How to buy a package",
+      "steps": [
+        {
+          "title": "Open the app",
+          "body": "Sign in with your mobile number."
+        },
+        {
+          "title": "Choose a package",
+          "body": "Compare packages in the Packages tab and pick one."
+        },
+        {
+          "title": "Pay securely",
+          "body": "Pay through the secure payment page. Our server verifies the payment, then the package is active."
+        }
+      ]
+    },
+    "paidExams": "See paid exams",
+    "unavailable": "Packages can't be loaded right now. Please try again in a moment."
+  },
+  "pages": {
+    "label": "Pages",
+    "of": "Page {{page}} of {{pages}}",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "notices": {
+    "title": "Notices",
+    "body": "Exam schedules, results and other updates.",
+    "empty": "No notices right now.",
+    "unavailable": "Notices can't be loaded right now. Please try again in a moment."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "body": "Merit lists of exams whose results are out. Take exams in the app to get on the list.",
+    "empty": "No merit lists have been published yet.",
+    "unavailable": "The leaderboard can't be loaded right now. Please try again in a moment.",
+    "ranked": "{{n}} on the merit list",
+    "view": "View merit list"
+  },
+  "merit": {
+    "title": "Merit list",
+    "privacy": "Names are shortened to protect students' privacy.",
+    "top": "Top {{n}}",
+    "position": "Position",
+    "name": "Name",
+    "marks": "Marks",
+    "percent": "Percent",
+    "time": "Time",
+    "notPublic": "The merit list for this exam isn't public yet.",
+    "unavailable": "The merit list can't be loaded right now. Please try again in a moment.",
+    "all": "All merit lists"
+  },
+  "about": {
+    "title": "About Live Model Test",
+    "fallback": "Live Model Test helps students prepare with real exam practice. Take timed model tests and live exams in the app, see your marks as soon as results are out, review your answers and find your position on the merit list — in Bangla and English.\n\nExam timing, scoring and payment checks all run on our server, so every student gets the same fair exam.",
+    "updated": "Updated {{date}}"
+  },
+  "faqPage": {
+    "title": "Frequently asked questions",
+    "body": "Quick answers about exams, results, packages and payments.",
+    "empty": "Questions and answers will appear here soon.",
+    "unavailable": "The questions can't be loaded right now. Please try again in a moment.",
+    "more": "Still have a question?",
+    "contact": "Contact us"
+  },
+  "contact": {
+    "title": "Contact us",
+    "body": "Questions, suggestions or a problem with the app? Send us a message.",
+    "details": "Reach us",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "form": "Send a message",
+    "name": "Your name",
+    "phoneField": "Mobile number",
+    "emailField": "Email",
+    "requiredNote": "Fields marked * are required.",
+    "either": "Give a mobile number or an email (or both) so we can reply.",
+    "subject": "Subject",
+    "message": "Message",
+    "honeypot": "Leave this field empty",
+    "send": "Send message",
+    "sending": "Sending…",
+    "required": "This field is required.",
+    "needContact": "Enter a mobile number or an email.",
+    "invalidEmail": "Enter a valid email address.",
+    "sent": "Thank you! Your message has been sent. We will get back to you soon.",
+    "another": "Send another message",
+    "fix": "Please correct the highlighted fields.",
+    "throttled": "Too many messages from your connection. Please try again later.",
+    "failed": "Your message could not be sent. Please try again in a moment.",
+    "noscript": "Please turn on JavaScript to send a message, or use the contact details on this page."
+  }
+}

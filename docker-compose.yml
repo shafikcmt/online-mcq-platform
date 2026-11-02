@@ -1,0 +1,63 @@
+# Local development stack. Usage: see README.md ("Run with Docker").
+# Values come from the .env file in the project root (copy .env.example → .env).
+
+name: online-mcq
+
+x-backend: &backend
+  build:
+    context: ./backend
+    args:
+      # Development image: runtime packages + pytest, pytest-django, ruff.
+      REQUIREMENTS: requirements/dev.txt
+  image: online-mcq-backend:dev
+  env_file: .env
+  volumes:
+    - ./backend:/app # live code reload while developing
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Not published to the host: only other containers can reach the database.
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    <<: *backend
+    # The source folder is mounted over /app, so translations are compiled at startup.
+    command: sh -c "python manage.py compilemessages --verbosity 0 && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "127.0.0.1:8000:8000" # reachable only from this computer
+
+  celery:
+    <<: *backend
+    command: sh -c "python manage.py compilemessages --verbosity 0 && celery -A config worker --loglevel=info"
+
+  celery-beat:
+    <<: *backend
+    # Periodic jobs (e.g. finalizing abandoned exam attempts every minute).
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
+
+volumes:
+  postgres_data:

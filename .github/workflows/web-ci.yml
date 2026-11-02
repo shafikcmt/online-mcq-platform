@@ -1,0 +1,62 @@
+name: Public Website CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "web/**"
+      - ".github/workflows/web-ci.yml"
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "web/**"
+      - ".github/workflows/web-ci.yml"
+  # Also run as the test gate of the production deployment (deploy-production.yml).
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  # github.workflow is the CALLER's name when run by the deployment, so the deployment's
+  # test gate never cancels (or is cancelled by) the ordinary CI run of the same push.
+  group: ${{ github.workflow }}-web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Lint, types, tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit and component tests (Vitest)
+        run: npm test
+
+      # Production build without a backend: every API section falls back gracefully (the
+      # site never fails because the API is unavailable).
+      - name: Production build
+        run: npm run build
+
+      # Playwright end-to-end tests need the full stack (Django, PostgreSQL, Redis) and run
+      # on the disposable stack — see web/README.md.

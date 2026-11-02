@@ -1,0 +1,77 @@
+{
+  "title": "Exams",
+  "subtitle": "Open, upcoming and past exams.",
+  "filters": {
+    "label": "Show exams",
+    "open": "Open now",
+    "upcoming": "Upcoming",
+    "ended": "Past"
+  },
+  "empty": {
+    "open": "No exams are open right now. Pull down to check again.",
+    "upcoming": "No upcoming exams yet.",
+    "ended": "No past exams yet."
+  },
+  "loadingMore": "Loading more…",
+  "count_one": "{{n}} exam",
+  "count_other": "{{n}} exams",
+  "detail": {
+    "facts": "About this exam",
+    "questions": "Questions",
+    "totalMarks": "Total marks",
+    "duration": "Time",
+    "negative": "Wrong answer",
+    "negativeValue": "−{{value}} marks",
+    "noNegative": "No negative marking",
+    "passMarks": "Pass marks",
+    "starts": "Opens",
+    "ends": "Closes",
+    "attempts": "Your attempts",
+    "attemptsOf": "{{used}} of {{allowed}}",
+    "attemptsUnlimited": "{{used}} (no limit)",
+    "language": "Question language",
+    "instructions": "Instructions",
+    "notFound": "This exam is not available. It may have been removed or closed."
+  },
+  "contentLanguage": {
+    "bn": "Bangla",
+    "en": "English",
+    "both": "Bangla and English"
+  },
+  "state": {
+    "ready": "You can start this exam now. You will have {{time}}.",
+    "readyLate": "Joining late: you will have {{time}}, until the exam closes.",
+    "resume": "You have this exam in progress. You can continue where you left off.",
+    "needs_subscription": "This is a paid exam. You need an active package that includes it.",
+    "exam_not_started": "This exam has not opened yet. {{when}}.",
+    "exam_ended": "This exam has closed.",
+    "retake_not_allowed": "You have already taken this exam. It can be taken only once.",
+    "attempt_limit_reached": "You have used all your attempts for this exam."
+  },
+  "seeAll": "See all",
+  "time": {
+    "minutes": "{{m}} min",
+    "hours": "{{h}} h",
+    "hoursMinutes": "{{h}} h {{m}} min",
+    "startsIn": "Starts in {{gap}}",
+    "endsIn": "Ends in {{gap}}",
+    "startsAt": "Starts {{date}}",
+    "endsAt": "Ends {{date}}"
+  },
+  "examType": {
+    "practice": "Practice",
+    "regular": "Exam",
+    "live": "Live"
+  },
+  "access": {
+    "free": "Free",
+    "paid": "Paid"
+  },
+  "status": {
+    "resume": "In progress — you can continue",
+    "done": "Completed",
+    "locked": "Needs a package",
+    "ready": "Ready to start"
+  },
+  "minutes": "{{n}} min"
+}

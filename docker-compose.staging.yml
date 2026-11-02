@@ -1,0 +1,211 @@
+# Staging / client-demo stack (NOT production, NOT local development).
+#
+# Always run with the server-only env file and this file:
+#   docker compose --env-file .env.staging -f docker-compose.staging.yml <command>
+# (.env.staging is created on the server from .env.staging.example and never committed.)
+# Full first-deploy sequence: docs/DEPLOYMENT.md §9.
+#
+# Only nginx publishes host ports. Every other service lives on the `internal` network,
+# which has NO route to the internet (internal: true): the API, Celery and the panel can
+# reach each other and the database, but can never call a real payment gateway or SMS
+# provider from this demo. nginx alone is also on the `edge` network to accept traffic.
+# Sized for a small demo VPS (2 vCPU / 4 GB minimum) — not the production target.
+
+name: mcq-demo
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-backend: &backend
+  build:
+    context: ./backend
+    target: production
+  image: mcq-backend:${IMAGE_TAG:-demo}
+  env_file: .env.staging
+  environment:
+    MEDIA_ROOT: /app/media
+  volumes:
+    - static_files:/app/staticfiles
+    - media_files:/app/media
+  networks:
+    - internal
+  restart: unless-stopped
+  logging: *logging
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env.staging   # POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 1g
+
+  redis:
+    image: redis:7-alpine
+    # Broker + cache only; nothing here must survive a restart in the demo.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 256m
+
+  backend:
+    <<: *backend
+    # Image default: gunicorn config.wsgi:application --config gunicorn.conf.py
+    healthcheck:
+      # /api/v1/health/ through Django itself: the Host must be an allowed host and the
+      # request must look like it came through nginx over HTTPS (no SSL redirect).
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import os, urllib.request as r;
+          host = os.environ['DJANGO_ALLOWED_HOSTS'].split(',')[0].strip();
+          req = r.Request('http://127.0.0.1:8000/api/v1/health/',
+          headers={'Host': host, 'X-Forwarded-Proto': 'https'});
+          raise SystemExit(0 if r.urlopen(req, timeout=5).status == 200 else 1)
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    mem_limit: 768m
+
+  celery:
+    <<: *backend
+    command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    mem_limit: 512m
+
+  celery-beat:
+    <<: *backend
+    # Periodic jobs (attempt finalization, payment reconciliation, subscription expiry,
+    # result notifications) — see CELERY_BEAT_SCHEDULE.
+    command: ["celery", "-A", "config", "beat", "--loglevel=info", "--schedule", "/tmp/celerybeat-schedule"]
+    mem_limit: 256m
+
+  admin:
+    build:
+      context: ./admin
+    image: mcq-admin:${IMAGE_TAG:-demo}
+    environment:
+      # Server-side reads go to the public origin; on the internal network that name is an
+      # alias of the nginx container (see below), so they never leave the server.
+      API_ORIGIN: ${API_ORIGIN}
+    networks:
+      - internal
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/login').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 512m
+
+  website:
+    build:
+      context: ./web
+      args:
+        # Baked into the static pages: the demo site's own address, and kept out of search
+        # engines (a staging copy must never be indexed).
+        SITE_URL: ${SITE_URL}
+        SITE_NOINDEX: "1"
+    image: mcq-website:${IMAGE_TAG:-demo}
+    environment:
+      # Server-side reads of the public API go through nginx on the admin host (an internal
+      # alias, see below), exactly like the Admin Panel's.
+      API_ORIGIN: ${API_ORIGIN}
+    networks:
+      - internal
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/bn').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 512m
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    environment:
+      DEMO_HOST: ${DEMO_HOST}
+      DEMO_SITE_HOST: ${DEMO_SITE_HOST}
+      DJANGO_ADMIN_URL: ${DJANGO_ADMIN_URL}
+      HSTS_SECONDS: ${HSTS_SECONDS:-3600}
+    volumes:
+      # demo-admin-http.conf (bootstrap / local) or demo-admin.conf (HTTPS) — filled from
+      # the environment above by the image's template step.
+      - ./deploy/nginx/${NGINX_SITE:-demo-admin-http.conf}:/etc/nginx/templates/default.conf.template:ro
+      # The public website's host: demo-site-http.conf (bootstrap) or demo-site.conf (HTTPS).
+      - ./deploy/nginx/${NGINX_SITE_WEB:-demo-site-http.conf}:/etc/nginx/templates/site.conf.template:ro
+      - static_files:/srv/static:ro
+      - media_files:/srv/media:ro
+      - ${LETSENCRYPT_DIR:-/etc/letsencrypt}:/etc/letsencrypt:ro
+      - ${CERTBOT_WEBROOT:-/srv/mcq-demo/certbot-www}:/var/www/certbot:ro
+    networks:
+      edge: {}
+      internal:
+        aliases:
+          - ${DEMO_HOST}
+    depends_on:
+      backend:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+      website:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/nginx-health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 128m
+
+networks:
+  edge: {}
+  internal:
+    internal: true
+
+volumes:
+  postgres_data:
+  static_files:
+  media_files:

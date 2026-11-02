@@ -1,0 +1,17 @@
+{
+  "title": "Notifications",
+  "filters": {
+    "label": "Show",
+    "mine": "For you",
+    "notices": "Notices"
+  },
+  "markAll": "Mark all as read",
+  "markedAll": "All notifications marked as read.",
+  "unread": "Unread",
+  "pinned": "Pinned",
+  "empty": {
+    "mine": "No notifications yet. You will be told here when a result is published or a payment succeeds.",
+    "notices": "No notices right now."
+  },
+  "open": "Open"
+}

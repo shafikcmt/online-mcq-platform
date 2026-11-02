@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+!.env.staging.example
+!.env.prod.example
 
 # Python
 __pycache__/
@@ -9,10 +11,19 @@ __pycache__/
 *.sqlite3
 .venv/
 venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Celery
+celerybeat-schedule*
 
 # Django
 staticfiles/
 media/
+# Compiled translations — generated from .po files by `manage.py compilemessages`
+*.mo
 
 # Node / Next.js
 node_modules/

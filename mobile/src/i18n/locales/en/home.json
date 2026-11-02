@@ -1,0 +1,33 @@
+{
+  "greeting": "Hello, {{name}}",
+  "subtitle": "Here is what's on for you.",
+  "unread_one": "{{n}} unread notification",
+  "unread_other": "{{n}} unread notifications",
+  "noUnread": "No unread notifications",
+  "stale": "Couldn't update just now. Showing what was loaded last — pull down to try again.",
+  "shownOf": "{{shown}} of {{count}}",
+  "sections": {
+    "available": "Open now",
+    "upcoming": "Upcoming",
+    "practice": "Practice",
+    "results": "Recent results"
+  },
+  "empty": {
+    "available": "No exams are open right now. Pull down to check again.",
+    "results": "Your results will appear here after you finish an exam."
+  },
+  "subscription": {
+    "activeTitle": "Your packages",
+    "noneTitle": "No active package",
+    "noneBody": "Free exams are open to everyone. Paid exams need a package.",
+    "validUntil": "Valid until {{date}}",
+    "more": "+{{n}} more"
+  },
+  "result": {
+    "marks": "{{obtained}}/{{total}}",
+    "percent": "{{value}}%",
+    "passed": "Passed",
+    "failed": "Not passed",
+    "merit": "Merit {{n}}"
+  }
+}

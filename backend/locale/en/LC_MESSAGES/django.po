@@ -1,0 +1,1977 @@
+# English source strings for the Online MCQ Platform backend (msgstr empty = msgid).
+# Part of the Online MCQ Platform.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: online-mcq-backend\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-02 05:29+0000\n"
+"PO-Revision-Date: 2026-10-05 10:45+0000\n"
+"Last-Translator: Online MCQ Platform team\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/accounts/admin.py:65
+msgid "Personal info"
+msgstr ""
+
+#: apps/accounts/admin.py:67
+msgid "Role and permissions"
+msgstr ""
+
+#: apps/accounts/admin.py:80
+msgid "Important dates"
+msgstr ""
+
+#: apps/accounts/api/admin_users.py:87
+msgid "Masked mobile number, e.g. +88017*****678."
+msgstr ""
+
+#: apps/accounts/api/admin_users.py:90
+msgid "Masked email, e.g. r***@g***.com; null when there is none."
+msgstr ""
+
+#: apps/accounts/api/errors.py:24
+msgid "The code is incorrect or has expired. Request a new code if needed."
+msgstr ""
+
+#: apps/accounts/api/serializers.py:48
+msgid "This field cannot be set."
+msgstr ""
+
+#: apps/accounts/api/views.py:44
+msgid "If the details are valid, a verification code will be sent by SMS."
+msgstr ""
+
+#: apps/accounts/api/views.py:45 apps/accounts/authentication.py:21
+msgid "Token is invalid or expired"
+msgstr ""
+
+#: apps/accounts/apps.py:8
+msgid "Accounts"
+msgstr ""
+
+#: apps/accounts/exceptions.py:6
+msgid "The request could not be completed."
+msgstr ""
+
+#: apps/accounts/exceptions.py:17
+msgid ""
+"An account already exists for this mobile number. Log in or reset your "
+"password."
+msgstr ""
+
+#: apps/accounts/exceptions.py:23 apps/accounts/models.py:92
+msgid "A user with this email address already exists."
+msgstr ""
+
+#: apps/accounts/exceptions.py:28
+msgid "The mobile number or password is incorrect."
+msgstr ""
+
+#: apps/accounts/exceptions.py:33
+msgid "Your current password is incorrect."
+msgstr ""
+
+#: apps/accounts/exceptions.py:39
+msgid ""
+"Only student accounts can be activated or deactivated here. Staff accounts "
+"are managed separately."
+msgstr ""
+
+#: apps/accounts/fields.py:17
+msgid "Bangladeshi mobile number"
+msgstr ""
+
+#: apps/accounts/managers.py:18
+msgid "A mobile number is required."
+msgstr ""
+
+#: apps/accounts/managers.py:49
+msgid "Superuser must have is_staff=True."
+msgstr ""
+
+#: apps/accounts/managers.py:51
+msgid "Superuser must have is_superuser=True."
+msgstr ""
+
+#: apps/accounts/managers.py:53
+msgid "Superuser must have the admin role."
+msgstr ""
+
+#: apps/accounts/managers.py:55
+msgid "Superuser must have a password."
+msgstr ""
+
+#: apps/accounts/models.py:21
+msgid "Student"
+msgstr ""
+
+#: apps/accounts/models.py:22
+msgid "Admin"
+msgstr ""
+
+#: apps/accounts/models.py:40 apps/verification/models.py:31
+#: apps/verification/models.py:79
+msgid "mobile number"
+msgstr ""
+
+#: apps/accounts/models.py:42
+msgid "Bangladeshi mobile number. Used to log in."
+msgstr ""
+
+#: apps/accounts/models.py:43
+msgid "A user with this mobile number already exists."
+msgstr ""
+
+#: apps/accounts/models.py:46
+msgid "email address"
+msgstr ""
+
+#: apps/accounts/models.py:47
+msgid "full name"
+msgstr ""
+
+#: apps/accounts/models.py:49
+msgid "role"
+msgstr ""
+
+#: apps/accounts/models.py:52
+msgid "preferred language"
+msgstr ""
+
+#: apps/accounts/models.py:58 apps/catalog/models.py:71 apps/cms/models.py:424
+#: apps/cms/models.py:461 apps/questions/models.py:102
+msgid "active"
+msgstr ""
+
+#: apps/accounts/models.py:60
+msgid "Inactive users cannot log in. Deactivate instead of deleting."
+msgstr ""
+
+#: apps/accounts/models.py:63
+msgid "mobile verified"
+msgstr ""
+
+#: apps/accounts/models.py:65
+msgid "Set only by the registration / account flow after OTP verification."
+msgstr ""
+
+#: apps/accounts/models.py:69
+msgid "authentication version"
+msgstr ""
+
+#: apps/accounts/models.py:71
+msgid "staff status"
+msgstr ""
+
+#: apps/accounts/models.py:73
+msgid "Allows logging in to the internal Django administration."
+msgstr ""
+
+#: apps/accounts/models.py:75
+msgid "date joined"
+msgstr ""
+
+#: apps/accounts/models.py:76
+msgid "updated at"
+msgstr ""
+
+#: apps/accounts/models.py:85 apps/accounts/models.py:149
+#: apps/attempts/models.py:65 apps/notifications/models.py:31
+#: apps/payments/models.py:97 apps/results/models.py:62
+#: apps/subscriptions/models.py:300 apps/subscriptions/models.py:393
+msgid "user"
+msgstr ""
+
+#: apps/accounts/models.py:86
+msgid "users"
+msgstr ""
+
+#: apps/accounts/models.py:152
+msgid "display name"
+msgstr ""
+
+#: apps/accounts/models.py:155
+msgid "Optional public nickname shown on leaderboards when enabled."
+msgstr ""
+
+#: apps/accounts/models.py:159
+msgid "student profile"
+msgstr ""
+
+#: apps/accounts/models.py:160
+msgid "student profiles"
+msgstr ""
+
+#: apps/attempts/api/serializers.py:20
+msgid "Send client info as a few short text values."
+msgstr ""
+
+#: apps/attempts/api/views.py:50 apps/payments/api/views.py:75
+#: apps/subscriptions/api/views.py:284
+msgid "Idempotency-Key must be 1–64 letters, digits or the characters . _ : -"
+msgstr ""
+
+#: apps/attempts/apps.py:8
+msgid "Exam attempts"
+msgstr ""
+
+#: apps/attempts/exceptions.py:15
+msgid "This exam has not started yet."
+msgstr ""
+
+#: apps/attempts/exceptions.py:16
+msgid "This exam has ended."
+msgstr ""
+
+#: apps/attempts/exceptions.py:17
+msgid "You need an active subscription that includes this exam."
+msgstr ""
+
+#: apps/attempts/exceptions.py:18
+msgid "This exam can be taken only once."
+msgstr ""
+
+#: apps/attempts/exceptions.py:19
+msgid "You have used all your attempts for this exam."
+msgstr ""
+
+#: apps/attempts/exceptions.py:20
+msgid "This attempt has already been submitted."
+msgstr ""
+
+#: apps/attempts/exceptions.py:21
+msgid "The time for this attempt is over."
+msgstr ""
+
+#: apps/attempts/models.py:33
+msgid "In progress"
+msgstr ""
+
+#: apps/attempts/models.py:34
+msgid "Submitted"
+msgstr ""
+
+#: apps/attempts/models.py:35
+msgid "Submitted automatically"
+msgstr ""
+
+#: apps/attempts/models.py:42
+msgid "Submitted by the student"
+msgstr ""
+
+#: apps/attempts/models.py:43
+msgid "Device timer ran out"
+msgstr ""
+
+#: apps/attempts/models.py:44
+msgid "Finalized by the server"
+msgstr ""
+
+#: apps/attempts/models.py:48 apps/cms/models.py:169 apps/exams/models.py:47
+#: apps/exams/services.py:91 apps/questions/models.py:46
+#: apps/questions/services.py:67 config/settings/base.py:219
+msgid "Bangla"
+msgstr ""
+
+#: apps/attempts/models.py:49 apps/cms/models.py:170 apps/exams/models.py:48
+#: apps/exams/services.py:91 apps/questions/models.py:47
+#: apps/questions/services.py:67 config/settings/base.py:220
+msgid "English"
+msgstr ""
+
+#: apps/attempts/models.py:59 apps/exams/models.py:91
+#: apps/notifications/models.py:28 apps/payments/models.py:91
+msgid "public ID"
+msgstr ""
+
+#: apps/attempts/models.py:61 apps/exams/models.py:236 apps/exams/models.py:345
+#: apps/results/models.py:58 apps/subscriptions/models.py:249
+msgid "exam"
+msgstr ""
+
+#: apps/attempts/models.py:69
+msgid "attempt number"
+msgstr ""
+
+#: apps/attempts/models.py:71 apps/cms/models.py:507 apps/exams/models.py:138
+#: apps/payments/models.py:118 apps/subscriptions/models.py:139
+#: apps/subscriptions/models.py:313
+msgid "status"
+msgstr ""
+
+#: apps/attempts/models.py:77
+msgid "started at"
+msgstr ""
+
+#: apps/attempts/models.py:78
+msgid "deadline"
+msgstr ""
+
+#: apps/attempts/models.py:79 apps/results/models.py:66
+msgid "submitted at"
+msgstr ""
+
+#: apps/attempts/models.py:81
+msgid "submitted by"
+msgstr ""
+
+#: apps/attempts/models.py:84
+msgid "client info"
+msgstr ""
+
+#: apps/attempts/models.py:87 apps/exams/models.py:114
+msgid "content language"
+msgstr ""
+
+#: apps/attempts/models.py:91 apps/payments/models.py:135
+#: apps/subscriptions/models.py:387
+msgid "idempotency key"
+msgstr ""
+
+#: apps/attempts/models.py:95
+msgid "exam attempt"
+msgstr ""
+
+#: apps/attempts/models.py:96
+msgid "exam attempts"
+msgstr ""
+
+#: apps/attempts/models.py:157 apps/results/models.py:54
+msgid "attempt"
+msgstr ""
+
+#: apps/attempts/models.py:160 apps/cms/models.py:410 apps/exams/models.py:349
+#: apps/questions/admin.py:44 apps/questions/models.py:132
+#: apps/questions/models.py:186
+msgid "question"
+msgstr ""
+
+#: apps/attempts/models.py:162
+msgid "display order"
+msgstr ""
+
+#: apps/attempts/models.py:164
+msgid "option order"
+msgstr ""
+
+#: apps/attempts/models.py:165 apps/exams/models.py:353
+msgid "marks"
+msgstr ""
+
+#: apps/attempts/models.py:166 apps/results/models.py:72
+msgid "negative marks"
+msgstr ""
+
+#: apps/attempts/models.py:169
+msgid "selected option"
+msgstr ""
+
+#: apps/attempts/models.py:175
+msgid "marked for review"
+msgstr ""
+
+#: apps/attempts/models.py:176
+msgid "answered at"
+msgstr ""
+
+#: apps/attempts/models.py:178
+msgid "saved on device at"
+msgstr ""
+
+#: apps/attempts/models.py:180 apps/questions/models.py:197
+msgid "correct"
+msgstr ""
+
+#: apps/attempts/models.py:181
+msgid "awarded marks"
+msgstr ""
+
+#: apps/attempts/models.py:184
+msgid "attempt answer"
+msgstr ""
+
+#: apps/attempts/models.py:185
+msgid "attempt answers"
+msgstr ""
+
+#: apps/attempts/services.py:84
+#, python-format
+msgid "Question #%(id)s is not part of this attempt."
+msgstr ""
+
+#: apps/attempts/services.py:85
+#, python-format
+msgid "This option does not belong to question #%(id)s."
+msgstr ""
+
+#: apps/attempts/services.py:86 apps/exams/services.py:86
+#, python-format
+msgid "Question #%(id)s is listed more than once."
+msgstr ""
+
+#: apps/audit/apps.py:8
+msgid "Audit log"
+msgstr ""
+
+#: apps/audit/models.py:29 apps/subscriptions/models.py:381
+msgid "actor"
+msgstr ""
+
+#: apps/audit/models.py:37
+msgid "action"
+msgstr ""
+
+#: apps/audit/models.py:38
+msgid "entity type"
+msgstr ""
+
+#: apps/audit/models.py:39
+msgid "entity ID"
+msgstr ""
+
+#: apps/audit/models.py:40
+msgid "summary"
+msgstr ""
+
+#: apps/audit/models.py:41
+msgid "metadata"
+msgstr ""
+
+#: apps/audit/models.py:42 apps/cms/models.py:518
+msgid "IP address"
+msgstr ""
+
+#: apps/audit/models.py:43
+msgid "user agent"
+msgstr ""
+
+#: apps/audit/models.py:44 apps/notifications/models.py:40
+#: apps/payments/models.py:235 apps/subscriptions/models.py:411
+msgid "created at"
+msgstr ""
+
+#: apps/audit/models.py:49
+msgid "audit log entry"
+msgstr ""
+
+#: apps/audit/models.py:50
+msgid "audit log"
+msgstr ""
+
+#: apps/catalog/admin.py:55 apps/catalog/models.py:179
+msgid "subjects"
+msgstr ""
+
+#: apps/catalog/apps.py:8
+msgid "Catalog"
+msgstr ""
+
+#: apps/catalog/exceptions.py:14
+msgid ""
+"This category still has subjects. Move or delete them first, or deactivate "
+"the category."
+msgstr ""
+
+#: apps/catalog/exceptions.py:16
+msgid "This subject is still in use. Deactivate it instead of deleting it."
+msgstr ""
+
+#: apps/catalog/exceptions.py:18
+msgid ""
+"This category is still used by exams or packages. Deactivate it instead of "
+"deleting it."
+msgstr ""
+
+#: apps/catalog/models.py:31 apps/subscriptions/models.py:53
+msgid "Enter a name in Bangla or English (at least one is required)."
+msgstr ""
+
+#: apps/catalog/models.py:33
+msgid ""
+"Use only lowercase English letters, digits and single hyphens (for example: "
+"physics-1)."
+msgstr ""
+
+#: apps/catalog/models.py:35
+msgid "A category with this slug already exists."
+msgstr ""
+
+#: apps/catalog/models.py:36
+msgid "This category already has a subject with this slug."
+msgstr ""
+
+#: apps/catalog/models.py:59 apps/subscriptions/models.py:108
+msgid "name (Bangla)"
+msgstr ""
+
+#: apps/catalog/models.py:60 apps/subscriptions/models.py:109
+msgid "name (English)"
+msgstr ""
+
+#: apps/catalog/models.py:62 apps/exams/models.py:102
+#: apps/subscriptions/models.py:118
+msgid "description (Bangla)"
+msgstr ""
+
+#: apps/catalog/models.py:67 apps/exams/models.py:105
+#: apps/subscriptions/models.py:123
+msgid "description (English)"
+msgstr ""
+
+#: apps/catalog/models.py:72 apps/cms/models.py:425 apps/exams/models.py:351
+#: apps/questions/models.py:198 apps/subscriptions/models.py:141
+msgid "sort order"
+msgstr ""
+
+#: apps/catalog/models.py:117 apps/catalog/models.py:153 apps/cms/models.py:446
+#: apps/exams/models.py:95 apps/subscriptions/models.py:111
+msgid "slug"
+msgstr ""
+
+#: apps/catalog/models.py:122
+msgid "Used in web addresses. Generated from the English name if left empty."
+msgstr ""
+
+#: apps/catalog/models.py:126 apps/catalog/models.py:147
+#: apps/exams/models.py:120 apps/subscriptions/models.py:241
+msgid "category"
+msgstr ""
+
+#: apps/catalog/models.py:127
+msgid "categories"
+msgstr ""
+
+#: apps/catalog/models.py:157
+msgid ""
+"Used in web addresses; unique within the category. Generated from the "
+"English name if left empty."
+msgstr ""
+
+#: apps/catalog/models.py:178 apps/cms/models.py:503 apps/exams/models.py:124
+#: apps/questions/models.py:64
+msgid "subject"
+msgstr ""
+
+#: apps/catalog/services.py:38 apps/subscriptions/services.py:66
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English name to "
+"generate it."
+msgstr ""
+
+#: apps/catalog/services.py:40
+msgid "This category no longer exists."
+msgstr ""
+
+#: apps/cms/api/serializers.py:45
+msgid "Enter a phone number or an e-mail address so we can reply."
+msgstr ""
+
+#: apps/cms/api/serializers.py:46
+msgid "This field may not be blank."
+msgstr ""
+
+#: apps/cms/apps.py:8
+msgid "Content"
+msgstr ""
+
+#: apps/cms/models.py:46
+#, python-format
+msgid ""
+"Fill in both %(first)s and %(second)s in at least one language (Bangla or "
+"English)."
+msgstr ""
+
+#: apps/cms/models.py:48
+#, python-format
+msgid "Fill in both %(first)s and %(second)s for this language, or neither."
+msgstr ""
+
+#: apps/cms/models.py:49
+msgid "A page with this slug already exists."
+msgstr ""
+
+#: apps/cms/models.py:50
+msgid "The end time must be after the publish time."
+msgstr ""
+
+#: apps/cms/models.py:51
+msgid "Enter a full https:// address."
+msgstr ""
+
+#: apps/cms/models.py:52
+msgid "Enter an https:// address or a link with this app's own scheme."
+msgstr ""
+
+#: apps/cms/models.py:54
+msgid ""
+"Enter a phone number of 6 to 15 digits; only +, spaces, brackets and - may "
+"be added."
+msgstr ""
+
+#: apps/cms/models.py:176
+msgid "Masked"
+msgstr ""
+
+#: apps/cms/models.py:177
+msgid "Initials"
+msgstr ""
+
+#: apps/cms/models.py:178
+msgid "Display name"
+msgstr ""
+
+#: apps/cms/models.py:179
+msgid "Full name"
+msgstr ""
+
+#: apps/cms/models.py:189
+msgid "platform name (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:190
+msgid "platform name (English)"
+msgstr ""
+
+#: apps/cms/models.py:191
+msgid "tagline (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:192
+msgid "tagline (English)"
+msgstr ""
+
+#: apps/cms/models.py:193
+msgid "address (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:194
+msgid "address (English)"
+msgstr ""
+
+#: apps/cms/models.py:196
+msgid "contact e-mail"
+msgstr ""
+
+#: apps/cms/models.py:199
+msgid "contact phone"
+msgstr ""
+
+#: apps/cms/models.py:203
+msgid "app download link"
+msgstr ""
+
+#: apps/cms/models.py:209
+msgid "app open link"
+msgstr ""
+
+#: apps/cms/models.py:212
+msgid "default language"
+msgstr ""
+
+#: apps/cms/models.py:215
+msgid "website leaderboard names"
+msgstr ""
+
+#: apps/cms/models.py:218
+msgid "app leaderboard names"
+msgstr ""
+
+#: apps/cms/models.py:238 apps/cms/models.py:239
+msgid "site settings"
+msgstr ""
+
+#: apps/cms/models.py:316
+msgid "title"
+msgstr ""
+
+#: apps/cms/models.py:316
+msgid "body"
+msgstr ""
+
+#: apps/cms/models.py:345
+msgid "Website (public)"
+msgstr ""
+
+#: apps/cms/models.py:346
+msgid "Students (app)"
+msgstr ""
+
+#: apps/cms/models.py:347
+msgid "Everyone"
+msgstr ""
+
+#: apps/cms/models.py:351 apps/cms/models.py:453 apps/exams/models.py:92
+msgid "title (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:352 apps/cms/models.py:454 apps/exams/models.py:93
+msgid "title (English)"
+msgstr ""
+
+#: apps/cms/models.py:354 apps/cms/models.py:456
+msgid "text (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:359 apps/cms/models.py:459
+msgid "text (English)"
+msgstr ""
+
+#: apps/cms/models.py:364
+msgid "audience"
+msgstr ""
+
+#: apps/cms/models.py:366
+msgid "pinned"
+msgstr ""
+
+#: apps/cms/models.py:368
+msgid "published at"
+msgstr ""
+
+#: apps/cms/models.py:369 apps/subscriptions/models.py:320
+#: apps/verification/models.py:35 apps/verification/models.py:87
+msgid "expires at"
+msgstr ""
+
+#: apps/cms/models.py:376
+msgid "announcement"
+msgstr ""
+
+#: apps/cms/models.py:377
+msgid "announcements"
+msgstr ""
+
+#: apps/cms/models.py:410
+msgid "answer"
+msgstr ""
+
+#: apps/cms/models.py:413 apps/questions/models.py:70
+msgid "question (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:416 apps/questions/models.py:75
+msgid "question (English)"
+msgstr ""
+
+#: apps/cms/models.py:419
+msgid "answer (Bangla)"
+msgstr ""
+
+#: apps/cms/models.py:422
+msgid "answer (English)"
+msgstr ""
+
+#: apps/cms/models.py:432
+msgid "FAQ entry"
+msgstr ""
+
+#: apps/cms/models.py:433
+msgid "FAQ"
+msgstr ""
+
+#: apps/cms/models.py:451
+msgid "Used in web addresses, e.g. about, terms, privacy."
+msgstr ""
+
+#: apps/cms/models.py:468
+msgid "page"
+msgstr ""
+
+#: apps/cms/models.py:469
+msgid "pages"
+msgstr ""
+
+#: apps/cms/models.py:494
+msgid "New"
+msgstr ""
+
+#: apps/cms/models.py:495
+msgid "Read"
+msgstr ""
+
+#: apps/cms/models.py:496
+msgid "Resolved"
+msgstr ""
+
+#: apps/cms/models.py:500
+msgid "name"
+msgstr ""
+
+#: apps/cms/models.py:501
+msgid "phone"
+msgstr ""
+
+#: apps/cms/models.py:502
+msgid "e-mail"
+msgstr ""
+
+#: apps/cms/models.py:504
+msgid "message"
+msgstr ""
+
+#: apps/cms/models.py:505 apps/verification/models.py:34
+msgid "language"
+msgstr ""
+
+#: apps/cms/models.py:511
+msgid "handled by"
+msgstr ""
+
+#: apps/cms/models.py:521
+msgid "contact message"
+msgstr ""
+
+#: apps/cms/models.py:522
+msgid "contact messages"
+msgstr ""
+
+#: apps/core/admin_api.py:13
+msgid "Use true or false."
+msgstr ""
+
+#: apps/core/admin_api.py:14
+msgid "Enter a valid ID."
+msgstr ""
+
+#: apps/core/admin_api.py:15
+msgid "Unknown ordering field."
+msgstr ""
+
+#: apps/core/admin_api.py:16
+msgid "The search text is too long."
+msgstr ""
+
+#: apps/core/admin_api.py:59
+msgid "Unknown value."
+msgstr ""
+
+#: apps/core/exceptions.py:57
+msgid "Please correct the highlighted fields."
+msgstr ""
+
+#: apps/core/phone.py:25 apps/verification/exceptions.py:23
+msgid "Enter a valid Bangladeshi mobile number, for example 01712345678."
+msgstr ""
+
+#: apps/core/throttling.py:24
+msgid "This service is temporarily unavailable. Please try again shortly."
+msgstr ""
+
+#: apps/core/views.py:29
+msgid "The requested resource was not found."
+msgstr ""
+
+#: apps/core/views.py:35
+msgid "Something went wrong on our side. Please try again."
+msgstr ""
+
+#: apps/exams/admin.py:77
+msgid "Publish selected exams"
+msgstr ""
+
+#: apps/exams/admin.py:81
+msgid "Unpublish selected exams"
+msgstr ""
+
+#: apps/exams/admin.py:85
+msgid "Archive selected exams"
+msgstr ""
+
+#: apps/exams/api/serializers.py:33
+msgid "Include a time zone (for example 2026-10-05T09:30:00Z or +06:00)."
+msgstr ""
+
+#: apps/exams/apps.py:8
+msgid "Exams"
+msgstr ""
+
+#: apps/exams/exceptions.py:14
+msgid ""
+"Published and archived exams cannot be changed. Unpublish the exam first, or "
+"duplicate it."
+msgstr ""
+
+#: apps/exams/exceptions.py:17
+msgid ""
+"Only draft exams can be deleted. Unpublish or archive this exam instead."
+msgstr ""
+
+#: apps/exams/exceptions.py:19
+msgid "This exam is already published."
+msgstr ""
+
+#: apps/exams/exceptions.py:20
+msgid "Only a published exam can be unpublished."
+msgstr ""
+
+#: apps/exams/exceptions.py:21
+msgid "Only draft or unpublished exams can be archived."
+msgstr ""
+
+#: apps/exams/exceptions.py:23
+msgid ""
+"Students have already taken this exam, so it cannot be changed. Duplicate it "
+"instead."
+msgstr ""
+
+#: apps/exams/exceptions.py:26
+msgid ""
+"This exam is still used by a package. Remove it from the package first, or "
+"archive the exam."
+msgstr ""
+
+#: apps/exams/models.py:31
+msgid "Enter a title in Bangla or English (at least one is required)."
+msgstr ""
+
+#: apps/exams/models.py:32
+msgid "An exam with this slug already exists."
+msgstr ""
+
+#: apps/exams/models.py:36
+msgid "Practice"
+msgstr ""
+
+#: apps/exams/models.py:37
+msgid "Regular"
+msgstr ""
+
+#: apps/exams/models.py:38
+msgid "Live"
+msgstr ""
+
+#: apps/exams/models.py:42
+msgid "Free"
+msgstr ""
+
+#: apps/exams/models.py:43
+msgid "Paid"
+msgstr ""
+
+#: apps/exams/models.py:49 apps/questions/models.py:48
+msgid "Bangla and English"
+msgstr ""
+
+#: apps/exams/models.py:53
+msgid "Draft"
+msgstr ""
+
+#: apps/exams/models.py:54
+msgid "Published"
+msgstr ""
+
+#: apps/exams/models.py:55
+msgid "Unpublished"
+msgstr ""
+
+#: apps/exams/models.py:56
+msgid "Archived"
+msgstr ""
+
+#: apps/exams/models.py:60
+msgid "First attempt"
+msgstr ""
+
+#: apps/exams/models.py:61
+msgid "Best attempt"
+msgstr ""
+
+#: apps/exams/models.py:62
+msgid "Latest attempt"
+msgstr ""
+
+#: apps/exams/models.py:66
+msgid "Immediately after submission"
+msgstr ""
+
+#: apps/exams/models.py:67
+msgid "After the exam ends"
+msgstr ""
+
+#: apps/exams/models.py:68
+msgid "When an admin publishes results"
+msgstr ""
+
+#: apps/exams/models.py:108
+msgid "instructions (Bangla)"
+msgstr ""
+
+#: apps/exams/models.py:111
+msgid "instructions (English)"
+msgstr ""
+
+#: apps/exams/models.py:131
+msgid "exam type"
+msgstr ""
+
+#: apps/exams/models.py:135
+msgid "access"
+msgstr ""
+
+#: apps/exams/models.py:145
+msgid "duration (minutes)"
+msgstr ""
+
+#: apps/exams/models.py:148 apps/results/models.py:67
+msgid "total questions"
+msgstr ""
+
+#: apps/exams/models.py:150
+msgid "marks per question"
+msgstr ""
+
+#: apps/exams/models.py:151
+msgid "negative marks per wrong answer"
+msgstr ""
+
+#: apps/exams/models.py:152
+msgid "pass marks"
+msgstr ""
+
+#: apps/exams/models.py:153 apps/notifications/models.py:89
+#: apps/subscriptions/models.py:319
+msgid "starts at"
+msgstr ""
+
+#: apps/exams/models.py:154
+msgid "ends at"
+msgstr ""
+
+#: apps/exams/models.py:155
+msgid "shuffle questions"
+msgstr ""
+
+#: apps/exams/models.py:156
+msgid "shuffle options"
+msgstr ""
+
+#: apps/exams/models.py:157
+msgid "allow retake"
+msgstr ""
+
+#: apps/exams/models.py:159
+msgid "maximum attempts"
+msgstr ""
+
+#: apps/exams/models.py:161
+msgid "merit list enabled"
+msgstr ""
+
+#: apps/exams/models.py:163
+msgid "merit strategy"
+msgstr ""
+
+#: apps/exams/models.py:169
+msgid "result visibility"
+msgstr ""
+
+#: apps/exams/models.py:174
+msgid "allow answer review"
+msgstr ""
+
+#: apps/exams/models.py:179
+msgid "results published at"
+msgstr ""
+
+#: apps/exams/models.py:181 apps/subscriptions/models.py:142
+msgid "featured"
+msgstr ""
+
+#: apps/exams/models.py:184 apps/questions/models.py:105
+msgid "created by"
+msgstr ""
+
+#: apps/exams/models.py:237
+msgid "exams"
+msgstr ""
+
+#: apps/exams/models.py:356
+msgid "exam question"
+msgstr ""
+
+#: apps/exams/models.py:357
+msgid "exam questions"
+msgstr ""
+
+#: apps/exams/services.py:61
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English title to "
+"generate it."
+msgstr ""
+
+#: apps/exams/services.py:63
+msgid "The subject must belong to the selected category."
+msgstr ""
+
+#: apps/exams/services.py:64
+msgid "The end time must be after the start time."
+msgstr ""
+
+#: apps/exams/services.py:65
+msgid "The exam window is shorter than the exam duration."
+msgstr ""
+
+#: apps/exams/services.py:66
+msgid "Live exams need a start and an end time."
+msgstr ""
+
+#: apps/exams/services.py:68
+msgid ""
+"Results shown after the exam ends need an end time. Set an end time or "
+"choose another result visibility."
+msgstr ""
+
+#: apps/exams/services.py:71
+msgid "The end time has already passed."
+msgstr ""
+
+#: apps/exams/services.py:73
+msgid ""
+"With retakes allowed, set at least 2 attempts, or leave it empty for "
+"unlimited attempts."
+msgstr ""
+
+#: apps/exams/services.py:75
+#, python-format
+msgid "A title in %(language)s is required for this exam's language."
+msgstr ""
+
+#: apps/exams/services.py:76
+msgid "Add questions before publishing."
+msgstr ""
+
+#: apps/exams/services.py:77
+#, python-format
+msgid "This exam needs %(expected)s questions but %(actual)s are assigned."
+msgstr ""
+
+#: apps/exams/services.py:78
+#, python-format
+msgid "Question #%(id)s is inactive."
+msgstr ""
+
+#: apps/exams/services.py:79
+#, python-format
+msgid "Question #%(id)s is not available in %(language)s."
+msgstr ""
+
+#: apps/exams/services.py:81
+#, python-format
+msgid ""
+"Question #%(id)s must have %(min)s–%(max)s options and one correct answer."
+msgstr ""
+
+#: apps/exams/services.py:83
+#, python-format
+msgid "Pass marks cannot be higher than the total marks (%(total)s)."
+msgstr ""
+
+#: apps/exams/services.py:84
+msgid "The category is inactive."
+msgstr ""
+
+#: apps/exams/services.py:85
+msgid "The subject is inactive."
+msgstr ""
+
+#: apps/exams/services.py:87
+msgid "Each question needs a different sort order."
+msgstr ""
+
+#: apps/exams/services.py:88
+#, python-format
+msgid "Question #%(id)s does not exist."
+msgstr ""
+
+#: apps/exams/services.py:89
+#, python-format
+msgid "An exam can have at most %(max)s questions."
+msgstr ""
+
+#: apps/notifications/apps.py:8
+msgid "Notifications"
+msgstr ""
+
+#: apps/notifications/models.py:23 apps/notifications/templates.py:28
+msgid "Payment successful"
+msgstr ""
+
+#: apps/notifications/models.py:24 apps/notifications/templates.py:32
+msgid "Result published"
+msgstr ""
+
+#: apps/notifications/models.py:35 apps/notifications/models.py:88
+msgid "type"
+msgstr ""
+
+#: apps/notifications/models.py:37
+msgid "source ID"
+msgstr ""
+
+#: apps/notifications/models.py:38
+msgid "parameters"
+msgstr ""
+
+#: apps/notifications/models.py:39
+msgid "read at"
+msgstr ""
+
+#: apps/notifications/models.py:43
+msgid "notification"
+msgstr ""
+
+#: apps/notifications/models.py:44
+msgid "notifications"
+msgstr ""
+
+#: apps/notifications/models.py:92
+msgid "notification rollout"
+msgstr "notification rollout"
+
+#: apps/notifications/models.py:93
+msgid "notification rollouts"
+msgstr "notification rollouts"
+
+#: apps/notifications/templates.py:29
+#, python-format
+msgid ""
+"Your payment for “%(name)s” was successful. Your subscription is now active."
+msgstr ""
+
+#: apps/notifications/templates.py:33
+#, python-format
+msgid "Your result for “%(name)s” is now available."
+msgstr ""
+
+#: apps/payments/api/views.py:77
+msgid "Enter a valid date (YYYY-MM-DD)."
+msgstr ""
+
+#: apps/payments/apps.py:8
+msgid "Payments"
+msgstr ""
+
+#: apps/payments/exceptions.py:15
+msgid "Only active student accounts can buy packages."
+msgstr ""
+
+#: apps/payments/exceptions.py:16 apps/subscriptions/services.py:76
+msgid "This package does not exist."
+msgstr ""
+
+#: apps/payments/exceptions.py:17
+msgid "This package is not on sale right now."
+msgstr ""
+
+#: apps/payments/exceptions.py:18
+msgid "This package is free and cannot be bought."
+msgstr ""
+
+#: apps/payments/exceptions.py:20
+msgid "The payment could not be started. Please try again in a few minutes."
+msgstr ""
+
+#: apps/payments/exceptions.py:23
+msgid "Payments are temporarily unavailable. Please try again later."
+msgstr ""
+
+#: apps/payments/exceptions.py:26
+msgid ""
+"This Idempotency-Key was already used for a payment for another package."
+msgstr ""
+
+#: apps/payments/exceptions.py:28
+msgid "This payment provider is not enabled on this server."
+msgstr ""
+
+#: apps/payments/exceptions.py:30
+msgid "This payment is already successful; there is nothing to verify again."
+msgstr ""
+
+#: apps/payments/exceptions.py:33
+#, python-format
+msgid ""
+"This payment was checked with the provider moments ago. Try again in "
+"%(seconds)s seconds."
+msgstr ""
+
+#: apps/payments/models.py:56 apps/payments/models.py:206
+msgid "Initiated"
+msgstr ""
+
+#: apps/payments/models.py:57
+msgid "Pending"
+msgstr ""
+
+#: apps/payments/models.py:58
+msgid "Successful"
+msgstr ""
+
+#: apps/payments/models.py:59
+msgid "Failed"
+msgstr ""
+
+#: apps/payments/models.py:60 apps/subscriptions/models.py:78
+msgid "Cancelled"
+msgstr ""
+
+#: apps/payments/models.py:84
+msgid "Mock (development)"
+msgstr ""
+
+#: apps/payments/models.py:85
+msgid "SSLCommerz"
+msgstr ""
+
+#: apps/payments/models.py:86
+msgid "bKash"
+msgstr ""
+
+#: apps/payments/models.py:87
+msgid "Nagad"
+msgstr ""
+
+#: apps/payments/models.py:93
+msgid "merchant reference"
+msgstr ""
+
+#: apps/payments/models.py:102 apps/subscriptions/models.py:160
+#: apps/subscriptions/models.py:234 apps/subscriptions/models.py:306
+#: apps/subscriptions/models.py:398
+msgid "package"
+msgstr ""
+
+#: apps/payments/models.py:106 apps/subscriptions/models.py:326
+#: apps/subscriptions/models.py:405
+msgid "subscription"
+msgstr ""
+
+#: apps/payments/models.py:112
+msgid "provider"
+msgstr ""
+
+#: apps/payments/models.py:113
+msgid "amount"
+msgstr ""
+
+#: apps/payments/models.py:114 apps/subscriptions/models.py:132
+msgid "currency"
+msgstr ""
+
+#: apps/payments/models.py:116 apps/subscriptions/models.py:135
+msgid "validity (days)"
+msgstr ""
+
+#: apps/payments/models.py:125
+msgid "provider payment ID"
+msgstr ""
+
+#: apps/payments/models.py:129
+msgid "provider transaction ID"
+msgstr ""
+
+#: apps/payments/models.py:132
+msgid "checkout URL"
+msgstr ""
+
+#: apps/payments/models.py:137
+msgid "verified at"
+msgstr ""
+
+#: apps/payments/models.py:139
+msgid "failure reason"
+msgstr ""
+
+#: apps/payments/models.py:141
+msgid "verification response"
+msgstr ""
+
+#: apps/payments/models.py:143
+msgid "last checked at"
+msgstr ""
+
+#: apps/payments/models.py:146 apps/payments/models.py:230
+msgid "payment"
+msgstr ""
+
+#: apps/payments/models.py:147
+msgid "payments"
+msgstr ""
+
+#: apps/payments/models.py:207
+msgid "Callback received"
+msgstr ""
+
+#: apps/payments/models.py:208
+msgid "IPN received"
+msgstr ""
+
+#: apps/payments/models.py:209
+msgid "Verification requested"
+msgstr ""
+
+#: apps/payments/models.py:210
+msgid "Verification response"
+msgstr ""
+
+#: apps/payments/models.py:211
+msgid "Status changed"
+msgstr ""
+
+#: apps/payments/models.py:212
+msgid "Reconciliation"
+msgstr ""
+
+#: apps/payments/models.py:213
+msgid "Admin re-verification"
+msgstr ""
+
+#: apps/payments/models.py:232
+msgid "event type"
+msgstr ""
+
+#: apps/payments/models.py:233
+msgid "payload"
+msgstr ""
+
+#: apps/payments/models.py:234
+msgid "source IP"
+msgstr ""
+
+#: apps/payments/models.py:240
+msgid "payment event"
+msgstr ""
+
+#: apps/payments/models.py:241
+msgid "payment events"
+msgstr ""
+
+#: apps/questions/admin.py:72
+msgid "Activate selected questions"
+msgstr ""
+
+#: apps/questions/admin.py:76
+msgid "Deactivate selected questions"
+msgstr ""
+
+#: apps/questions/api/views.py:42
+msgid "Choose an image file to upload."
+msgstr ""
+
+#: apps/questions/apps.py:8
+msgid "Question bank"
+msgstr ""
+
+#: apps/questions/exceptions.py:12
+msgid "This question is used in exams. Deactivate it instead of deleting it."
+msgstr ""
+
+#: apps/questions/exceptions.py:25
+msgid ""
+"This question is used in a published exam, so its content, options and "
+"correct answer can no longer change. Create a new question instead."
+msgstr ""
+
+#: apps/questions/exceptions.py:29
+msgid ""
+"This question is used in a published exam and cannot be deactivated. "
+"Unpublish the exam first."
+msgstr ""
+
+#: apps/questions/models.py:29
+msgid "Enter the question in Bangla or English (at least one is required)."
+msgstr ""
+
+#: apps/questions/models.py:30
+msgid "Enter the option in Bangla or English."
+msgstr ""
+
+#: apps/questions/models.py:40
+msgid "Easy"
+msgstr ""
+
+#: apps/questions/models.py:41
+msgid "Medium"
+msgstr ""
+
+#: apps/questions/models.py:42
+msgid "Hard"
+msgstr ""
+
+#: apps/questions/models.py:80
+msgid "explanation (Bangla)"
+msgstr ""
+
+#: apps/questions/models.py:85
+msgid "explanation (English)"
+msgstr ""
+
+#: apps/questions/models.py:91
+msgid "difficulty"
+msgstr ""
+
+#: apps/questions/models.py:94
+msgid "image"
+msgstr ""
+
+#: apps/questions/models.py:96
+msgid "available languages"
+msgstr ""
+
+#: apps/questions/models.py:133
+msgid "questions"
+msgstr ""
+
+#: apps/questions/models.py:191
+msgid "option (Bangla)"
+msgstr ""
+
+#: apps/questions/models.py:194
+msgid "option (English)"
+msgstr ""
+
+#: apps/questions/models.py:201
+msgid "option"
+msgstr ""
+
+#: apps/questions/models.py:202
+msgid "options"
+msgstr ""
+
+#: apps/questions/services.py:55
+msgid "This subject no longer exists."
+msgstr ""
+
+#: apps/questions/services.py:56
+#, python-format
+msgid "Add between %(min)s and %(max)s options."
+msgstr ""
+
+#: apps/questions/services.py:57
+msgid "Mark exactly one option as correct."
+msgstr ""
+
+#: apps/questions/services.py:58
+#, python-format
+msgid "Option %(number)s needs text in %(language)s, like the question."
+msgstr ""
+
+#: apps/questions/services.py:59
+#, python-format
+msgid "Option %(number)s: %(detail)s"
+msgstr ""
+
+#: apps/questions/services.py:60
+#, python-format
+msgid "Option %(number)s is too long (maximum %(max)s characters)."
+msgstr ""
+
+#: apps/questions/services.py:61
+msgid "Each option needs a different sort order."
+msgstr ""
+
+#: apps/questions/services.py:62
+msgid "Two options have the same text."
+msgstr ""
+
+#: apps/questions/services.py:63
+#, python-format
+msgid "The image is too large (maximum %(max)s MB)."
+msgstr ""
+
+#: apps/questions/services.py:64
+msgid "Upload a valid JPEG, PNG or WebP image."
+msgstr ""
+
+#: apps/questions/services.py:65
+msgid "The image dimensions are too large."
+msgstr ""
+
+#: apps/results/apps.py:8
+msgid "Results"
+msgstr ""
+
+#: apps/results/exceptions.py:14
+msgid "This exam has no merit list."
+msgstr ""
+
+#: apps/results/exceptions.py:15
+msgid "The result could not be calculated. Please contact support."
+msgstr ""
+
+#: apps/results/exceptions.py:16
+msgid "The result of this exam is not available yet."
+msgstr ""
+
+#: apps/results/exceptions.py:17
+msgid "Answer review is not available for this exam."
+msgstr ""
+
+#: apps/results/models.py:68
+msgid "correct answers"
+msgstr ""
+
+#: apps/results/models.py:69
+msgid "wrong answers"
+msgstr ""
+
+#: apps/results/models.py:70
+msgid "unanswered questions"
+msgstr ""
+
+#: apps/results/models.py:71
+msgid "marks for correct answers"
+msgstr ""
+
+#: apps/results/models.py:73
+msgid "obtained marks"
+msgstr ""
+
+#: apps/results/models.py:74
+msgid "total marks"
+msgstr ""
+
+#: apps/results/models.py:77
+msgid "percentage"
+msgstr ""
+
+#: apps/results/models.py:79
+msgid "passed"
+msgstr ""
+
+#: apps/results/models.py:80
+msgid "time used (seconds)"
+msgstr ""
+
+#: apps/results/models.py:81
+msgid "counts for merit"
+msgstr ""
+
+#: apps/results/models.py:82
+msgid "merit position"
+msgstr ""
+
+#: apps/results/models.py:83
+msgid "calculated at"
+msgstr ""
+
+#: apps/results/models.py:86
+msgid "result"
+msgstr ""
+
+#: apps/results/models.py:87
+msgid "results"
+msgstr ""
+
+#: apps/subscriptions/api/views.py:282
+msgid "Send an Idempotency-Key header with every grant request."
+msgstr ""
+
+#: apps/subscriptions/apps.py:8
+msgid "Subscriptions"
+msgstr ""
+
+#: apps/subscriptions/exceptions.py:15
+msgid ""
+"This package has subscriptions and cannot be deleted. Deactivate it instead."
+msgstr ""
+
+#: apps/subscriptions/exceptions.py:17
+msgid "This subscription is already cancelled."
+msgstr ""
+
+#: apps/subscriptions/exceptions.py:18
+msgid "This subscription has already expired."
+msgstr ""
+
+#: apps/subscriptions/exceptions.py:20
+msgid ""
+"This Idempotency-Key was already used for a different grant. Use a new key "
+"for a new grant."
+msgstr ""
+
+#: apps/subscriptions/models.py:54
+msgid "A package with this slug already exists."
+msgstr ""
+
+#: apps/subscriptions/models.py:55
+msgid "Enter the features as a list of short text lines."
+msgstr ""
+
+#: apps/subscriptions/models.py:56
+#, python-format
+msgid "Enter at most %(max)s features."
+msgstr ""
+
+#: apps/subscriptions/models.py:57
+#, python-format
+msgid "Each feature can have at most %(max)s characters."
+msgstr ""
+
+#: apps/subscriptions/models.py:61
+msgid "Bangladeshi taka"
+msgstr ""
+
+#: apps/subscriptions/models.py:65 apps/subscriptions/models.py:76
+msgid "Active"
+msgstr ""
+
+#: apps/subscriptions/models.py:66
+msgid "Inactive"
+msgstr ""
+
+#: apps/subscriptions/models.py:70
+msgid "All paid exams"
+msgstr ""
+
+#: apps/subscriptions/models.py:71
+msgid "Category"
+msgstr ""
+
+#: apps/subscriptions/models.py:72
+msgid "Exam"
+msgstr ""
+
+#: apps/subscriptions/models.py:77
+msgid "Expired"
+msgstr ""
+
+#: apps/subscriptions/models.py:128
+msgid "features (Bangla)"
+msgstr ""
+
+#: apps/subscriptions/models.py:129
+msgid "features (English)"
+msgstr ""
+
+#: apps/subscriptions/models.py:130
+msgid "price"
+msgstr ""
+
+#: apps/subscriptions/models.py:161
+msgid "packages"
+msgstr ""
+
+#: apps/subscriptions/models.py:236
+msgid "rule type"
+msgstr ""
+
+#: apps/subscriptions/models.py:257
+msgid "package access rule"
+msgstr ""
+
+#: apps/subscriptions/models.py:258
+msgid "package access rules"
+msgstr ""
+
+#: apps/subscriptions/models.py:323
+msgid "price paid"
+msgstr ""
+
+#: apps/subscriptions/models.py:327
+msgid "subscriptions"
+msgstr ""
+
+#: apps/subscriptions/models.py:400
+msgid "requested price paid"
+msgstr ""
+
+#: apps/subscriptions/models.py:401
+msgid "requested start"
+msgstr ""
+
+#: apps/subscriptions/models.py:402
+msgid "applied amount"
+msgstr ""
+
+#: apps/subscriptions/models.py:409
+msgid "extended"
+msgstr ""
+
+#: apps/subscriptions/models.py:410
+msgid "original status code"
+msgstr ""
+
+#: apps/subscriptions/models.py:414
+msgid "grant request"
+msgstr ""
+
+#: apps/subscriptions/models.py:415
+msgid "grant requests"
+msgstr ""
+
+#: apps/subscriptions/services.py:68
+#, python-format
+msgid "A package can have at most %(max)s access rules."
+msgstr ""
+
+#: apps/subscriptions/services.py:69
+msgid "The same access rule is listed more than once."
+msgstr ""
+
+#: apps/subscriptions/services.py:70
+#, python-format
+msgid "Category #%(id)s does not exist."
+msgstr ""
+
+#: apps/subscriptions/services.py:71
+#, python-format
+msgid "Exam #%(id)s does not exist."
+msgstr ""
+
+#: apps/subscriptions/services.py:72
+#, python-format
+msgid "Exam #%(id)s is free; only paid exams can be added to a package."
+msgstr ""
+
+#: apps/subscriptions/services.py:73
+msgid ""
+"Choose a category only for category rules and an exam only for exam rules."
+msgstr ""
+
+#: apps/subscriptions/services.py:74
+msgid "This user does not exist."
+msgstr ""
+
+#: apps/subscriptions/services.py:75
+msgid "Subscriptions can only be given to active student accounts."
+msgstr ""
+
+#: apps/subscriptions/services.py:77
+msgid "This package is inactive and cannot be granted."
+msgstr ""
+
+#: apps/subscriptions/services.py:78
+msgid "The start time cannot be in the past."
+msgstr ""
+
+#: apps/subscriptions/services.py:79
+#, python-format
+msgid "The start time can be at most %(days)s days ahead."
+msgstr ""
+
+#: apps/subscriptions/services.py:80
+msgid "Enter a price of 0 or more."
+msgstr ""
+
+#: apps/subscriptions/services.py:82
+#, python-format
+msgid ""
+"This extension would make the total paid for the subscription larger than "
+"%(max)s."
+msgstr ""
+
+#: apps/subscriptions/services.py:86
+msgid ""
+"This student already has this package; it will be extended from its current "
+"expiry, so a start time cannot be set."
+msgstr ""
+
+#: apps/verification/apps.py:8
+msgid "Verification"
+msgstr ""
+
+#: apps/verification/exceptions.py:12
+msgid "Verification failed."
+msgstr ""
+
+#: apps/verification/exceptions.py:28
+msgid "Too many code requests. Please try again later."
+msgstr ""
+
+#: apps/verification/exceptions.py:35
+msgid "Codes cannot be sent right now. Please try again shortly."
+msgstr ""
+
+#: apps/verification/exceptions.py:40
+msgid "Please wait before requesting a new code."
+msgstr ""
+
+#: apps/verification/exceptions.py:45
+msgid "The code is incorrect."
+msgstr ""
+
+#: apps/verification/exceptions.py:50
+msgid "The code has expired. Please request a new one."
+msgstr ""
+
+#: apps/verification/exceptions.py:55
+msgid "Too many wrong attempts. Please request a new code."
+msgstr ""
+
+#: apps/verification/exceptions.py:60
+msgid "Your verification has expired or is invalid. Please verify again."
+msgstr ""
+
+#: apps/verification/models.py:18
+msgid "Registration"
+msgstr ""
+
+#: apps/verification/models.py:19
+msgid "Password reset"
+msgstr ""
+
+#: apps/verification/models.py:32 apps/verification/models.py:80
+msgid "purpose"
+msgstr ""
+
+#: apps/verification/models.py:33
+msgid "OTP hash"
+msgstr ""
+
+#: apps/verification/models.py:36 apps/verification/models.py:88
+msgid "used at"
+msgstr ""
+
+#: apps/verification/models.py:38
+msgid "invalidated at"
+msgstr ""
+
+#: apps/verification/models.py:39
+msgid "failed attempts"
+msgstr ""
+
+#: apps/verification/models.py:40
+msgid "request IP"
+msgstr ""
+
+#: apps/verification/models.py:43 apps/verification/models.py:85
+msgid "OTP code"
+msgstr ""
+
+#: apps/verification/models.py:44
+msgid "OTP codes"
+msgstr ""
+
+#: apps/verification/models.py:78
+msgid "token hash"
+msgstr ""
+
+#: apps/verification/models.py:91
+msgid "verification token"
+msgstr ""
+
+#: apps/verification/models.py:92
+msgid "verification tokens"
+msgstr ""
+
+#: apps/verification/templates_sms.py:17
+#, python-format
+msgid ""
+"Your verification code is %(code)s. Valid for %(minutes)s min. Don't share "
+"it."
+msgstr ""
+
+#: config/urls.py:14
+msgid "Live Model Test — internal administration"
+msgstr ""
+
+#: config/urls.py:15
+msgid "Live Model Test administration"
+msgstr ""

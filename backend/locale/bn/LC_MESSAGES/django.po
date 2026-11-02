@@ -1,0 +1,2017 @@
+# Bangla translations for the Online MCQ Platform backend.
+# Part of the Online MCQ Platform.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: online-mcq-backend\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-02 05:29+0000\n"
+"PO-Revision-Date: 2026-10-05 10:45+0000\n"
+"Last-Translator: Online MCQ Platform team\n"
+"Language-Team: Bangla\n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/accounts/admin.py:65
+msgid "Personal info"
+msgstr "ব্যক্তিগত তথ্য"
+
+#: apps/accounts/admin.py:67
+msgid "Role and permissions"
+msgstr "ভূমিকা ও অনুমতি"
+
+#: apps/accounts/admin.py:80
+msgid "Important dates"
+msgstr "গুরুত্বপূর্ণ তারিখ"
+
+#: apps/accounts/api/admin_users.py:87
+msgid "Masked mobile number, e.g. +88017*****678."
+msgstr "আড়াল করা মোবাইল নম্বর, যেমন +88017*****678।"
+
+#: apps/accounts/api/admin_users.py:90
+msgid "Masked email, e.g. r***@g***.com; null when there is none."
+msgstr "আড়াল করা ইমেইল, যেমন r***@g***.com; না থাকলে null।"
+
+#: apps/accounts/api/errors.py:24
+msgid "The code is incorrect or has expired. Request a new code if needed."
+msgstr "কোডটি সঠিক নয় অথবা মেয়াদ শেষ। প্রয়োজনে নতুন কোড চান।"
+
+#: apps/accounts/api/serializers.py:48
+msgid "This field cannot be set."
+msgstr "এই ঘরটি নির্ধারণ করা যাবে না।"
+
+#: apps/accounts/api/views.py:44
+msgid "If the details are valid, a verification code will be sent by SMS."
+msgstr "তথ্য সঠিক হলে SMS-এ একটি যাচাই কোড পাঠানো হবে।"
+
+#: apps/accounts/api/views.py:45 apps/accounts/authentication.py:21
+msgid "Token is invalid or expired"
+msgstr "টোকেনটি অবৈধ বা মেয়াদোত্তীর্ণ"
+
+#: apps/accounts/apps.py:8
+msgid "Accounts"
+msgstr "অ্যাকাউন্ট"
+
+#: apps/accounts/exceptions.py:6
+msgid "The request could not be completed."
+msgstr "অনুরোধটি সম্পন্ন করা যায়নি।"
+
+#: apps/accounts/exceptions.py:17
+msgid ""
+"An account already exists for this mobile number. Log in or reset your "
+"password."
+msgstr ""
+"এই মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।এই "
+"মোবাইল নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। লগইন করুন বা পাসওয়ার্ড রিসেট করুন।"
+
+#: apps/accounts/exceptions.py:23 apps/accounts/models.py:92
+msgid "A user with this email address already exists."
+msgstr "এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
+
+#: apps/accounts/exceptions.py:28
+msgid "The mobile number or password is incorrect."
+msgstr "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়।"
+
+#: apps/accounts/exceptions.py:33
+msgid "Your current password is incorrect."
+msgstr "আপনার বর্তমান পাসওয়ার্ড সঠিক নয়।"
+
+#: apps/accounts/exceptions.py:39
+msgid ""
+"Only student accounts can be activated or deactivated here. Staff accounts "
+"are managed separately."
+msgstr ""
+"এখানে শুধু শিক্ষার্থীর অ্যাকাউন্ট চালু বা বন্ধ করা যায়। স্টাফ অ্যাকাউন্ট আলাদাভাবে "
+"পরিচালিত হয়।"
+
+#: apps/accounts/fields.py:17
+msgid "Bangladeshi mobile number"
+msgstr "বাংলাদেশি মোবাইল নম্বর"
+
+#: apps/accounts/managers.py:18
+msgid "A mobile number is required."
+msgstr "মোবাইল নম্বর আবশ্যক।"
+
+#: apps/accounts/managers.py:49
+msgid "Superuser must have is_staff=True."
+msgstr "সুপারইউজারের is_staff=True থাকতে হবে।"
+
+#: apps/accounts/managers.py:51
+msgid "Superuser must have is_superuser=True."
+msgstr "সুপারইউজারের is_superuser=True থাকতে হবে।"
+
+#: apps/accounts/managers.py:53
+msgid "Superuser must have the admin role."
+msgstr "সুপারইউজারের ভূমিকা অবশ্যই অ্যাডমিন হতে হবে।"
+
+#: apps/accounts/managers.py:55
+msgid "Superuser must have a password."
+msgstr "সুপারইউজারের অবশ্যই একটি পাসওয়ার্ড থাকতে হবে।"
+
+#: apps/accounts/models.py:21
+msgid "Student"
+msgstr "শিক্ষার্থী"
+
+#: apps/accounts/models.py:22
+msgid "Admin"
+msgstr "অ্যাডমিন"
+
+#: apps/accounts/models.py:40 apps/verification/models.py:31
+#: apps/verification/models.py:79
+msgid "mobile number"
+msgstr "মোবাইল নম্বর"
+
+#: apps/accounts/models.py:42
+msgid "Bangladeshi mobile number. Used to log in."
+msgstr "বাংলাদেশি মোবাইল নম্বর। লগইনের জন্য ব্যবহৃত হয়।"
+
+#: apps/accounts/models.py:43
+msgid "A user with this mobile number already exists."
+msgstr "এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
+
+#: apps/accounts/models.py:46
+msgid "email address"
+msgstr "ইমেইল ঠিকানা"
+
+#: apps/accounts/models.py:47
+msgid "full name"
+msgstr "পূর্ণ নাম"
+
+#: apps/accounts/models.py:49
+msgid "role"
+msgstr "ভূমিকা"
+
+#: apps/accounts/models.py:52
+msgid "preferred language"
+msgstr "পছন্দের ভাষা"
+
+#: apps/accounts/models.py:58 apps/catalog/models.py:71 apps/cms/models.py:424
+#: apps/cms/models.py:461 apps/questions/models.py:102
+msgid "active"
+msgstr "সক্রিয়"
+
+#: apps/accounts/models.py:60
+msgid "Inactive users cannot log in. Deactivate instead of deleting."
+msgstr "নিষ্ক্রিয় ব্যবহারকারী লগইন করতে পারেন না। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+
+#: apps/accounts/models.py:63
+msgid "mobile verified"
+msgstr "মোবাইল যাচাইকৃত"
+
+#: apps/accounts/models.py:65
+msgid "Set only by the registration / account flow after OTP verification."
+msgstr "শুধু OTP যাচাইয়ের পর নিবন্ধন / অ্যাকাউন্ট প্রক্রিয়ায় নির্ধারিত হয়।"
+
+#: apps/accounts/models.py:69
+msgid "authentication version"
+msgstr "প্রমাণীকরণ সংস্করণ"
+
+#: apps/accounts/models.py:71
+msgid "staff status"
+msgstr "স্টাফ স্ট্যাটাস"
+
+#: apps/accounts/models.py:73
+msgid "Allows logging in to the internal Django administration."
+msgstr "অভ্যন্তরীণ Django অ্যাডমিনিস্ট্রেশনে লগইনের অনুমতি দেয়।"
+
+#: apps/accounts/models.py:75
+msgid "date joined"
+msgstr "যোগদানের তারিখ"
+
+#: apps/accounts/models.py:76
+msgid "updated at"
+msgstr "হালনাগাদের সময়"
+
+#: apps/accounts/models.py:85 apps/accounts/models.py:149
+#: apps/attempts/models.py:65 apps/notifications/models.py:31
+#: apps/payments/models.py:97 apps/results/models.py:62
+#: apps/subscriptions/models.py:300 apps/subscriptions/models.py:393
+msgid "user"
+msgstr "ব্যবহারকারী"
+
+#: apps/accounts/models.py:86
+msgid "users"
+msgstr "ব্যবহারকারীরা"
+
+#: apps/accounts/models.py:152
+msgid "display name"
+msgstr "প্রদর্শিত নাম"
+
+#: apps/accounts/models.py:155
+msgid "Optional public nickname shown on leaderboards when enabled."
+msgstr "ঐচ্ছিক ডাকনাম; চালু থাকলে লিডারবোর্ডে দেখানো হয়।"
+
+#: apps/accounts/models.py:159
+msgid "student profile"
+msgstr "শিক্ষার্থী প্রোফাইল"
+
+#: apps/accounts/models.py:160
+msgid "student profiles"
+msgstr "শিক্ষার্থী প্রোফাইলসমূহ"
+
+#: apps/attempts/api/serializers.py:20
+msgid "Send client info as a few short text values."
+msgstr "ক্লায়েন্ট তথ্য কয়েকটি ছোট টেক্সট মান হিসেবে পাঠান।"
+
+#: apps/attempts/api/views.py:50 apps/payments/api/views.py:75
+#: apps/subscriptions/api/views.py:284
+msgid "Idempotency-Key must be 1–64 letters, digits or the characters . _ : -"
+msgstr "Idempotency-Key-এ ১–৬৪টি অক্ষর, সংখ্যা অথবা . _ : - চিহ্ন থাকতে হবে।"
+
+#: apps/attempts/apps.py:8
+msgid "Exam attempts"
+msgstr "পরীক্ষার অংশগ্রহণ"
+
+#: apps/attempts/exceptions.py:15
+msgid "This exam has not started yet."
+msgstr "এই পরীক্ষা এখনও শুরু হয়নি।"
+
+#: apps/attempts/exceptions.py:16
+msgid "This exam has ended."
+msgstr "এই পরীক্ষা শেষ হয়ে গেছে।"
+
+#: apps/attempts/exceptions.py:17
+msgid "You need an active subscription that includes this exam."
+msgstr "এই পরীক্ষার জন্য এটি অন্তর্ভুক্ত এমন একটি সক্রিয় সাবস্ক্রিপশন প্রয়োজন।"
+
+#: apps/attempts/exceptions.py:18
+msgid "This exam can be taken only once."
+msgstr "এই পরীক্ষা শুধু একবার দেওয়া যায়।"
+
+#: apps/attempts/exceptions.py:19
+msgid "You have used all your attempts for this exam."
+msgstr "এই পরীক্ষার জন্য আপনার সব সুযোগ ব্যবহার করা হয়ে গেছে।"
+
+#: apps/attempts/exceptions.py:20
+msgid "This attempt has already been submitted."
+msgstr "এই পরীক্ষা ইতিমধ্যে জমা দেওয়া হয়েছে।"
+
+#: apps/attempts/exceptions.py:21
+msgid "The time for this attempt is over."
+msgstr "এই পরীক্ষার সময় শেষ।"
+
+#: apps/attempts/models.py:33
+msgid "In progress"
+msgstr "চলমান"
+
+#: apps/attempts/models.py:34
+msgid "Submitted"
+msgstr "জমা দেওয়া হয়েছে"
+
+#: apps/attempts/models.py:35
+msgid "Submitted automatically"
+msgstr "স্বয়ংক্রিয়ভাবে জমা হয়েছে"
+
+#: apps/attempts/models.py:42
+msgid "Submitted by the student"
+msgstr "শিক্ষার্থী জমা দিয়েছে"
+
+#: apps/attempts/models.py:43
+msgid "Device timer ran out"
+msgstr "ডিভাইসের টাইমার শেষ হয়েছে"
+
+#: apps/attempts/models.py:44
+msgid "Finalized by the server"
+msgstr "সার্ভার চূড়ান্ত করেছে"
+
+#: apps/attempts/models.py:48 apps/cms/models.py:169 apps/exams/models.py:47
+#: apps/exams/services.py:91 apps/questions/models.py:46
+#: apps/questions/services.py:67 config/settings/base.py:219
+msgid "Bangla"
+msgstr "বাংলা"
+
+#: apps/attempts/models.py:49 apps/cms/models.py:170 apps/exams/models.py:48
+#: apps/exams/services.py:91 apps/questions/models.py:47
+#: apps/questions/services.py:67 config/settings/base.py:220
+msgid "English"
+msgstr "ইংরেজি"
+
+#: apps/attempts/models.py:59 apps/exams/models.py:91
+#: apps/notifications/models.py:28 apps/payments/models.py:91
+msgid "public ID"
+msgstr "পাবলিক আইডি"
+
+#: apps/attempts/models.py:61 apps/exams/models.py:236 apps/exams/models.py:345
+#: apps/results/models.py:58 apps/subscriptions/models.py:249
+msgid "exam"
+msgstr "পরীক্ষা"
+
+#: apps/attempts/models.py:69
+msgid "attempt number"
+msgstr "অংশগ্রহণ নম্বর"
+
+#: apps/attempts/models.py:71 apps/cms/models.py:507 apps/exams/models.py:138
+#: apps/payments/models.py:118 apps/subscriptions/models.py:139
+#: apps/subscriptions/models.py:313
+msgid "status"
+msgstr "অবস্থা"
+
+#: apps/attempts/models.py:77
+msgid "started at"
+msgstr "শুরুর সময়"
+
+#: apps/attempts/models.py:78
+msgid "deadline"
+msgstr "শেষ সময়"
+
+#: apps/attempts/models.py:79 apps/results/models.py:66
+msgid "submitted at"
+msgstr "জমা দেওয়ার সময়"
+
+#: apps/attempts/models.py:81
+msgid "submitted by"
+msgstr "যেভাবে জমা হয়েছে"
+
+#: apps/attempts/models.py:84
+msgid "client info"
+msgstr "ক্লায়েন্ট তথ্য"
+
+#: apps/attempts/models.py:87 apps/exams/models.py:114
+msgid "content language"
+msgstr "বিষয়বস্তুর ভাষা"
+
+#: apps/attempts/models.py:91 apps/payments/models.py:135
+#: apps/subscriptions/models.py:387
+msgid "idempotency key"
+msgstr "আইডেমপোটেন্সি কী"
+
+#: apps/attempts/models.py:95
+msgid "exam attempt"
+msgstr "পরীক্ষার অংশগ্রহণ"
+
+#: apps/attempts/models.py:96
+msgid "exam attempts"
+msgstr "পরীক্ষার অংশগ্রহণসমূহ"
+
+#: apps/attempts/models.py:157 apps/results/models.py:54
+msgid "attempt"
+msgstr "অংশগ্রহণ"
+
+#: apps/attempts/models.py:160 apps/cms/models.py:410 apps/exams/models.py:349
+#: apps/questions/admin.py:44 apps/questions/models.py:132
+#: apps/questions/models.py:186
+msgid "question"
+msgstr "প্রশ্ন"
+
+#: apps/attempts/models.py:162
+msgid "display order"
+msgstr "প্রদর্শনের ক্রম"
+
+#: apps/attempts/models.py:164
+msgid "option order"
+msgstr "অপশনের ক্রম"
+
+#: apps/attempts/models.py:165 apps/exams/models.py:353
+msgid "marks"
+msgstr "নম্বর"
+
+#: apps/attempts/models.py:166 apps/results/models.py:72
+msgid "negative marks"
+msgstr "নেগেটিভ মার্কস"
+
+#: apps/attempts/models.py:169
+msgid "selected option"
+msgstr "নির্বাচিত অপশন"
+
+#: apps/attempts/models.py:175
+msgid "marked for review"
+msgstr "পর্যালোচনার জন্য চিহ্নিত"
+
+#: apps/attempts/models.py:176
+msgid "answered at"
+msgstr "উত্তর দেওয়ার সময়"
+
+#: apps/attempts/models.py:178
+msgid "saved on device at"
+msgstr "ডিভাইসে সংরক্ষণের সময়"
+
+#: apps/attempts/models.py:180 apps/questions/models.py:197
+msgid "correct"
+msgstr "সঠিক"
+
+#: apps/attempts/models.py:181
+msgid "awarded marks"
+msgstr "প্রাপ্ত নম্বর"
+
+#: apps/attempts/models.py:184
+msgid "attempt answer"
+msgstr "অংশগ্রহণের উত্তর"
+
+#: apps/attempts/models.py:185
+msgid "attempt answers"
+msgstr "অংশগ্রহণের উত্তরসমূহ"
+
+#: apps/attempts/services.py:84
+#, python-format
+msgid "Question #%(id)s is not part of this attempt."
+msgstr "প্রশ্ন #%(id)s এই পরীক্ষার অংশ নয়।"
+
+#: apps/attempts/services.py:85
+#, python-format
+msgid "This option does not belong to question #%(id)s."
+msgstr "এই অপশনটি প্রশ্ন #%(id)s-এর নয়।"
+
+#: apps/attempts/services.py:86 apps/exams/services.py:86
+#, python-format
+msgid "Question #%(id)s is listed more than once."
+msgstr "প্রশ্ন #%(id)s একাধিকবার যোগ করা হয়েছে।"
+
+#: apps/audit/apps.py:8
+msgid "Audit log"
+msgstr "অডিট লগ"
+
+#: apps/audit/models.py:29 apps/subscriptions/models.py:381
+msgid "actor"
+msgstr "কার্যকারী"
+
+#: apps/audit/models.py:37
+msgid "action"
+msgstr "কার্য"
+
+#: apps/audit/models.py:38
+msgid "entity type"
+msgstr "বস্তুর ধরন"
+
+#: apps/audit/models.py:39
+msgid "entity ID"
+msgstr "বস্তুর আইডি"
+
+#: apps/audit/models.py:40
+msgid "summary"
+msgstr "সারসংক্ষেপ"
+
+#: apps/audit/models.py:41
+msgid "metadata"
+msgstr "মেটাডেটা"
+
+#: apps/audit/models.py:42 apps/cms/models.py:518
+msgid "IP address"
+msgstr "আইপি ঠিকানা"
+
+#: apps/audit/models.py:43
+msgid "user agent"
+msgstr "ইউজার এজেন্ট"
+
+#: apps/audit/models.py:44 apps/notifications/models.py:40
+#: apps/payments/models.py:235 apps/subscriptions/models.py:411
+msgid "created at"
+msgstr "তৈরির সময়"
+
+#: apps/audit/models.py:49
+msgid "audit log entry"
+msgstr "অডিট লগ এন্ট্রি"
+
+#: apps/audit/models.py:50
+msgid "audit log"
+msgstr "অডিট লগ"
+
+#: apps/catalog/admin.py:55 apps/catalog/models.py:179
+msgid "subjects"
+msgstr "বিষয়সমূহ"
+
+#: apps/catalog/apps.py:8
+msgid "Catalog"
+msgstr "ক্যাটালগ"
+
+#: apps/catalog/exceptions.py:14
+msgid ""
+"This category still has subjects. Move or delete them first, or deactivate "
+"the category."
+msgstr ""
+"এই ক্যাটাগরিতে এখনও বিষয় আছে। আগে বিষয়গুলো সরান বা মুছুন, অথবা ক্যাটাগরিটি "
+"নিষ্ক্রিয় করুন।"
+
+#: apps/catalog/exceptions.py:16
+msgid "This subject is still in use. Deactivate it instead of deleting it."
+msgstr "এই বিষয়টি এখনও ব্যবহৃত হচ্ছে। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+
+#: apps/catalog/exceptions.py:18
+msgid ""
+"This category is still used by exams or packages. Deactivate it instead of "
+"deleting it."
+msgstr ""
+"এই ক্যাটাগরি এখনও পরীক্ষা বা প্যাকেজে ব্যবহৃত হচ্ছে। মুছে ফেলার বদলে এটি নিষ্ক্রিয় "
+"করুন।"
+
+#: apps/catalog/models.py:31 apps/subscriptions/models.py:53
+msgid "Enter a name in Bangla or English (at least one is required)."
+msgstr "বাংলা বা ইংরেজিতে একটি নাম লিখুন (অন্তত একটি আবশ্যক)।"
+
+#: apps/catalog/models.py:33
+msgid ""
+"Use only lowercase English letters, digits and single hyphens (for example: "
+"physics-1)."
+msgstr ""
+"শুধু ইংরেজি ছোট হাতের অক্ষর, অঙ্ক ও একক হাইফেন ব্যবহার করুন (যেমন: physics-1)।"
+
+#: apps/catalog/models.py:35
+msgid "A category with this slug already exists."
+msgstr "এই স্লাগ দিয়ে ইতিমধ্যে একটি ক্যাটাগরি আছে।"
+
+#: apps/catalog/models.py:36
+msgid "This category already has a subject with this slug."
+msgstr "এই ক্যাটাগরিতে এই স্লাগ দিয়ে ইতিমধ্যে একটি বিষয় আছে।"
+
+#: apps/catalog/models.py:59 apps/subscriptions/models.py:108
+msgid "name (Bangla)"
+msgstr "নাম (বাংলা)"
+
+#: apps/catalog/models.py:60 apps/subscriptions/models.py:109
+msgid "name (English)"
+msgstr "নাম (ইংরেজি)"
+
+#: apps/catalog/models.py:62 apps/exams/models.py:102
+#: apps/subscriptions/models.py:118
+msgid "description (Bangla)"
+msgstr "বিবরণ (বাংলা)"
+
+#: apps/catalog/models.py:67 apps/exams/models.py:105
+#: apps/subscriptions/models.py:123
+msgid "description (English)"
+msgstr "বিবরণ (ইংরেজি)"
+
+#: apps/catalog/models.py:72 apps/cms/models.py:425 apps/exams/models.py:351
+#: apps/questions/models.py:198 apps/subscriptions/models.py:141
+msgid "sort order"
+msgstr "ক্রম"
+
+#: apps/catalog/models.py:117 apps/catalog/models.py:153 apps/cms/models.py:446
+#: apps/exams/models.py:95 apps/subscriptions/models.py:111
+msgid "slug"
+msgstr "স্লাগ"
+
+#: apps/catalog/models.py:122
+msgid "Used in web addresses. Generated from the English name if left empty."
+msgstr "ওয়েব ঠিকানায় ব্যবহৃত হয়। ফাঁকা রাখলে ইংরেজি নাম থেকে তৈরি হবে।"
+
+#: apps/catalog/models.py:126 apps/catalog/models.py:147
+#: apps/exams/models.py:120 apps/subscriptions/models.py:241
+msgid "category"
+msgstr "ক্যাটাগরি"
+
+#: apps/catalog/models.py:127
+msgid "categories"
+msgstr "ক্যাটাগরিসমূহ"
+
+#: apps/catalog/models.py:157
+msgid ""
+"Used in web addresses; unique within the category. Generated from the "
+"English name if left empty."
+msgstr ""
+"ওয়েব ঠিকানায় ব্যবহৃত হয়; ক্যাটাগরির মধ্যে অনন্য। ফাঁকা রাখলে ইংরেজি নাম থেকে তৈরি "
+"হবে।"
+
+#: apps/catalog/models.py:178 apps/cms/models.py:503 apps/exams/models.py:124
+#: apps/questions/models.py:64
+msgid "subject"
+msgstr "বিষয়"
+
+#: apps/catalog/services.py:38 apps/subscriptions/services.py:66
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English name to "
+"generate it."
+msgstr ""
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি নাম "
+"দিন।"
+
+#: apps/catalog/services.py:40
+msgid "This category no longer exists."
+msgstr "এই ক্যাটাগরিটি আর নেই।"
+
+#: apps/cms/api/serializers.py:45
+msgid "Enter a phone number or an e-mail address so we can reply."
+msgstr "উত্তর দেওয়ার জন্য একটি ফোন নম্বর বা ই-মেইল ঠিকানা দিন।"
+
+#: apps/cms/api/serializers.py:46
+msgid "This field may not be blank."
+msgstr "এই ঘরটি ফাঁকা রাখা যাবে না।"
+
+#: apps/cms/apps.py:8
+msgid "Content"
+msgstr "কনটেন্ট"
+
+#: apps/cms/models.py:46
+#, python-format
+msgid ""
+"Fill in both %(first)s and %(second)s in at least one language (Bangla or "
+"English)."
+msgstr "অন্তত একটি ভাষায় (বাংলা বা ইংরেজি) %(first)s ও %(second)s দুটোই লিখুন।"
+
+#: apps/cms/models.py:48
+#, python-format
+msgid "Fill in both %(first)s and %(second)s for this language, or neither."
+msgstr "এই ভাষার জন্য %(first)s ও %(second)s দুটোই লিখুন, অথবা কোনোটিই নয়।"
+
+#: apps/cms/models.py:49
+msgid "A page with this slug already exists."
+msgstr "এই স্লাগ দিয়ে একটি পেজ আগে থেকেই আছে।"
+
+#: apps/cms/models.py:50
+msgid "The end time must be after the publish time."
+msgstr "শেষের সময় প্রকাশের সময়ের পরে হতে হবে।"
+
+#: apps/cms/models.py:51
+msgid "Enter a full https:// address."
+msgstr "একটি পূর্ণ https:// ঠিকানা লিখুন।"
+
+#: apps/cms/models.py:52
+msgid "Enter an https:// address or a link with this app's own scheme."
+msgstr "একটি https:// ঠিকানা অথবা এই অ্যাপের নিজস্ব স্কিমের একটি লিংক লিখুন।"
+
+#: apps/cms/models.py:54
+msgid ""
+"Enter a phone number of 6 to 15 digits; only +, spaces, brackets and - may "
+"be added."
+msgstr ""
+"৬ থেকে ১৫ অঙ্কের একটি ফোন নম্বর লিখুন; শুধু +, স্পেস, বন্ধনী ও - যোগ করা যাবে।"
+
+#: apps/cms/models.py:176
+msgid "Masked"
+msgstr "আংশিক লুকানো"
+
+#: apps/cms/models.py:177
+msgid "Initials"
+msgstr "আদ্যক্ষর"
+
+#: apps/cms/models.py:178
+msgid "Display name"
+msgstr "প্রদর্শিত নাম"
+
+#: apps/cms/models.py:179
+msgid "Full name"
+msgstr "পূর্ণ নাম"
+
+#: apps/cms/models.py:189
+msgid "platform name (Bangla)"
+msgstr "প্ল্যাটফর্মের নাম (বাংলা)"
+
+#: apps/cms/models.py:190
+msgid "platform name (English)"
+msgstr "প্ল্যাটফর্মের নাম (ইংরেজি)"
+
+#: apps/cms/models.py:191
+msgid "tagline (Bangla)"
+msgstr "ট্যাগলাইন (বাংলা)"
+
+#: apps/cms/models.py:192
+msgid "tagline (English)"
+msgstr "ট্যাগলাইন (ইংরেজি)"
+
+#: apps/cms/models.py:193
+msgid "address (Bangla)"
+msgstr "ঠিকানা (বাংলা)"
+
+#: apps/cms/models.py:194
+msgid "address (English)"
+msgstr "ঠিকানা (ইংরেজি)"
+
+#: apps/cms/models.py:196
+msgid "contact e-mail"
+msgstr "যোগাযোগের ই-মেইল"
+
+#: apps/cms/models.py:199
+msgid "contact phone"
+msgstr "যোগাযোগের ফোন"
+
+#: apps/cms/models.py:203
+msgid "app download link"
+msgstr "অ্যাপ ডাউনলোড লিংক"
+
+#: apps/cms/models.py:209
+msgid "app open link"
+msgstr "অ্যাপ খোলার লিংক"
+
+#: apps/cms/models.py:212
+msgid "default language"
+msgstr "ডিফল্ট ভাষা"
+
+#: apps/cms/models.py:215
+msgid "website leaderboard names"
+msgstr "ওয়েবসাইটের লিডারবোর্ডে নাম"
+
+#: apps/cms/models.py:218
+msgid "app leaderboard names"
+msgstr "অ্যাপের লিডারবোর্ডে নাম"
+
+#: apps/cms/models.py:238 apps/cms/models.py:239
+msgid "site settings"
+msgstr "সাইট সেটিংস"
+
+#: apps/cms/models.py:316
+msgid "title"
+msgstr "শিরোনাম"
+
+#: apps/cms/models.py:316
+msgid "body"
+msgstr "বিবরণ"
+
+#: apps/cms/models.py:345
+msgid "Website (public)"
+msgstr "ওয়েবসাইট (সবার জন্য)"
+
+#: apps/cms/models.py:346
+msgid "Students (app)"
+msgstr "শিক্ষার্থী (অ্যাপ)"
+
+#: apps/cms/models.py:347
+msgid "Everyone"
+msgstr "সবাই"
+
+#: apps/cms/models.py:351 apps/cms/models.py:453 apps/exams/models.py:92
+msgid "title (Bangla)"
+msgstr "শিরোনাম (বাংলা)"
+
+#: apps/cms/models.py:352 apps/cms/models.py:454 apps/exams/models.py:93
+msgid "title (English)"
+msgstr "শিরোনাম (ইংরেজি)"
+
+#: apps/cms/models.py:354 apps/cms/models.py:456
+msgid "text (Bangla)"
+msgstr "লেখা (বাংলা)"
+
+#: apps/cms/models.py:359 apps/cms/models.py:459
+msgid "text (English)"
+msgstr "লেখা (ইংরেজি)"
+
+#: apps/cms/models.py:364
+msgid "audience"
+msgstr "যাদের জন্য"
+
+#: apps/cms/models.py:366
+msgid "pinned"
+msgstr "পিন করা"
+
+#: apps/cms/models.py:368
+msgid "published at"
+msgstr "প্রকাশের সময়"
+
+#: apps/cms/models.py:369 apps/subscriptions/models.py:320
+#: apps/verification/models.py:35 apps/verification/models.py:87
+msgid "expires at"
+msgstr "মেয়াদ শেষের সময়"
+
+#: apps/cms/models.py:376
+msgid "announcement"
+msgstr "ঘোষণা"
+
+#: apps/cms/models.py:377
+msgid "announcements"
+msgstr "ঘোষণাসমূহ"
+
+#: apps/cms/models.py:410
+msgid "answer"
+msgstr "উত্তর"
+
+#: apps/cms/models.py:413 apps/questions/models.py:70
+msgid "question (Bangla)"
+msgstr "প্রশ্ন (বাংলা)"
+
+#: apps/cms/models.py:416 apps/questions/models.py:75
+msgid "question (English)"
+msgstr "প্রশ্ন (ইংরেজি)"
+
+#: apps/cms/models.py:419
+msgid "answer (Bangla)"
+msgstr "উত্তর (বাংলা)"
+
+#: apps/cms/models.py:422
+msgid "answer (English)"
+msgstr "উত্তর (ইংরেজি)"
+
+#: apps/cms/models.py:432
+msgid "FAQ entry"
+msgstr "প্রশ্নোত্তর"
+
+#: apps/cms/models.py:433
+msgid "FAQ"
+msgstr "সাধারণ প্রশ্নোত্তর"
+
+#: apps/cms/models.py:451
+msgid "Used in web addresses, e.g. about, terms, privacy."
+msgstr "ওয়েব ঠিকানায় ব্যবহৃত হয়, যেমন: about, terms, privacy।"
+
+#: apps/cms/models.py:468
+msgid "page"
+msgstr "পেজ"
+
+#: apps/cms/models.py:469
+msgid "pages"
+msgstr "পেজসমূহ"
+
+#: apps/cms/models.py:494
+msgid "New"
+msgstr "নতুন"
+
+#: apps/cms/models.py:495
+msgid "Read"
+msgstr "পড়া হয়েছে"
+
+#: apps/cms/models.py:496
+msgid "Resolved"
+msgstr "সমাধান হয়েছে"
+
+#: apps/cms/models.py:500
+msgid "name"
+msgstr "নাম"
+
+#: apps/cms/models.py:501
+msgid "phone"
+msgstr "ফোন"
+
+#: apps/cms/models.py:502
+msgid "e-mail"
+msgstr "ই-মেইল"
+
+#: apps/cms/models.py:504
+msgid "message"
+msgstr "বার্তা"
+
+#: apps/cms/models.py:505 apps/verification/models.py:34
+msgid "language"
+msgstr "ভাষা"
+
+#: apps/cms/models.py:511
+msgid "handled by"
+msgstr "যিনি দেখেছেন"
+
+#: apps/cms/models.py:521
+msgid "contact message"
+msgstr "যোগাযোগ বার্তা"
+
+#: apps/cms/models.py:522
+msgid "contact messages"
+msgstr "যোগাযোগ বার্তাসমূহ"
+
+#: apps/core/admin_api.py:13
+msgid "Use true or false."
+msgstr "true অথবা false ব্যবহার করুন।"
+
+#: apps/core/admin_api.py:14
+msgid "Enter a valid ID."
+msgstr "একটি সঠিক আইডি লিখুন।"
+
+#: apps/core/admin_api.py:15
+msgid "Unknown ordering field."
+msgstr "অজানা ক্রমবিন্যাস ক্ষেত্র।"
+
+#: apps/core/admin_api.py:16
+msgid "The search text is too long."
+msgstr "অনুসন্ধানের লেখা খুব দীর্ঘ।"
+
+#: apps/core/admin_api.py:59
+msgid "Unknown value."
+msgstr "অজানা মান।"
+
+#: apps/core/exceptions.py:57
+msgid "Please correct the highlighted fields."
+msgstr "চিহ্নিত ঘরগুলো সংশোধন করুন।"
+
+#: apps/core/phone.py:25 apps/verification/exceptions.py:23
+msgid "Enter a valid Bangladeshi mobile number, for example 01712345678."
+msgstr "সঠিক বাংলাদেশি মোবাইল নম্বর লিখুন, যেমন ০১৭১২৩৪৫৬৭৮।"
+
+#: apps/core/throttling.py:24
+msgid "This service is temporarily unavailable. Please try again shortly."
+msgstr "সেবাটি সাময়িকভাবে বন্ধ আছে। একটু পরে আবার চেষ্টা করুন।"
+
+#: apps/core/views.py:29
+msgid "The requested resource was not found."
+msgstr "অনুরোধ করা তথ্যটি পাওয়া যায়নি।"
+
+#: apps/core/views.py:35
+msgid "Something went wrong on our side. Please try again."
+msgstr "আমাদের দিক থেকে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+
+#: apps/exams/admin.py:77
+msgid "Publish selected exams"
+msgstr "নির্বাচিত পরীক্ষাগুলো প্রকাশ করুন"
+
+#: apps/exams/admin.py:81
+msgid "Unpublish selected exams"
+msgstr "নির্বাচিত পরীক্ষাগুলোর প্রকাশ বাতিল করুন"
+
+#: apps/exams/admin.py:85
+msgid "Archive selected exams"
+msgstr "নির্বাচিত পরীক্ষাগুলো আর্কাইভ করুন"
+
+#: apps/exams/api/serializers.py:33
+msgid "Include a time zone (for example 2026-10-05T09:30:00Z or +06:00)."
+msgstr "সময় অঞ্চল উল্লেখ করুন (যেমন 2026-10-05T09:30:00Z বা +06:00)।"
+
+#: apps/exams/apps.py:8
+msgid "Exams"
+msgstr "পরীক্ষাসমূহ"
+
+#: apps/exams/exceptions.py:14
+msgid ""
+"Published and archived exams cannot be changed. Unpublish the exam first, or "
+"duplicate it."
+msgstr ""
+"প্রকাশিত ও আর্কাইভ করা পরীক্ষা পরিবর্তন করা যায় না। আগে প্রকাশ বাতিল করুন, অথবা "
+"পরীক্ষাটির একটি কপি তৈরি করুন।"
+
+#: apps/exams/exceptions.py:17
+msgid ""
+"Only draft exams can be deleted. Unpublish or archive this exam instead."
+msgstr "শুধু খসড়া পরীক্ষা মুছে ফেলা যায়। এর বদলে প্রকাশ বাতিল বা আর্কাইভ করুন।"
+
+#: apps/exams/exceptions.py:19
+msgid "This exam is already published."
+msgstr "এই পরীক্ষাটি ইতিমধ্যে প্রকাশিত।"
+
+#: apps/exams/exceptions.py:20
+msgid "Only a published exam can be unpublished."
+msgstr "শুধু প্রকাশিত পরীক্ষার প্রকাশ বাতিল করা যায়।"
+
+#: apps/exams/exceptions.py:21
+msgid "Only draft or unpublished exams can be archived."
+msgstr "শুধু খসড়া বা অপ্রকাশিত পরীক্ষা আর্কাইভ করা যায়।"
+
+#: apps/exams/exceptions.py:23
+msgid ""
+"Students have already taken this exam, so it cannot be changed. Duplicate it "
+"instead."
+msgstr ""
+"শিক্ষার্থীরা ইতিমধ্যে এই পরীক্ষা দিয়েছে, তাই এটি পরিবর্তন করা যাবে না। এর বদলে "
+"একটি কপি তৈরি করুন।"
+
+#: apps/exams/exceptions.py:26
+msgid ""
+"This exam is still used by a package. Remove it from the package first, or "
+"archive the exam."
+msgstr ""
+"এই পরীক্ষাটি এখনও একটি প্যাকেজে ব্যবহৃত হচ্ছে। আগে প্যাকেজ থেকে সরান, অথবা "
+"পরীক্ষাটি আর্কাইভ করুন।"
+
+#: apps/exams/models.py:31
+msgid "Enter a title in Bangla or English (at least one is required)."
+msgstr "বাংলা বা ইংরেজিতে একটি শিরোনাম লিখুন (অন্তত একটি আবশ্যক)।"
+
+#: apps/exams/models.py:32
+msgid "An exam with this slug already exists."
+msgstr "এই স্লাগ দিয়ে ইতিমধ্যে একটি পরীক্ষা আছে।"
+
+#: apps/exams/models.py:36
+msgid "Practice"
+msgstr "অনুশীলন"
+
+#: apps/exams/models.py:37
+msgid "Regular"
+msgstr "নিয়মিত"
+
+#: apps/exams/models.py:38
+msgid "Live"
+msgstr "লাইভ"
+
+#: apps/exams/models.py:42
+msgid "Free"
+msgstr "ফ্রি"
+
+#: apps/exams/models.py:43
+msgid "Paid"
+msgstr "পেইড"
+
+#: apps/exams/models.py:49 apps/questions/models.py:48
+msgid "Bangla and English"
+msgstr "বাংলা ও ইংরেজি"
+
+#: apps/exams/models.py:53
+msgid "Draft"
+msgstr "খসড়া"
+
+#: apps/exams/models.py:54
+msgid "Published"
+msgstr "প্রকাশিত"
+
+#: apps/exams/models.py:55
+msgid "Unpublished"
+msgstr "অপ্রকাশিত"
+
+#: apps/exams/models.py:56
+msgid "Archived"
+msgstr "আর্কাইভ করা"
+
+#: apps/exams/models.py:60
+msgid "First attempt"
+msgstr "প্রথম চেষ্টা"
+
+#: apps/exams/models.py:61
+msgid "Best attempt"
+msgstr "সেরা চেষ্টা"
+
+#: apps/exams/models.py:62
+msgid "Latest attempt"
+msgstr "সর্বশেষ চেষ্টা"
+
+#: apps/exams/models.py:66
+msgid "Immediately after submission"
+msgstr "জমা দেওয়ার সঙ্গে সঙ্গে"
+
+#: apps/exams/models.py:67
+msgid "After the exam ends"
+msgstr "পরীক্ষা শেষ হওয়ার পর"
+
+#: apps/exams/models.py:68
+msgid "When an admin publishes results"
+msgstr "অ্যাডমিন ফলাফল প্রকাশ করলে"
+
+#: apps/exams/models.py:108
+msgid "instructions (Bangla)"
+msgstr "নির্দেশনা (বাংলা)"
+
+#: apps/exams/models.py:111
+msgid "instructions (English)"
+msgstr "নির্দেশনা (ইংরেজি)"
+
+#: apps/exams/models.py:131
+msgid "exam type"
+msgstr "পরীক্ষার ধরন"
+
+#: apps/exams/models.py:135
+msgid "access"
+msgstr "অ্যাক্সেস"
+
+#: apps/exams/models.py:145
+msgid "duration (minutes)"
+msgstr "সময়কাল (মিনিট)"
+
+#: apps/exams/models.py:148 apps/results/models.py:67
+msgid "total questions"
+msgstr "মোট প্রশ্ন"
+
+#: apps/exams/models.py:150
+msgid "marks per question"
+msgstr "প্রতি প্রশ্নের নম্বর"
+
+#: apps/exams/models.py:151
+msgid "negative marks per wrong answer"
+msgstr "প্রতি ভুল উত্তরে নেগেটিভ মার্কিং"
+
+#: apps/exams/models.py:152
+msgid "pass marks"
+msgstr "পাস নম্বর"
+
+#: apps/exams/models.py:153 apps/notifications/models.py:89
+#: apps/subscriptions/models.py:319
+msgid "starts at"
+msgstr "শুরুর সময়"
+
+#: apps/exams/models.py:154
+msgid "ends at"
+msgstr "শেষের সময়"
+
+#: apps/exams/models.py:155
+msgid "shuffle questions"
+msgstr "প্রশ্ন এলোমেলো করুন"
+
+#: apps/exams/models.py:156
+msgid "shuffle options"
+msgstr "অপশন এলোমেলো করুন"
+
+#: apps/exams/models.py:157
+msgid "allow retake"
+msgstr "পুনরায় অংশগ্রহণের অনুমতি"
+
+#: apps/exams/models.py:159
+msgid "maximum attempts"
+msgstr "সর্বোচ্চ চেষ্টা"
+
+#: apps/exams/models.py:161
+msgid "merit list enabled"
+msgstr "মেধাতালিকা চালু"
+
+#: apps/exams/models.py:163
+msgid "merit strategy"
+msgstr "মেধাক্রম নির্ধারণের নিয়ম"
+
+#: apps/exams/models.py:169
+msgid "result visibility"
+msgstr "ফলাফল দেখার নিয়ম"
+
+#: apps/exams/models.py:174
+msgid "allow answer review"
+msgstr "উত্তর পর্যালোচনার অনুমতি"
+
+#: apps/exams/models.py:179
+msgid "results published at"
+msgstr "ফলাফল প্রকাশের সময়"
+
+#: apps/exams/models.py:181 apps/subscriptions/models.py:142
+msgid "featured"
+msgstr "বিশেষ"
+
+#: apps/exams/models.py:184 apps/questions/models.py:105
+msgid "created by"
+msgstr "তৈরি করেছেন"
+
+#: apps/exams/models.py:237
+msgid "exams"
+msgstr "পরীক্ষাসমূহ"
+
+#: apps/exams/models.py:356
+msgid "exam question"
+msgstr "পরীক্ষার প্রশ্ন"
+
+#: apps/exams/models.py:357
+msgid "exam questions"
+msgstr "পরীক্ষার প্রশ্নসমূহ"
+
+#: apps/exams/services.py:61
+msgid ""
+"Enter a slug (English letters, digits and hyphens), or an English title to "
+"generate it."
+msgstr ""
+"একটি স্লাগ লিখুন (ইংরেজি অক্ষর, অঙ্ক ও হাইফেন), অথবা স্লাগ তৈরির জন্য ইংরেজি "
+"শিরোনাম দিন।"
+
+#: apps/exams/services.py:63
+msgid "The subject must belong to the selected category."
+msgstr "বিষয়টি নির্বাচিত ক্যাটাগরির হতে হবে।"
+
+#: apps/exams/services.py:64
+msgid "The end time must be after the start time."
+msgstr "শেষের সময় শুরুর সময়ের পরে হতে হবে।"
+
+#: apps/exams/services.py:65
+msgid "The exam window is shorter than the exam duration."
+msgstr "পরীক্ষার সময়সীমা পরীক্ষার সময়কালের চেয়ে কম।"
+
+#: apps/exams/services.py:66
+msgid "Live exams need a start and an end time."
+msgstr "লাইভ পরীক্ষার শুরু ও শেষের সময় প্রয়োজন।"
+
+#: apps/exams/services.py:68
+msgid ""
+"Results shown after the exam ends need an end time. Set an end time or "
+"choose another result visibility."
+msgstr ""
+"পরীক্ষা শেষ হওয়ার পর ফলাফল দেখাতে হলে শেষ সময় দিতে হবে। শেষ সময় দিন অথবা অন্য "
+"ফলাফল প্রদর্শনের নিয়ম বেছে নিন।"
+
+#: apps/exams/services.py:71
+msgid "The end time has already passed."
+msgstr "শেষের সময় ইতিমধ্যে পার হয়ে গেছে।"
+
+#: apps/exams/services.py:73
+msgid ""
+"With retakes allowed, set at least 2 attempts, or leave it empty for "
+"unlimited attempts."
+msgstr ""
+"পুনরায় অংশগ্রহণের অনুমতি থাকলে অন্তত ২টি চেষ্টা দিন, অথবা সীমাহীন চেষ্টার জন্য ফাঁকা "
+"রাখুন।"
+
+#: apps/exams/services.py:75
+#, python-format
+msgid "A title in %(language)s is required for this exam's language."
+msgstr "এই পরীক্ষার ভাষার জন্য %(language)s শিরোনাম প্রয়োজন।"
+
+#: apps/exams/services.py:76
+msgid "Add questions before publishing."
+msgstr "প্রকাশের আগে প্রশ্ন যোগ করুন।"
+
+#: apps/exams/services.py:77
+#, python-format
+msgid "This exam needs %(expected)s questions but %(actual)s are assigned."
+msgstr ""
+"এই পরীক্ষায় %(expected)sটি প্রশ্ন প্রয়োজন, কিন্তু যোগ করা হয়েছে %(actual)sটি।"
+
+#: apps/exams/services.py:78
+#, python-format
+msgid "Question #%(id)s is inactive."
+msgstr "প্রশ্ন #%(id)s নিষ্ক্রিয়।"
+
+#: apps/exams/services.py:79
+#, python-format
+msgid "Question #%(id)s is not available in %(language)s."
+msgstr "প্রশ্ন #%(id)s %(language)s ভাষায় নেই।"
+
+#: apps/exams/services.py:81
+#, python-format
+msgid ""
+"Question #%(id)s must have %(min)s–%(max)s options and one correct answer."
+msgstr "প্রশ্ন #%(id)s-এ %(min)s–%(max)sটি অপশন ও একটি সঠিক উত্তর থাকতে হবে।"
+
+#: apps/exams/services.py:83
+#, python-format
+msgid "Pass marks cannot be higher than the total marks (%(total)s)."
+msgstr "পাস নম্বর মোট নম্বরের (%(total)s) বেশি হতে পারে না।"
+
+#: apps/exams/services.py:84
+msgid "The category is inactive."
+msgstr "ক্যাটাগরিটি নিষ্ক্রিয়।"
+
+#: apps/exams/services.py:85
+msgid "The subject is inactive."
+msgstr "বিষয়টি নিষ্ক্রিয়।"
+
+#: apps/exams/services.py:87
+msgid "Each question needs a different sort order."
+msgstr "প্রতিটি প্রশ্নের ক্রম আলাদা হতে হবে।"
+
+#: apps/exams/services.py:88
+#, python-format
+msgid "Question #%(id)s does not exist."
+msgstr "প্রশ্ন #%(id)s নেই।"
+
+#: apps/exams/services.py:89
+#, python-format
+msgid "An exam can have at most %(max)s questions."
+msgstr "একটি পরীক্ষায় সর্বোচ্চ %(max)sটি প্রশ্ন থাকতে পারে।"
+
+#: apps/notifications/apps.py:8
+msgid "Notifications"
+msgstr "নোটিফিকেশন"
+
+#: apps/notifications/models.py:23 apps/notifications/templates.py:28
+msgid "Payment successful"
+msgstr "পেমেন্ট সফল হয়েছে"
+
+#: apps/notifications/models.py:24 apps/notifications/templates.py:32
+msgid "Result published"
+msgstr "ফলাফল প্রকাশিত হয়েছে"
+
+#: apps/notifications/models.py:35 apps/notifications/models.py:88
+msgid "type"
+msgstr "ধরন"
+
+#: apps/notifications/models.py:37
+msgid "source ID"
+msgstr "উৎস আইডি"
+
+#: apps/notifications/models.py:38
+msgid "parameters"
+msgstr "প্যারামিটার"
+
+#: apps/notifications/models.py:39
+msgid "read at"
+msgstr "পড়ার সময়"
+
+#: apps/notifications/models.py:43
+msgid "notification"
+msgstr "নোটিফিকেশন"
+
+#: apps/notifications/models.py:44
+msgid "notifications"
+msgstr "নোটিফিকেশনসমূহ"
+
+#: apps/notifications/models.py:92
+msgid "notification rollout"
+msgstr "নোটিফিকেশন চালুর সময়"
+
+#: apps/notifications/models.py:93
+msgid "notification rollouts"
+msgstr "নোটিফিকেশন চালুর সময়সমূহ"
+
+#: apps/notifications/templates.py:29
+#, python-format
+msgid ""
+"Your payment for “%(name)s” was successful. Your subscription is now active."
+msgstr ""
+"“%(name)s”-এর জন্য আপনার পেমেন্ট সফল হয়েছে। আপনার সাবস্ক্রিপশন এখন চালু আছে।"
+
+#: apps/notifications/templates.py:33
+#, python-format
+msgid "Your result for “%(name)s” is now available."
+msgstr "“%(name)s”-এর ফলাফল এখন দেখা যাচ্ছে।"
+
+#: apps/payments/api/views.py:77
+msgid "Enter a valid date (YYYY-MM-DD)."
+msgstr "একটি সঠিক তারিখ লিখুন (YYYY-MM-DD)।"
+
+#: apps/payments/apps.py:8
+msgid "Payments"
+msgstr "পেমেন্ট"
+
+#: apps/payments/exceptions.py:15
+msgid "Only active student accounts can buy packages."
+msgstr "শুধু সক্রিয় শিক্ষার্থী অ্যাকাউন্ট প্যাকেজ কিনতে পারে।"
+
+#: apps/payments/exceptions.py:16 apps/subscriptions/services.py:76
+msgid "This package does not exist."
+msgstr "এই প্যাকেজ পাওয়া যায়নি।"
+
+#: apps/payments/exceptions.py:17
+msgid "This package is not on sale right now."
+msgstr "এই প্যাকেজটি এখন বিক্রি হচ্ছে না।"
+
+#: apps/payments/exceptions.py:18
+msgid "This package is free and cannot be bought."
+msgstr "এই প্যাকেজটি বিনামূল্যের, তাই কেনা যায় না।"
+
+#: apps/payments/exceptions.py:20
+msgid "The payment could not be started. Please try again in a few minutes."
+msgstr "পেমেন্ট শুরু করা যায়নি। কয়েক মিনিট পর আবার চেষ্টা করুন।"
+
+#: apps/payments/exceptions.py:23
+msgid "Payments are temporarily unavailable. Please try again later."
+msgstr "পেমেন্ট সাময়িকভাবে বন্ধ আছে। পরে আবার চেষ্টা করুন।"
+
+#: apps/payments/exceptions.py:26
+msgid ""
+"This Idempotency-Key was already used for a payment for another package."
+msgstr "এই Idempotency-Key আগে অন্য একটি প্যাকেজের পেমেন্টে ব্যবহার করা হয়েছে।"
+
+#: apps/payments/exceptions.py:28
+msgid "This payment provider is not enabled on this server."
+msgstr "এই সার্ভারে এই পেমেন্ট প্রোভাইডার চালু নেই।"
+
+#: apps/payments/exceptions.py:30
+msgid "This payment is already successful; there is nothing to verify again."
+msgstr "এই পেমেন্ট ইতিমধ্যে সফল; আবার যাচাই করার কিছু নেই।"
+
+#: apps/payments/exceptions.py:33
+#, python-format
+msgid ""
+"This payment was checked with the provider moments ago. Try again in "
+"%(seconds)s seconds."
+msgstr ""
+"এই পেমেন্টটি কিছুক্ষণ আগে প্রোভাইডারের কাছে যাচাই করা হয়েছে। %(seconds)s সেকেন্ড "
+"পরে আবার চেষ্টা করুন।"
+
+#: apps/payments/models.py:56 apps/payments/models.py:206
+msgid "Initiated"
+msgstr "শুরু হয়েছে"
+
+#: apps/payments/models.py:57
+msgid "Pending"
+msgstr "অপেক্ষমাণ"
+
+#: apps/payments/models.py:58
+msgid "Successful"
+msgstr "সফল"
+
+#: apps/payments/models.py:59
+msgid "Failed"
+msgstr "ব্যর্থ"
+
+#: apps/payments/models.py:60 apps/subscriptions/models.py:78
+msgid "Cancelled"
+msgstr "বাতিল"
+
+#: apps/payments/models.py:84
+msgid "Mock (development)"
+msgstr "মক (ডেভেলপমেন্ট)"
+
+#: apps/payments/models.py:85
+msgid "SSLCommerz"
+msgstr "SSLCommerz"
+
+#: apps/payments/models.py:86
+msgid "bKash"
+msgstr "বিকাশ"
+
+#: apps/payments/models.py:87
+msgid "Nagad"
+msgstr "নগদ"
+
+#: apps/payments/models.py:93
+msgid "merchant reference"
+msgstr "মার্চেন্ট রেফারেন্স"
+
+#: apps/payments/models.py:102 apps/subscriptions/models.py:160
+#: apps/subscriptions/models.py:234 apps/subscriptions/models.py:306
+#: apps/subscriptions/models.py:398
+msgid "package"
+msgstr "প্যাকেজ"
+
+#: apps/payments/models.py:106 apps/subscriptions/models.py:326
+#: apps/subscriptions/models.py:405
+msgid "subscription"
+msgstr "সাবস্ক্রিপশন"
+
+#: apps/payments/models.py:112
+msgid "provider"
+msgstr "প্রোভাইডার"
+
+#: apps/payments/models.py:113
+msgid "amount"
+msgstr "পরিমাণ"
+
+#: apps/payments/models.py:114 apps/subscriptions/models.py:132
+msgid "currency"
+msgstr "মুদ্রা"
+
+#: apps/payments/models.py:116 apps/subscriptions/models.py:135
+msgid "validity (days)"
+msgstr "মেয়াদ (দিন)"
+
+#: apps/payments/models.py:125
+msgid "provider payment ID"
+msgstr "প্রোভাইডারের পেমেন্ট আইডি"
+
+#: apps/payments/models.py:129
+msgid "provider transaction ID"
+msgstr "প্রোভাইডারের লেনদেন আইডি"
+
+#: apps/payments/models.py:132
+msgid "checkout URL"
+msgstr "চেকআউট ইউআরএল"
+
+#: apps/payments/models.py:137
+msgid "verified at"
+msgstr "যাচাইয়ের সময়"
+
+#: apps/payments/models.py:139
+msgid "failure reason"
+msgstr "ব্যর্থতার কারণ"
+
+#: apps/payments/models.py:141
+msgid "verification response"
+msgstr "যাচাইয়ের উত্তর"
+
+#: apps/payments/models.py:143
+msgid "last checked at"
+msgstr "সর্বশেষ যাচাইয়ের সময়"
+
+#: apps/payments/models.py:146 apps/payments/models.py:230
+msgid "payment"
+msgstr "পেমেন্ট"
+
+#: apps/payments/models.py:147
+msgid "payments"
+msgstr "পেমেন্টসমূহ"
+
+#: apps/payments/models.py:207
+msgid "Callback received"
+msgstr "কলব্যাক পাওয়া গেছে"
+
+#: apps/payments/models.py:208
+msgid "IPN received"
+msgstr "IPN পাওয়া গেছে"
+
+#: apps/payments/models.py:209
+msgid "Verification requested"
+msgstr "যাচাইয়ের অনুরোধ করা হয়েছে"
+
+#: apps/payments/models.py:210
+msgid "Verification response"
+msgstr "যাচাইয়ের উত্তর"
+
+#: apps/payments/models.py:211
+msgid "Status changed"
+msgstr "অবস্থা পরিবর্তিত হয়েছে"
+
+#: apps/payments/models.py:212
+msgid "Reconciliation"
+msgstr "মিলিয়ে দেখা (রিকনসিলিয়েশন)"
+
+#: apps/payments/models.py:213
+msgid "Admin re-verification"
+msgstr "অ্যাডমিনের পুনর্যাচাই"
+
+#: apps/payments/models.py:232
+msgid "event type"
+msgstr "ইভেন্টের ধরন"
+
+#: apps/payments/models.py:233
+msgid "payload"
+msgstr "ডেটা"
+
+#: apps/payments/models.py:234
+msgid "source IP"
+msgstr "উৎস আইপি"
+
+#: apps/payments/models.py:240
+msgid "payment event"
+msgstr "পেমেন্ট ইভেন্ট"
+
+#: apps/payments/models.py:241
+msgid "payment events"
+msgstr "পেমেন্ট ইভেন্টসমূহ"
+
+#: apps/questions/admin.py:72
+msgid "Activate selected questions"
+msgstr "নির্বাচিত প্রশ্নগুলো সক্রিয় করুন"
+
+#: apps/questions/admin.py:76
+msgid "Deactivate selected questions"
+msgstr "নির্বাচিত প্রশ্নগুলো নিষ্ক্রিয় করুন"
+
+#: apps/questions/api/views.py:42
+msgid "Choose an image file to upload."
+msgstr "আপলোডের জন্য একটি ছবি নির্বাচন করুন।"
+
+#: apps/questions/apps.py:8
+msgid "Question bank"
+msgstr "প্রশ্নব্যাংক"
+
+#: apps/questions/exceptions.py:12
+msgid "This question is used in exams. Deactivate it instead of deleting it."
+msgstr "এই প্রশ্নটি পরীক্ষায় ব্যবহৃত হচ্ছে। মুছে না ফেলে নিষ্ক্রিয় করুন।"
+
+#: apps/questions/exceptions.py:25
+msgid ""
+"This question is used in a published exam, so its content, options and "
+"correct answer can no longer change. Create a new question instead."
+msgstr ""
+"এই প্রশ্নটি একটি প্রকাশিত পরীক্ষায় ব্যবহৃত হয়েছে, তাই এর বিষয়বস্তু, অপশন ও সঠিক উত্তর "
+"আর পরিবর্তন করা যাবে না। এর বদলে নতুন প্রশ্ন তৈরি করুন।"
+
+#: apps/questions/exceptions.py:29
+msgid ""
+"This question is used in a published exam and cannot be deactivated. "
+"Unpublish the exam first."
+msgstr ""
+"এই প্রশ্নটি একটি প্রকাশিত পরীক্ষায় ব্যবহৃত হচ্ছে, তাই এটি নিষ্ক্রিয় করা যাবে না। আগে "
+"পরীক্ষাটির প্রকাশ বাতিল করুন।"
+
+#: apps/questions/models.py:29
+msgid "Enter the question in Bangla or English (at least one is required)."
+msgstr "বাংলা বা ইংরেজিতে প্রশ্নটি লিখুন (অন্তত একটি আবশ্যক)।"
+
+#: apps/questions/models.py:30
+msgid "Enter the option in Bangla or English."
+msgstr "বাংলা বা ইংরেজিতে অপশনটি লিখুন।"
+
+#: apps/questions/models.py:40
+msgid "Easy"
+msgstr "সহজ"
+
+#: apps/questions/models.py:41
+msgid "Medium"
+msgstr "মাঝারি"
+
+#: apps/questions/models.py:42
+msgid "Hard"
+msgstr "কঠিন"
+
+#: apps/questions/models.py:80
+msgid "explanation (Bangla)"
+msgstr "ব্যাখ্যা (বাংলা)"
+
+#: apps/questions/models.py:85
+msgid "explanation (English)"
+msgstr "ব্যাখ্যা (ইংরেজি)"
+
+#: apps/questions/models.py:91
+msgid "difficulty"
+msgstr "কাঠিন্য"
+
+#: apps/questions/models.py:94
+msgid "image"
+msgstr "ছবি"
+
+#: apps/questions/models.py:96
+msgid "available languages"
+msgstr "উপলব্ধ ভাষা"
+
+#: apps/questions/models.py:133
+msgid "questions"
+msgstr "প্রশ্নসমূহ"
+
+#: apps/questions/models.py:191
+msgid "option (Bangla)"
+msgstr "অপশন (বাংলা)"
+
+#: apps/questions/models.py:194
+msgid "option (English)"
+msgstr "অপশন (ইংরেজি)"
+
+#: apps/questions/models.py:201
+msgid "option"
+msgstr "অপশন"
+
+#: apps/questions/models.py:202
+msgid "options"
+msgstr "অপশনসমূহ"
+
+#: apps/questions/services.py:55
+msgid "This subject no longer exists."
+msgstr "এই বিষয়টি আর নেই।"
+
+#: apps/questions/services.py:56
+#, python-format
+msgid "Add between %(min)s and %(max)s options."
+msgstr "%(min)s থেকে %(max)s টি অপশন যোগ করুন।"
+
+#: apps/questions/services.py:57
+msgid "Mark exactly one option as correct."
+msgstr "ঠিক একটি অপশনকে সঠিক হিসেবে চিহ্নিত করুন।"
+
+#: apps/questions/services.py:58
+#, python-format
+msgid "Option %(number)s needs text in %(language)s, like the question."
+msgstr "প্রশ্নের মতো %(number)s নম্বর অপশনেও %(language)s লেখা প্রয়োজন।"
+
+#: apps/questions/services.py:59
+#, python-format
+msgid "Option %(number)s: %(detail)s"
+msgstr "অপশন %(number)s: %(detail)s"
+
+#: apps/questions/services.py:60
+#, python-format
+msgid "Option %(number)s is too long (maximum %(max)s characters)."
+msgstr "অপশন %(number)s খুব দীর্ঘ (সর্বোচ্চ %(max)s অক্ষর)।"
+
+#: apps/questions/services.py:61
+msgid "Each option needs a different sort order."
+msgstr "প্রতিটি অপশনের ক্রম আলাদা হতে হবে।"
+
+#: apps/questions/services.py:62
+msgid "Two options have the same text."
+msgstr "দুটি অপশনের লেখা একই।"
+
+#: apps/questions/services.py:63
+#, python-format
+msgid "The image is too large (maximum %(max)s MB)."
+msgstr "ছবিটি খুব বড় (সর্বোচ্চ %(max)s MB)।"
+
+#: apps/questions/services.py:64
+msgid "Upload a valid JPEG, PNG or WebP image."
+msgstr "একটি সঠিক JPEG, PNG বা WebP ছবি আপলোড করুন।"
+
+#: apps/questions/services.py:65
+msgid "The image dimensions are too large."
+msgstr "ছবির মাপ খুব বড়।"
+
+#: apps/results/apps.py:8
+msgid "Results"
+msgstr "ফলাফল"
+
+#: apps/results/exceptions.py:14
+msgid "This exam has no merit list."
+msgstr "এই পরীক্ষার কোনো মেধাতালিকা নেই।"
+
+#: apps/results/exceptions.py:15
+msgid "The result could not be calculated. Please contact support."
+msgstr "ফলাফল গণনা করা যায়নি। অনুগ্রহ করে সহায়তা টিমের সঙ্গে যোগাযোগ করুন।"
+
+#: apps/results/exceptions.py:16
+msgid "The result of this exam is not available yet."
+msgstr "এই পরীক্ষার ফলাফল এখনও পাওয়া যাচ্ছে না।"
+
+#: apps/results/exceptions.py:17
+msgid "Answer review is not available for this exam."
+msgstr "এই পরীক্ষার উত্তর পর্যালোচনা উপলব্ধ নয়।"
+
+#: apps/results/models.py:68
+msgid "correct answers"
+msgstr "সঠিক উত্তর"
+
+#: apps/results/models.py:69
+msgid "wrong answers"
+msgstr "ভুল উত্তর"
+
+#: apps/results/models.py:70
+msgid "unanswered questions"
+msgstr "উত্তর না দেওয়া প্রশ্ন"
+
+#: apps/results/models.py:71
+msgid "marks for correct answers"
+msgstr "সঠিক উত্তরের নম্বর"
+
+#: apps/results/models.py:73
+msgid "obtained marks"
+msgstr "প্রাপ্ত নম্বর"
+
+#: apps/results/models.py:74
+msgid "total marks"
+msgstr "মোট নম্বর"
+
+#: apps/results/models.py:77
+msgid "percentage"
+msgstr "শতকরা হার"
+
+#: apps/results/models.py:79
+msgid "passed"
+msgstr "উত্তীর্ণ"
+
+#: apps/results/models.py:80
+msgid "time used (seconds)"
+msgstr "ব্যবহৃত সময় (সেকেন্ড)"
+
+#: apps/results/models.py:81
+msgid "counts for merit"
+msgstr "মেধাতালিকায় গণনা হয়"
+
+#: apps/results/models.py:82
+msgid "merit position"
+msgstr "মেধাক্রম"
+
+#: apps/results/models.py:83
+msgid "calculated at"
+msgstr "গণনার সময়"
+
+#: apps/results/models.py:86
+msgid "result"
+msgstr "ফলাফল"
+
+#: apps/results/models.py:87
+msgid "results"
+msgstr "ফলাফলসমূহ"
+
+#: apps/subscriptions/api/views.py:282
+msgid "Send an Idempotency-Key header with every grant request."
+msgstr ""
+"সাবস্ক্রিপশন দেওয়ার প্রতিটি অনুরোধের সঙ্গে একটি Idempotency-Key হেডার পাঠান।"
+
+#: apps/subscriptions/apps.py:8
+msgid "Subscriptions"
+msgstr "সাবস্ক্রিপশন"
+
+#: apps/subscriptions/exceptions.py:15
+msgid ""
+"This package has subscriptions and cannot be deleted. Deactivate it instead."
+msgstr "এই প্যাকেজে সাবস্ক্রিপশন আছে, তাই মুছে ফেলা যাবে না। এর বদলে নিষ্ক্রিয় করুন।"
+
+#: apps/subscriptions/exceptions.py:17
+msgid "This subscription is already cancelled."
+msgstr "এই সাবস্ক্রিপশন ইতিমধ্যে বাতিল করা হয়েছে।"
+
+#: apps/subscriptions/exceptions.py:18
+msgid "This subscription has already expired."
+msgstr "এই সাবস্ক্রিপশনের মেয়াদ ইতিমধ্যে শেষ হয়ে গেছে।"
+
+#: apps/subscriptions/exceptions.py:20
+msgid ""
+"This Idempotency-Key was already used for a different grant. Use a new key "
+"for a new grant."
+msgstr ""
+"এই Idempotency-Key আগেই সাবস্ক্রিপশন দেওয়ার অন্য একটি অনুরোধে ব্যবহার করা হয়েছে। "
+"নতুন অনুরোধের জন্য নতুন কী ব্যবহার করুন।"
+
+#: apps/subscriptions/models.py:54
+msgid "A package with this slug already exists."
+msgstr "এই স্লাগ দিয়ে একটি প্যাকেজ আগে থেকেই আছে।"
+
+#: apps/subscriptions/models.py:55
+msgid "Enter the features as a list of short text lines."
+msgstr "সুবিধাগুলো ছোট ছোট লাইনের তালিকা হিসেবে লিখুন।"
+
+#: apps/subscriptions/models.py:56
+#, python-format
+msgid "Enter at most %(max)s features."
+msgstr "সর্বোচ্চ %(max)sটি সুবিধা লিখুন।"
+
+#: apps/subscriptions/models.py:57
+#, python-format
+msgid "Each feature can have at most %(max)s characters."
+msgstr "প্রতিটি সুবিধায় সর্বোচ্চ %(max)s অক্ষর থাকতে পারে।"
+
+#: apps/subscriptions/models.py:61
+msgid "Bangladeshi taka"
+msgstr "বাংলাদেশি টাকা"
+
+#: apps/subscriptions/models.py:65 apps/subscriptions/models.py:76
+msgid "Active"
+msgstr "সক্রিয়"
+
+#: apps/subscriptions/models.py:66
+msgid "Inactive"
+msgstr "নিষ্ক্রিয়"
+
+#: apps/subscriptions/models.py:70
+msgid "All paid exams"
+msgstr "সব পেইড পরীক্ষা"
+
+#: apps/subscriptions/models.py:71
+msgid "Category"
+msgstr "ক্যাটাগরি"
+
+#: apps/subscriptions/models.py:72
+msgid "Exam"
+msgstr "পরীক্ষা"
+
+#: apps/subscriptions/models.py:77
+msgid "Expired"
+msgstr "মেয়াদোত্তীর্ণ"
+
+#: apps/subscriptions/models.py:128
+msgid "features (Bangla)"
+msgstr "সুবিধা (বাংলা)"
+
+#: apps/subscriptions/models.py:129
+msgid "features (English)"
+msgstr "সুবিধা (ইংরেজি)"
+
+#: apps/subscriptions/models.py:130
+msgid "price"
+msgstr "মূল্য"
+
+#: apps/subscriptions/models.py:161
+msgid "packages"
+msgstr "প্যাকেজসমূহ"
+
+#: apps/subscriptions/models.py:236
+msgid "rule type"
+msgstr "নিয়মের ধরন"
+
+#: apps/subscriptions/models.py:257
+msgid "package access rule"
+msgstr "প্যাকেজ অ্যাক্সেস নিয়ম"
+
+#: apps/subscriptions/models.py:258
+msgid "package access rules"
+msgstr "প্যাকেজ অ্যাক্সেস নিয়মসমূহ"
+
+#: apps/subscriptions/models.py:323
+msgid "price paid"
+msgstr "পরিশোধিত মূল্য"
+
+#: apps/subscriptions/models.py:327
+msgid "subscriptions"
+msgstr "সাবস্ক্রিপশনসমূহ"
+
+#: apps/subscriptions/models.py:400
+msgid "requested price paid"
+msgstr "অনুরোধকৃত পরিশোধিত মূল্য"
+
+#: apps/subscriptions/models.py:401
+msgid "requested start"
+msgstr "অনুরোধকৃত শুরুর সময়"
+
+#: apps/subscriptions/models.py:402
+msgid "applied amount"
+msgstr "প্রয়োগকৃত মূল্য"
+
+#: apps/subscriptions/models.py:409
+msgid "extended"
+msgstr "মেয়াদ বাড়ানো হয়েছে"
+
+#: apps/subscriptions/models.py:410
+msgid "original status code"
+msgstr "মূল স্ট্যাটাস কোড"
+
+#: apps/subscriptions/models.py:414
+msgid "grant request"
+msgstr "গ্রান্ট অনুরোধ"
+
+#: apps/subscriptions/models.py:415
+msgid "grant requests"
+msgstr "গ্রান্ট অনুরোধসমূহ"
+
+#: apps/subscriptions/services.py:68
+#, python-format
+msgid "A package can have at most %(max)s access rules."
+msgstr "একটি প্যাকেজে সর্বোচ্চ %(max)sটি অ্যাক্সেস নিয়ম থাকতে পারে।"
+
+#: apps/subscriptions/services.py:69
+msgid "The same access rule is listed more than once."
+msgstr "একই অ্যাক্সেস নিয়ম একাধিকবার দেওয়া হয়েছে।"
+
+#: apps/subscriptions/services.py:70
+#, python-format
+msgid "Category #%(id)s does not exist."
+msgstr "ক্যাটাগরি #%(id)s পাওয়া যায়নি।"
+
+#: apps/subscriptions/services.py:71
+#, python-format
+msgid "Exam #%(id)s does not exist."
+msgstr "পরীক্ষা #%(id)s পাওয়া যায়নি।"
+
+#: apps/subscriptions/services.py:72
+#, python-format
+msgid "Exam #%(id)s is free; only paid exams can be added to a package."
+msgstr "পরীক্ষা #%(id)s ফ্রি; প্যাকেজে শুধু পেইড পরীক্ষা যোগ করা যায়।"
+
+#: apps/subscriptions/services.py:73
+msgid ""
+"Choose a category only for category rules and an exam only for exam rules."
+msgstr "ক্যাটাগরি শুধু ক্যাটাগরি নিয়মে এবং পরীক্ষা শুধু পরীক্ষা নিয়মে বেছে নিন।"
+
+#: apps/subscriptions/services.py:74
+msgid "This user does not exist."
+msgstr "এই ব্যবহারকারী পাওয়া যায়নি।"
+
+#: apps/subscriptions/services.py:75
+msgid "Subscriptions can only be given to active student accounts."
+msgstr "সাবস্ক্রিপশন শুধু সক্রিয় শিক্ষার্থী অ্যাকাউন্টকে দেওয়া যায়।"
+
+#: apps/subscriptions/services.py:77
+msgid "This package is inactive and cannot be granted."
+msgstr "এই প্যাকেজটি নিষ্ক্রিয়, তাই দেওয়া যাবে না।"
+
+#: apps/subscriptions/services.py:78
+msgid "The start time cannot be in the past."
+msgstr "শুরুর সময় অতীতে হতে পারে না।"
+
+#: apps/subscriptions/services.py:79
+#, python-format
+msgid "The start time can be at most %(days)s days ahead."
+msgstr "শুরুর সময় সর্বোচ্চ %(days)s দিন পরে হতে পারে।"
+
+#: apps/subscriptions/services.py:80
+msgid "Enter a price of 0 or more."
+msgstr "০ বা তার বেশি মূল্য লিখুন।"
+
+#: apps/subscriptions/services.py:82
+#, python-format
+msgid ""
+"This extension would make the total paid for the subscription larger than "
+"%(max)s."
+msgstr ""
+"এই মেয়াদ বৃদ্ধির ফলে সাবস্ক্রিপশনের মোট পরিশোধিত মূল্য %(max)s-এর বেশি হয়ে যাবে।"
+
+#: apps/subscriptions/services.py:86
+msgid ""
+"This student already has this package; it will be extended from its current "
+"expiry, so a start time cannot be set."
+msgstr ""
+"এই শিক্ষার্থীর কাছে প্যাকেজটি আগে থেকেই আছে; এটি বর্তমান মেয়াদ শেষ হওয়ার সময় "
+"থেকে বাড়ানো হবে, তাই শুরুর সময় দেওয়া যাবে না।"
+
+#: apps/verification/apps.py:8
+msgid "Verification"
+msgstr "যাচাইকরণ"
+
+#: apps/verification/exceptions.py:12
+msgid "Verification failed."
+msgstr "যাচাই ব্যর্থ হয়েছে।"
+
+#: apps/verification/exceptions.py:28
+msgid "Too many code requests. Please try again later."
+msgstr "অনেকবার কোড চাওয়া হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+
+#: apps/verification/exceptions.py:35
+msgid "Codes cannot be sent right now. Please try again shortly."
+msgstr "এই মুহূর্তে কোড পাঠানো যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
+
+#: apps/verification/exceptions.py:40
+msgid "Please wait before requesting a new code."
+msgstr "নতুন কোড চাওয়ার আগে একটু অপেক্ষা করুন।"
+
+#: apps/verification/exceptions.py:45
+msgid "The code is incorrect."
+msgstr "কোডটি সঠিক নয়।"
+
+#: apps/verification/exceptions.py:50
+msgid "The code has expired. Please request a new one."
+msgstr "কোডের মেয়াদ শেষ। নতুন কোড চান।"
+
+#: apps/verification/exceptions.py:55
+msgid "Too many wrong attempts. Please request a new code."
+msgstr "অনেকবার ভুল কোড দেওয়া হয়েছে। নতুন কোড চান।"
+
+#: apps/verification/exceptions.py:60
+msgid "Your verification has expired or is invalid. Please verify again."
+msgstr "আপনার যাচাইয়ের মেয়াদ শেষ বা এটি অবৈধ। আবার যাচাই করুন।"
+
+#: apps/verification/models.py:18
+msgid "Registration"
+msgstr "নিবন্ধন"
+
+#: apps/verification/models.py:19
+msgid "Password reset"
+msgstr "পাসওয়ার্ড রিসেট"
+
+#: apps/verification/models.py:32 apps/verification/models.py:80
+msgid "purpose"
+msgstr "উদ্দেশ্য"
+
+#: apps/verification/models.py:33
+msgid "OTP hash"
+msgstr "OTP হ্যাশ"
+
+#: apps/verification/models.py:36 apps/verification/models.py:88
+msgid "used at"
+msgstr "ব্যবহারের সময়"
+
+#: apps/verification/models.py:38
+msgid "invalidated at"
+msgstr "বাতিলের সময়"
+
+#: apps/verification/models.py:39
+msgid "failed attempts"
+msgstr "ব্যর্থ চেষ্টা"
+
+#: apps/verification/models.py:40
+msgid "request IP"
+msgstr "অনুরোধের IP"
+
+#: apps/verification/models.py:43 apps/verification/models.py:85
+msgid "OTP code"
+msgstr "OTP কোড"
+
+#: apps/verification/models.py:44
+msgid "OTP codes"
+msgstr "OTP কোডসমূহ"
+
+#: apps/verification/models.py:78
+msgid "token hash"
+msgstr "টোকেন হ্যাশ"
+
+#: apps/verification/models.py:91
+msgid "verification token"
+msgstr "যাচাই টোকেন"
+
+#: apps/verification/models.py:92
+msgid "verification tokens"
+msgstr "যাচাই টোকেনসমূহ"
+
+#: apps/verification/templates_sms.py:17
+#, python-format
+msgid ""
+"Your verification code is %(code)s. Valid for %(minutes)s min. Don't share "
+"it."
+msgstr "আপনার যাচাই কোড %(code)s। %(minutes)s মিনিট বৈধ। কাউকে জানাবেন না।"
+
+#: config/urls.py:14
+msgid "Live Model Test — internal administration"
+msgstr "লাইভ মডেল টেস্ট — অভ্যন্তরীণ অ্যাডমিনিস্ট্রেশন"
+
+#: config/urls.py:15
+msgid "Live Model Test administration"
+msgstr "লাইভ মডেল টেস্ট অ্যাডমিনিস্ট্রেশন"

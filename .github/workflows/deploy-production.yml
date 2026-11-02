@@ -1,0 +1,149 @@
+name: Deploy production
+
+# push to main → full CI → build 3 images (GitHub-hosted) → push to GHCR tagged with the
+# commit SHA → deploy that exact SHA on the production server (its own self-hosted runner)
+# → health checks → automatic rollback to the previous release if unhealthy.
+#
+# Feature branches and develop: CI only (admin-ci, backend-ci, web-ci). Only main deploys.
+# Setup, secrets and the runner: docs/PRODUCTION_DEPLOYMENT.md.
+on:
+  push:
+    branches: [main]
+  # Re-deploy the current main by hand (e.g. after fixing something on the server).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/shafikcmt/online-mcq-platform
+
+jobs:
+  # ---- 1. The same CI as every pull request: nothing untested is built or deployed ----------
+  backend-ci:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/backend-ci.yml
+  admin-ci:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/admin-ci.yml
+  web-ci:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/web-ci.yml
+
+  # ---- 2. Build on GitHub's machines (never on the server), push to GHCR by commit SHA ------
+  build:
+    name: Build ${{ matrix.image }} image
+    needs: [backend-ci, admin-ci, web-ci]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.repository == 'shafikcmt/online-mcq-platform'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write   # push to this repository's GHCR packages (short-lived job token)
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - image: backend
+            context: backend
+            target: production
+            build-args: ""
+          - image: admin
+            context: admin
+            target: ""
+            build-args: ""
+          - image: website
+            context: web
+            target: ""
+            # The production website: canonical address and indexable (no SITE_NOINDEX).
+            build-args: |
+              SITE_URL=https://livemodeltest.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          target: ${{ matrix.target }}
+          build-args: ${{ matrix.build-args }}
+          push: true
+          tags: ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,scope=${{ matrix.image }},mode=max
+
+  # ---- 3. Deploy the exact commit on the production server -----------------------------------
+  deploy:
+    name: Deploy ${{ github.sha }}
+    needs: build
+    # Belt and braces: only main of this repository, never a pull request or another branch.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.repository == 'shafikcmt/online-mcq-platform'
+    # The runner installed on the VPS as the unprivileged `deploy` user, with this label only.
+    runs-on: [self-hosted, linux, mcq-production]
+    timeout-minutes: 40
+    environment:
+      name: production
+      url: https://livemodeltest.com
+    # One deployment at a time; a newer one waits (never cancels a deployment mid-way).
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read   # pull the images just built
+    env:
+      MCQ_ROOT: /srv/mcq
+    steps:
+      - name: Check out ${{ github.sha }} (deployment files only)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            docker-compose.prod.yml
+            .env.prod.example
+            deploy
+          sparse-checkout-cone-mode: false
+
+      # Atomic and idempotent: never deletes or overwrites an existing release folder (the
+      # live one is in use by nginx; the previous one is the rollback target). Re-running
+      # the same SHA reuses its identical folder.
+      - name: Stage release folder
+        run: bash deploy/prod/stage-release.sh "$GITHUB_SHA" "$GITHUB_WORKSPACE"
+
+      - name: Log in to GHCR (temporary credentials for this job only)
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          # A private Docker config inside this job's temp folder: the token never lands in
+          # the deploy user's ~/.docker and is deleted at the end of the job.
+          export DOCKER_CONFIG="$RUNNER_TEMP/docker-config"
+          mkdir -p "$DOCKER_CONFIG"
+          echo "DOCKER_CONFIG=$DOCKER_CONFIG" >> "$GITHUB_ENV"
+          printf '%s' "$GHCR_TOKEN" | docker login "$REGISTRY" -u "$GHCR_USER" --password-stdin
+
+      - name: Deploy (backup → migrate → start → health checks; automatic rollback on failure)
+        run: '"$MCQ_ROOT/releases/$GITHUB_SHA/deploy/prod/deploy.sh" "$GITHUB_SHA"'
+
+      - name: Remove registry credentials
+        if: always()
+        run: |
+          docker logout "$REGISTRY" >/dev/null 2>&1 || true
+          rm -rf "$RUNNER_TEMP/docker-config"

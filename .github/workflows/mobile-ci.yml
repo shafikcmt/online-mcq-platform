@@ -1,0 +1,60 @@
+name: Mobile App CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-ci.yml"
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: Lint, types, tests and bundle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_NO_TELEMETRY: "1"
+      EXPO_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit and screen tests (Jest)
+        run: npm test -- --ci
+
+      # Proves the whole app bundles (Metro). Android builds (EAS) are not part of CI yet.
+      - name: Bundle (web export)
+        run: npx expo export --platform web --output-dir dist
+        env:
+          EXPO_PUBLIC_API_URL: /api/v1
+
+      # Playwright end-to-end tests of the web build need the full stack (Django, PostgreSQL,
+      # Redis, Celery, nginx) and are run locally — see mobile/README.md.

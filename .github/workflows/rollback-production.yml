@@ -1,0 +1,81 @@
+name: Rollback production
+
+# Manual: run an EARLIER release again (code only — no migrations, no database restore).
+# Actions → "Rollback production" → Run workflow → leave the SHA empty for the release
+# before the current one, or paste the full 40-character SHA of a release that is still
+# on the server (the last 5 are kept). Images come from GHCR by that SHA.
+# Restoring a database backup is a separate, deliberate manual step
+# (docs/PRODUCTION_DEPLOYMENT.md) — never automatic.
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Full commit SHA to roll back to (empty = the previous release)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    name: Roll back production
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.repository == 'shafikcmt/online-mcq-platform'
+    runs-on: [self-hosted, linux, mcq-production]
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://livemodeltest.com
+    concurrency:
+      group: production-deploy   # never at the same time as a deployment
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    env:
+      MCQ_ROOT: /srv/mcq
+      REGISTRY: ghcr.io
+    steps:
+      - name: Choose the release
+        id: target
+        env:
+          REQUESTED: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          sha="${REQUESTED:-}"
+          if [[ -z "$sha" ]]; then
+            [[ -s "$MCQ_ROOT/previous" ]] || { echo "::error::No previous release is recorded."; exit 1; }
+            sha="$(cat "$MCQ_ROOT/previous")"
+          fi
+          if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Not a full 40-character commit SHA."; exit 1
+          fi
+          if [[ ! -x "$MCQ_ROOT/releases/$sha/deploy/prod/deploy.sh" ]]; then
+            echo "::error::Release $sha is not on the server. Available releases:"
+            ls -1t "$MCQ_ROOT/releases"
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Rolling back to $sha (currently live: $(basename "$(readlink "$MCQ_ROOT/current")"))"
+
+      - name: Log in to GHCR (temporary credentials for this job only)
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          export DOCKER_CONFIG="$RUNNER_TEMP/docker-config"
+          mkdir -p "$DOCKER_CONFIG"
+          echo "DOCKER_CONFIG=$DOCKER_CONFIG" >> "$GITHUB_ENV"
+          printf '%s' "$GHCR_TOKEN" | docker login "$REGISTRY" -u "$GHCR_USER" --password-stdin
+
+      - name: Roll back (start → health checks)
+        env:
+          TARGET: ${{ steps.target.outputs.sha }}
+        run: '"$MCQ_ROOT/releases/$TARGET/deploy/prod/deploy.sh" --rollback "$TARGET"'
+
+      - name: Remove registry credentials
+        if: always()
+        run: |
+          docker logout "$REGISTRY" >/dev/null 2>&1 || true
+          rm -rf "$RUNNER_TEMP/docker-config"
