@@ -27,6 +27,11 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
+# ``PAYMENT_PROVIDER=unavailable``: the server takes no payments at all (e.g. production
+# before real merchant credentials exist). Not a gateway: every purchase attempt is refused
+# up front — no payment record, no provider call, never a success.
+PAYMENTS_UNAVAILABLE = "unavailable"
+
 
 class Outcome:
     PAID = "paid"

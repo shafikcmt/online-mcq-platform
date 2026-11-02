@@ -9,6 +9,8 @@ on:
       - ".env.example"
       - "docker-compose.staging.yml"
       - ".env.staging.example"
+      - "docker-compose.prod.yml"
+      - ".env.prod.example"
       - "deploy/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
@@ -19,14 +21,20 @@ on:
       - ".env.example"
       - "docker-compose.staging.yml"
       - ".env.staging.example"
+      - "docker-compose.prod.yml"
+      - ".env.prod.example"
       - "deploy/**"
       - ".github/workflows/backend-ci.yml"
+  # Also run as the test gate of the production deployment (deploy-production.yml).
+  workflow_call:
 
 permissions:
   contents: read
 
 concurrency:
-  group: backend-ci-${{ github.ref }}
+  # github.workflow is the CALLER's name when run by the deployment, so the deployment's
+  # test gate never cancels (or is cancelled by) the ordinary CI run of the same push.
+  group: ${{ github.workflow }}-backend-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -125,3 +133,8 @@ jobs:
         run: |
           cp .env.staging.example .env.staging
           docker compose --env-file .env.staging -f docker-compose.staging.yml config --quiet
+      - name: Validate docker-compose.prod.yml (config only — nothing is deployed)
+        run: |
+          cp .env.prod.example .env.prod
+          IMAGE_TAG=0000000000000000000000000000000000000000 \
+            docker compose --env-file .env.prod -f docker-compose.prod.yml config --quiet

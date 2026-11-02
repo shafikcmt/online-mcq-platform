@@ -1783,6 +1783,79 @@ class TestConfiguration:
         assert {m.id for m in check_payment_settings(None)} == {"payments.E003"}
 
 
+class TestPaymentsUnavailable:
+    """``PAYMENT_PROVIDER=unavailable``: a server without merchant credentials refuses every
+    purchase clearly — no payment row, no provider call, never a success."""
+
+    @pytest.fixture(autouse=True)
+    def _unavailable(self, settings):
+        settings.PAYMENT_PROVIDER = "unavailable"
+        settings.PAYMENT_MOCK_ALLOWED = False
+        settings.SSLCOMMERZ_STORE_ID = ""
+        settings.SSLCOMMERZ_STORE_PASSWORD = ""
+
+    def test_purchase_is_refused_with_a_clear_message(self, student, package):
+        with mock.patch.object(sslcommerz.SslCommerzGateway, "initiate") as ssl_initiate:
+            response = jwt_client(student).post(
+                PAYMENTS, {"package_id": package.pk}, format="json", HTTP_ACCEPT_LANGUAGE="en"
+            )
+        assert response.status_code == 503
+        assert code(response) == "payment_unavailable"
+        assert response.json()["error"]["message"] == (
+            "Payments are temporarily unavailable. Please try again later."
+        )
+        ssl_initiate.assert_not_called()
+        assert not Payment.objects.exists() and not PaymentEvent.objects.exists()
+        assert not Subscription.objects.filter(user=student).exists()
+
+    def test_message_is_translated(self, student, package):
+        response = jwt_client(student).post(
+            PAYMENTS, {"package_id": package.pk}, format="json", HTTP_ACCEPT_LANGUAGE="bn"
+        )
+        assert response.status_code == 503
+        assert response.json()["error"]["message"] == ("পেমেন্ট সাময়িকভাবে বন্ধ আছে। পরে আবার চেষ্টা করুন।")
+
+    def test_every_attempt_is_refused_even_a_replayed_key(self, student, package, settings):
+        settings.PAYMENT_PROVIDER = "mock"
+        settings.PAYMENT_MOCK_ALLOWED = True
+        earlier = initiate(student, package, key="key-before-switch")
+        settings.PAYMENT_PROVIDER = "unavailable"
+        settings.PAYMENT_MOCK_ALLOWED = False
+        for key in ("key-before-switch", "a-new-key", ""):
+            with pytest.raises(services.PaymentError) as refused:
+                services.initiate_payment(student, package.pk, idempotency_key=key)
+            assert refused.value.code == "payment_unavailable" and refused.value.status == 503
+        assert list(Payment.objects.all()) == [earlier]
+
+    def test_it_is_not_a_gateway(self):
+        from apps.payments.gateways import is_enabled
+
+        assert not is_enabled("unavailable")
+        with pytest.raises(ImproperlyConfigured):
+            get_gateway("unavailable")
+        assert services.process_callback("unavailable", "success", {"tran_id": "x"}) is None
+        response = post_form(callback_url("success", "unavailable"), {"tran_id": "x"})
+        assert response.status_code < 500
+        assert not Payment.objects.exists()
+
+    def test_production_accepts_it_without_credentials(self):
+        validate_payment_settings(
+            **{
+                **GOOD,
+                "provider": "unavailable",
+                "store_id": "",
+                "store_password": "",
+                "callback_base_url": "",
+                "return_url": "",
+            }
+        )
+
+    def test_system_check_accepts_it(self):
+        from apps.payments.checks import check_payment_settings
+
+        assert check_payment_settings(None) == []
+
+
 # ======================================================================================
 # Concurrency (PostgreSQL, real transactions)
 # ======================================================================================

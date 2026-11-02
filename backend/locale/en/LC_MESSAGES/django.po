@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 07:07+0000\n"
+"POT-Creation-Date: 2026-11-02 05:29+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: English\n"
@@ -39,7 +39,7 @@ msgstr ""
 msgid "The code is incorrect or has expired. Request a new code if needed."
 msgstr ""
 
-#: apps/accounts/api/serializers.py:48 tests/test_auth_api.py:1113
+#: apps/accounts/api/serializers.py:48
 msgid "This field cannot be set."
 msgstr ""
 
@@ -1278,19 +1278,23 @@ msgid "The payment could not be started. Please try again in a few minutes."
 msgstr ""
 
 #: apps/payments/exceptions.py:23
+msgid "Payments are temporarily unavailable. Please try again later."
+msgstr ""
+
+#: apps/payments/exceptions.py:26
 msgid ""
 "This Idempotency-Key was already used for a payment for another package."
 msgstr ""
 
-#: apps/payments/exceptions.py:25
+#: apps/payments/exceptions.py:28
 msgid "This payment provider is not enabled on this server."
 msgstr ""
 
-#: apps/payments/exceptions.py:27
+#: apps/payments/exceptions.py:30
 msgid "This payment is already successful; there is nothing to verify again."
 msgstr ""
 
-#: apps/payments/exceptions.py:30
+#: apps/payments/exceptions.py:33
 #, python-format
 msgid ""
 "This payment was checked with the provider moments ago. Try again in "

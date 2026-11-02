@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: online-mcq-backend\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 07:07+0000\n"
+"POT-Creation-Date: 2026-11-02 05:29+0000\n"
 "PO-Revision-Date: 2026-10-05 10:45+0000\n"
 "Last-Translator: Online MCQ Platform team\n"
 "Language-Team: Bangla\n"
@@ -39,7 +39,7 @@ msgstr "আড়াল করা ইমেইল, যেমন r***@g***.com; �
 msgid "The code is incorrect or has expired. Request a new code if needed."
 msgstr "কোডটি সঠিক নয় অথবা মেয়াদ শেষ। প্রয়োজনে নতুন কোড চান।"
 
-#: apps/accounts/api/serializers.py:48 tests/test_auth_api.py:1113
+#: apps/accounts/api/serializers.py:48
 msgid "This field cannot be set."
 msgstr "এই ঘরটি নির্ধারণ করা যাবে না।"
 
@@ -83,7 +83,9 @@ msgstr "আপনার বর্তমান পাসওয়ার্ড স
 msgid ""
 "Only student accounts can be activated or deactivated here. Staff accounts "
 "are managed separately."
-msgstr "এখানে শুধু শিক্ষার্থীর অ্যাকাউন্ট চালু বা বন্ধ করা যায়। স্টাফ অ্যাকাউন্ট আলাদাভাবে পরিচালিত হয়।"
+msgstr ""
+"এখানে শুধু শিক্ষার্থীর অ্যাকাউন্ট চালু বা বন্ধ করা যায়। স্টাফ অ্যাকাউন্ট আলাদাভাবে "
+"পরিচালিত হয়।"
 
 #: apps/accounts/fields.py:17
 msgid "Bangladeshi mobile number"
@@ -1304,19 +1306,23 @@ msgid "The payment could not be started. Please try again in a few minutes."
 msgstr "পেমেন্ট শুরু করা যায়নি। কয়েক মিনিট পর আবার চেষ্টা করুন।"
 
 #: apps/payments/exceptions.py:23
+msgid "Payments are temporarily unavailable. Please try again later."
+msgstr "পেমেন্ট সাময়িকভাবে বন্ধ আছে। পরে আবার চেষ্টা করুন।"
+
+#: apps/payments/exceptions.py:26
 msgid ""
 "This Idempotency-Key was already used for a payment for another package."
 msgstr "এই Idempotency-Key আগে অন্য একটি প্যাকেজের পেমেন্টে ব্যবহার করা হয়েছে।"
 
-#: apps/payments/exceptions.py:25
+#: apps/payments/exceptions.py:28
 msgid "This payment provider is not enabled on this server."
 msgstr "এই সার্ভারে এই পেমেন্ট প্রোভাইডার চালু নেই।"
 
-#: apps/payments/exceptions.py:27
+#: apps/payments/exceptions.py:30
 msgid "This payment is already successful; there is nothing to verify again."
 msgstr "এই পেমেন্ট ইতিমধ্যে সফল; আবার যাচাই করার কিছু নেই।"
 
-#: apps/payments/exceptions.py:30
+#: apps/payments/exceptions.py:33
 #, python-format
 msgid ""
 "This payment was checked with the provider moments ago. Try again in "
