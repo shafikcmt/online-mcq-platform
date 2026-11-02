@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
-import { CloudOff } from "lucide-react-native";
+import { CloudOff, X } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
@@ -20,12 +20,13 @@ import { colors, radius, space } from "@/theme";
 
 const FILTERS: ExamWhen[] = ["open", "upcoming", "ended"];
 const isWhen = (value: unknown): value is ExamWhen => FILTERS.includes(value as ExamWhen);
+const SLUG = /^[a-z0-9-]{1,140}$/;
 
 /** Exams tab: every exam the student may see, by "open now", "upcoming" and "past", with
  * the same per-exam status as Home (from the server). Tapping an exam opens its details. */
 export default function ExamsScreen() {
   const { t, i18n } = useTranslation();
-  const params = useLocalSearchParams<{ when?: string }>();
+  const params = useLocalSearchParams<{ when?: string; category?: string; categoryName?: string }>();
   const [when, setWhen] = useState<ExamWhen>(isWhen(params.when) ? params.when : "open");
   const [linked, setLinked] = useState(params.when);
   if (params.when !== linked) {
@@ -33,7 +34,16 @@ export default function ExamsScreen() {
     setLinked(params.when);
     if (isWhen(params.when)) setWhen(params.when);
   }
-  const list = useExamPages(when);
+  // A Home category tile opens the tab filtered to that category; the chip clears it.
+  const fromParams = () =>
+    params.category && SLUG.test(params.category) ? { slug: params.category, name: params.categoryName || params.category } : null;
+  const [category, setCategory] = useState<{ slug: string; name: string } | null>(fromParams);
+  const [linkedCategory, setLinkedCategory] = useState(params.category);
+  if (params.category !== linkedCategory) {
+    setLinkedCategory(params.category);
+    setCategory(fromParams());
+  }
+  const list = useExamPages(when, category?.slug);
   const now = useServerNow(list.serverTime);
 
   const header = (
@@ -50,6 +60,20 @@ export default function ExamsScreen() {
         onChange={setWhen}
         options={FILTERS.map((value) => ({ value, label: t(`exams:filters.${value}`) }))}
       />
+      {category ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("exams:clearCategory", { name: category.name })}
+          onPress={() => setCategory(null)}
+          style={styles.chip}
+          hitSlop={8}
+        >
+          <AppText variant="small" weight="semibold" color={colors.brand700}>
+            {category.name}
+          </AppText>
+          <X size={14} color={colors.brand700} />
+        </Pressable>
+      ) : null}
       {!list.loading && list.items.length > 0 ? (
         <AppText variant="small" color={colors.inkMuted}>
           {t("exams:count", { count: list.count, n: localizeDigits(list.count, i18n.language) })}
@@ -118,4 +142,16 @@ const styles = StyleSheet.create({
   block: { borderRadius: radius.card, backgroundColor: colors.line },
   failed: { alignItems: "center", gap: space.md, marginTop: space.xxl },
   more: { paddingVertical: space.xl },
+  chip: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.xs,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
+    borderRadius: radius.full,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand100,
+  },
 });

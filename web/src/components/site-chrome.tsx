@@ -91,7 +91,15 @@ export function SiteFooter({ lang, settings }: { lang: Lang; settings: Settings 
           <AppButton downloadUrl={settings?.app_download_url ?? ""} openUrl={settings?.app_open_url ?? ""} labels={appLabels(lang)} lang={lang} className="self-start" />
         </div>
       </div>
-      <p className="border-t border-line py-5 text-center text-xs text-ink-subtle">{t("footer.rights", { year: new Date().getFullYear() })}</p>
+      <div className="flex flex-col items-center justify-between gap-2 border-t border-line px-4 py-5 text-center text-xs text-ink-subtle sm:flex-row sm:px-6 lg:mx-auto lg:max-w-6xl">
+        <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>
+        <p>
+          {t("footer.developedBy")}{" "}
+          <a href="https://www.shafiqul.dev/" target="_blank" rel="noopener" className="font-semibold text-brand-700 hover:underline">
+            Md Shafiqul Islam
+          </a>
+        </p>
+      </div>
     </footer>
   );
 }

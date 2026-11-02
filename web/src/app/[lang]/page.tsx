@@ -1,11 +1,12 @@
-import { ArrowRight, BadgeCheck, BarChart3, Clock3, Download, Languages, ListChecks, ShieldCheck, Trophy } from "lucide-react";
+import { ArrowRight, BadgeCheck, BarChart3, BookOpenCheck, Briefcase, Building2, Clock3, Download, GraduationCap, Landmark, Languages, ListChecks, ShieldCheck, Stethoscope, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AppButton } from "@/components/app-button";
 import { EmptyNote, ExamCard, NoticeItem, PackageCard, SectionHead } from "@/components/cards";
 import { PhoneMock } from "@/components/phone-mock";
-import { getSettings, publicGet, type Exam, type Faq, type Notice, type Package, type Page } from "@/lib/api";
+import { Spotlight, type SpotlightState } from "@/components/spotlight";
+import { getSettings, publicGet, type Category, type Exam, type Faq, type Notice, type Package, type Page } from "@/lib/api";
 import { digits } from "@/lib/format";
 import { isLang, messages, translator, type Lang } from "@/lib/i18n";
 import { alternates } from "@/lib/site";
@@ -20,6 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 const FEATURE_ICONS = [ListChecks, Clock3, Trophy, BadgeCheck, Languages, ShieldCheck];
+/** Neutral icons in turn (categories are admin-defined, so no icon is tied to a name). */
+const CATEGORY_ICONS = [GraduationCap, Stethoscope, BookOpenCheck, Landmark, Building2, Briefcase];
 
 /** Home: what Live Model Test is, live data from the public API (upcoming / open exams,
  * packages, notices, FAQs) and the way to the app, where exams are taken. */
@@ -28,16 +31,27 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const lang = raw as Lang;
   const t = translator(lang);
   const m = messages(lang).home;
-  const [settings, upcoming, all, packages, notices, faqs] = await Promise.all([
+  const [settings, upcoming, all, packages, notices, faqs, categories] = await Promise.all([
     getSettings(lang),
     publicGet<Page<Exam>>("exams/?upcoming=true&page_size=3", lang),
     publicGet<Page<Exam>>("exams/?page_size=12", lang),
     publicGet<Page<Package>>("packages/?page_size=3", lang),
     publicGet<Page<Notice>>("announcements/?page_size=3", lang),
     publicGet<Page<Faq>>("faqs/?page_size=4", lang),
+    publicGet<Page<Category>>("categories/?page_size=20", lang),
   ]);
   const now = Date.now();
   const open = (all?.results ?? []).filter((exam) => (!exam.start_at || Date.parse(exam.start_at) <= now) && (!exam.end_at || Date.parse(exam.end_at) > now)).slice(0, 3);
+  // The featured exam: a live exam open now, else any open exam, else the next upcoming one.
+  const live = open.find((exam) => exam.exam_type === "live");
+  const spotlight: { exam: Exam; state: SpotlightState } | null = live
+    ? { exam: live, state: "live" }
+    : open[0]
+      ? { exam: open[0], state: "open" }
+      : upcoming?.results[0]
+        ? { exam: upcoming.results[0], state: "upcoming" }
+        : null;
+  const shownCategories = (categories?.results ?? []).filter((category) => category.exam_count > 0).slice(0, 6);
   const app = {
     downloadUrl: settings?.app_download_url ?? "",
     openUrl: settings?.app_open_url ?? "",
@@ -64,6 +78,42 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           <PhoneMock lang={lang} />
         </div>
       </section>
+
+      {/* Featured exam (live / open now / next) */}
+      {spotlight ? (
+        <section aria-label={m.spotlight.label} className="mx-auto -mt-6 max-w-6xl px-4 sm:px-6 lg:-mt-10">
+          <Spotlight exam={spotlight.exam} state={spotlight.state} lang={lang} />
+        </section>
+      ) : null}
+
+      {/* Exam categories (only those with exams) */}
+      {shownCategories.length ? (
+        <section aria-labelledby="categories" className="mx-auto max-w-6xl px-4 pt-16 sm:px-6">
+          <SectionHead id="categories" title={m.categories.title} body={m.categories.body} />
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {shownCategories.map((category, index) => {
+              const Icon = CATEGORY_ICONS[index % CATEGORY_ICONS.length];
+              return (
+                <li key={category.slug}>
+                  <Link
+                    href={`/${lang}/exams?category=${category.slug}`}
+                    className="group flex items-center gap-4 rounded-[1rem] border border-line bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand-600"
+                  >
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-card bg-brand-50 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white">
+                      <Icon className="size-6" aria-hidden />
+                    </span>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="font-semibold text-ink">{category.name}</span>
+                      <span className="text-sm text-ink-muted">{t("home.categories.exams", { n: digits(category.exam_count, lang) })}</span>
+                    </span>
+                    <ArrowRight className="ml-auto size-4 shrink-0 text-ink-subtle transition group-hover:text-brand-600" aria-hidden />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       {/* Features */}
       <section aria-labelledby="features" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">

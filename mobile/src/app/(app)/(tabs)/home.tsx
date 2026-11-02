@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { Bell, CloudOff } from "lucide-react-native";
-import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
+import { Image, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { describeError } from "@/api/describe";
@@ -16,14 +16,22 @@ import { ResultRow } from "@/features/results/result-row";
 import { EmptyNote, Section } from "@/features/dashboard/section";
 import { SubscriptionCard } from "@/features/dashboard/subscription-card";
 import type { Dashboard } from "@/features/dashboard/types";
+import { CategoryGrid } from "@/features/home/category-grid";
+import { dayPart } from "@/features/home/greeting";
+import { QuickAccess } from "@/features/home/quick-access";
+import { pickSpotlight } from "@/features/home/spotlight";
+import { SpotlightCard } from "@/features/home/spotlight-card";
 import { localizeDigits } from "@/lib/text";
 import { useRemote } from "@/lib/use-remote";
 import { useServerNow } from "@/lib/use-server-now";
 import { colors, radius, space } from "@/theme";
 
+const LOGO = require("../../../../assets/images/logo-horizontal.png");
+
 /** Home: everything the student needs at a glance, from one call (`GET /me/dashboard/`):
- * exams open now, upcoming and practice exams, active packages, recent results and the
- * unread notification count. Reloads quietly whenever Home comes back into view, and on
+ * a greeting, the featured exam (live / open now, or the next one) with a countdown, exam
+ * categories, shortcuts, then exams open now, upcoming and practice exams, active packages
+ * and recent results. Reloads quietly whenever Home comes back into view, and on
  * pull-to-refresh. All times are counted from the server's clock. */
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
@@ -32,6 +40,7 @@ export default function HomeScreen() {
   const now = useServerNow(data?.server_time);
   const name = user?.display_name || user?.full_name.split(" ")[0] || "";
   const unread = data?.notifications.unread_count ?? 0;
+  const initial = (name || user?.full_name || "?").trim().charAt(0).toUpperCase();
 
   return (
     <Screen
@@ -40,31 +49,50 @@ export default function HomeScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[colors.brand600]} tintColor={colors.brand600} />
       }
     >
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <AppText variant="h3" weight="bold" role="heading">
-            {t("home:greeting", { name })}
-          </AppText>
-          <AppText color={colors.inkMuted}>{t("home:subtitle")}</AppText>
-        </View>
-        {data ? (
+      <View style={styles.topBar}>
+        <Image source={LOGO} style={styles.logo} resizeMode="contain" accessibilityLabel={t("appName")} accessibilityIgnoresInvertColors />
+        <View style={styles.actions}>
+          {data ? (
+            <Pressable
+              style={styles.bell}
+              accessibilityRole="link"
+              accessibilityLabel={unread > 0 ? t("home:unread", { count: unread, n: localizeDigits(unread, i18n.language) }) : t("home:noUnread")}
+              onPress={() => router.push("/notifications")}
+              hitSlop={4}
+            >
+              <Bell size={22} color={colors.brand700} />
+              {unread > 0 ? (
+                <View style={styles.dot}>
+                  <AppText variant="caption" weight="bold" color={colors.white}>
+                    {localizeDigits(unread > 99 ? "99+" : unread, i18n.language)}
+                  </AppText>
+                </View>
+              ) : null}
+            </Pressable>
+          ) : null}
           <Pressable
-            style={styles.bell}
+            style={styles.avatar}
             accessibilityRole="link"
-            accessibilityLabel={unread > 0 ? t("home:unread", { count: unread, n: localizeDigits(unread, i18n.language) }) : t("home:noUnread")}
-            onPress={() => router.push("/notifications")}
+            accessibilityLabel={t("home:profile")}
+            onPress={() => router.push("/profile")}
             hitSlop={4}
           >
-            <Bell size={22} color={colors.inkMuted} />
-            {unread > 0 ? (
-              <View style={styles.dot}>
-                <AppText variant="caption" weight="bold" color={colors.white}>
-                  {localizeDigits(unread > 99 ? "99+" : unread, i18n.language)}
-                </AppText>
-              </View>
-            ) : null}
+            <AppText weight="bold" color={colors.white}>
+              {initial}
+            </AppText>
           </Pressable>
-        ) : null}
+        </View>
+      </View>
+      <View style={styles.headerText}>
+        <AppText variant="small" color={colors.inkMuted}>
+          {t(`home:dayPart.${dayPart(now)}`)}
+        </AppText>
+        <AppText variant="h3" weight="bold" role="heading">
+          {t("home:greeting", { name })}
+        </AppText>
+        <AppText variant="small" color={colors.inkMuted}>
+          {t("home:subtitle")}
+        </AppText>
       </View>
 
       {loading ? <Skeleton label={t("loading")} /> : null}
@@ -78,8 +106,12 @@ export default function HomeScreen() {
 function Content({ data, now }: { data: Dashboard; now: number }) {
   const { t } = useTranslation();
   const { available, upcoming, practice } = data.exams;
+  const spotlight = pickSpotlight(data);
   return (
     <>
+      {spotlight ? <SpotlightCard spotlight={spotlight} /> : null}
+      <CategoryGrid />
+      <QuickAccess />
       <SubscriptionCard subscription={data.subscription} />
       <Section title={t("home:sections.available")} count={available.count} shown={available.items.length} seeAll="/exams?when=open">
         {available.items.length ? (
@@ -144,15 +176,25 @@ function LoadFailed({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: "row", alignItems: "flex-start", gap: space.md },
-  headerText: { flex: 1, gap: space.xs },
+  topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  logo: { width: 101, height: 36 },
+  actions: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  headerText: { gap: 2 },
   bell: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: radius.sheet,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.brand600,
     alignItems: "center",
     justifyContent: "center",
   },

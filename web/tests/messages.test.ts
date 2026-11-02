@@ -27,7 +27,7 @@ describe("website messages", () => {
   });
 
   test("Bangla is really Bangla (only language names and pure formats may match)", () => {
-    const same = new Set(["lang.bn", "lang.en", "package.per"]); // "/ {{days}}" reads the same in both
+    const same = new Set(["lang.bn", "lang.en", "package.per", "home.spotlight.state.live"]); // "LIVE" is the badge in both // "/ {{days}}" reads the same in both
     for (const key of Object.keys(flatEn)) {
       if (!same.has(key)) expect(`${key}: ${flatBn[key]}`).not.toBe(`${key}: ${flatEn[key]}`);
     }

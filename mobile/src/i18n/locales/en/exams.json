@@ -73,5 +73,6 @@
     "locked": "Needs a package",
     "ready": "Ready to start"
   },
-  "minutes": "{{n}} min"
+  "minutes": "{{n}} min",
+  "clearCategory": "Show all categories (now: {{name}})"
 }
