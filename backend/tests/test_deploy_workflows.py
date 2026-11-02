@@ -158,3 +158,15 @@ def test_only_main_of_this_repository_reaches_the_production_runner(
         )
     # Pushes to other branches do not even start the deployment workflow.
     assert load(DEPLOY)["on"]["push"]["branches"] == ["main"]
+
+
+def test_staging_never_deletes_a_release_folder():
+    steps = load(DEPLOY)["jobs"]["deploy"]["steps"]
+    stage = next(s for s in steps if s.get("name") == "Stage release folder")
+    assert stage["run"] == 'bash deploy/prod/stage-release.sh "$GITHUB_SHA" "$GITHUB_WORKSPACE"'
+    text = (WORKFLOWS / DEPLOY).read_text()
+    assert "rm -rf" not in text.split("Log in to GHCR")[0]
+    names = [s.get("name", "") for s in steps]
+    assert names.index("Stage release folder") < next(
+        i for i, s in enumerate(steps) if "deploy.sh" in s.get("run", "")
+    )
