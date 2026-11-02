@@ -7,7 +7,7 @@ export function PhoneMock({ lang }: { lang: Lang }) {
   return (
     <div aria-hidden className="relative mx-auto w-64 select-none sm:w-72">
       <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-gradient-to-br from-brand-400/30 via-brand-600/20 to-accent-500/20 blur-2xl" />
-      <div className="rounded-[2.4rem] border-[10px] border-brand-950 bg-canvas p-3 shadow-float">
+      <div className="rounded-[2.4rem] border-[10px] border-brand-950 bg-canvas px-3 pb-4 pt-3 shadow-float">
         <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-brand-950/80" />
         <div className="flex items-center justify-between rounded-card bg-surface px-3 py-2 text-[11px] shadow-sm">
           <span className="font-semibold text-ink">{mock.exam}</span>
@@ -34,10 +34,12 @@ export function PhoneMock({ lang }: { lang: Lang }) {
             ))}
           </ul>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <div className="rounded-control border border-line-strong bg-surface py-2" />
-          <div className="rounded-control bg-brand-600 py-2" />
+        {/* Kept clear of the rounded frame corners so the buttons are never clipped. */}
+        <div className="mx-2 mt-3 grid grid-cols-2 gap-2 text-center text-[11px] font-semibold">
+          <div className="rounded-control border border-line-strong bg-surface py-1.5 text-ink-muted">{mock.previous}</div>
+          <div className="rounded-control bg-brand-600 py-1.5 text-white">{mock.next}</div>
         </div>
+        <div className="mx-auto mt-4 h-1 w-20 rounded-full bg-brand-950/70" />
       </div>
     </div>
   );
