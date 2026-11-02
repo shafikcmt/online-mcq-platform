@@ -50,6 +50,9 @@ trap 'rm -rf -- "$staging"' EXIT
 cp -- "$SOURCE/docker-compose.prod.yml" "$SOURCE/.env.prod.example" "$staging/"
 cp -R -- "$SOURCE/deploy" "$staging/deploy"
 chmod +x "$staging"/deploy/prod/*.sh
+# docker-compose.prod.yml reads `env_file: .env.prod` next to itself: point it at the one
+# server-only settings file (never copied — the secrets stay in $MCQ_ROOT/.env.prod only).
+ln -s -- "$ENV_FILE" "$staging/.env.prod"
 chmod 750 "$staging"
 
 role() {  # how a release folder is in use: "live", "rollback target" or ""
