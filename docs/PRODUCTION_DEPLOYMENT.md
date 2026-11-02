@@ -314,3 +314,28 @@ Container logs rotate automatically (10 MB × 5 per service).
 ### 6.6 HSTS
 Starts at 1 day (`HSTS_SECONDS` = `DJANGO_SECURE_HSTS_SECONDS` = 86400). After a week
 without HTTPS problems raise both to `31536000` and redeploy.
+
+### 6.7 Demo data before launch (production preview)
+To see the live site filled before real students join, seed the demo data once (sample
+categories, questions, exams, results, packages and 12 fictional students who cannot sign
+in). It refuses as soon as any real student, attempt, subscription or payment exists, and it
+seeds **no payments** (payment records are permanent). The opt-in is given on the command
+line of this one run only — never put it in `.env.prod`:
+
+```bash
+cd /srv/mcq/current && export IMAGE_TAG=$(basename "$(readlink -f /srv/mcq/current)")
+docker compose --project-name mcq-prod --env-file /srv/mcq/.env.prod -f docker-compose.prod.yml \
+  run --rm -e DEMO_SEED_ALLOWED=true -e DEMO_ENVIRONMENT=production-preview \
+  backend python manage.py seed_demo --production-preview
+```
+
+**Before launch, remove it** (first run shows what would go; nothing changes until
+`--confirm`). Only `demo-…` content and the fictional students are removed; admins,
+settings, pages and everything you created outside the demo categories stay:
+
+```bash
+docker compose --project-name mcq-prod --env-file /srv/mcq/.env.prod -f docker-compose.prod.yml \
+  run --rm backend python manage.py remove_demo            # dry run
+docker compose --project-name mcq-prod --env-file /srv/mcq/.env.prod -f docker-compose.prod.yml \
+  run --rm backend python manage.py remove_demo --confirm
+```
