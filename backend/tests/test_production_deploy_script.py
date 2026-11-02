@@ -468,3 +468,147 @@ def test_rollback_never_removes_volumes(server):
     joined = "\n".join(calls(server))
     for forbidden in (" down", "volume rm", "volume prune", "system prune", " rm -v", " -v "):
         assert forbidden not in joined, forbidden
+
+
+# ======================================================================================
+# stage-release.sh: atomic, idempotent staging that never touches a release in use
+# ======================================================================================
+def stage_with_script(server, sha, source=REPO):
+    script = REPO / "deploy" / "prod" / "stage-release.sh"
+    env = {"PATH": f"{server['bin']}:{os.environ['PATH']}", "MCQ_ROOT": str(server["root"])}
+    return subprocess.run(  # noqa: S603
+        ["bash", str(script), sha, str(source)],  # noqa: S607
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+
+
+def fingerprint(path):
+    """Identity and content of a release folder: same inode + same files = untouched."""
+    files = sorted(
+        (str(p.relative_to(path)), p.read_bytes(), p.stat().st_mtime_ns)
+        for p in path.rglob("*")
+        if p.is_file()
+    )
+    return path.stat().st_ino, files
+
+
+def releases(server):
+    return sorted(p.name for p in (server["root"] / "releases").iterdir())
+
+
+class TestStageRelease:
+    def test_stages_a_complete_release_atomically(self, server):
+        result = stage_with_script(server, SHA_A)
+        assert result.returncode == 0, result.stderr
+        release = server["root"] / "releases" / SHA_A
+        for item in ("docker-compose.prod.yml", ".env.prod.example", "deploy/prod/deploy.sh"):
+            assert (release / item).exists(), item
+        assert os.access(release / "deploy" / "prod" / "deploy.sh", os.X_OK)
+        assert releases(server) == [SHA_A]  # no staging leftovers
+
+    def test_redeploying_the_live_sha_never_deletes_or_rewrites_it(self, server):
+        assert stage_with_script(server, SHA_A).returncode == 0
+        assert deploy(server, SHA_A).returncode == 0
+        live = server["root"] / "releases" / SHA_A
+        assert current(server) == SHA_A
+        before = fingerprint(live)
+
+        # The workflow is re-run for the same commit: stage again, deploy again.
+        result = stage_with_script(server, SHA_A)
+        assert result.returncode == 0, result.stderr
+        assert "reused, nothing changed" in result.stdout
+        assert fingerprint(live) == before  # same folder (inode), same files, same times
+        assert deploy(server, SHA_A).returncode == 0
+        assert current(server) == SHA_A
+        assert fingerprint(live) == before
+        assert releases(server) == [SHA_A]
+
+    def test_redeploy_of_the_live_sha_keeps_the_rollback_target(self, server):
+        for sha in (SHA_A, SHA_B):
+            assert stage_with_script(server, sha).returncode == 0
+            assert deploy(server, sha).returncode == 0
+        previous_file = server["root"] / "previous"
+        assert previous_file.read_text().strip() == SHA_A
+        rollback_target = fingerprint(server["root"] / "releases" / SHA_A)
+
+        assert stage_with_script(server, SHA_B).returncode == 0
+        assert deploy(server, SHA_B).returncode == 0
+        assert current(server) == SHA_B
+        assert previous_file.read_text().strip() == SHA_A  # not overwritten with B
+        assert fingerprint(server["root"] / "releases" / SHA_A) == rollback_target
+        # …and the rollback still works afterwards.
+        assert deploy(server, SHA_A, rollback=True).returncode == 0
+        assert current(server) == SHA_A
+
+    def test_rerunning_after_an_unhealthy_redeploy_keeps_the_live_release(self, server):
+        assert stage_with_script(server, SHA_A).returncode == 0
+        assert deploy(server, SHA_A).returncode == 0
+        live = server["root"] / "releases" / SHA_A
+        before = fingerprint(live)
+        assert stage_with_script(server, SHA_A).returncode == 0
+        result = deploy(server, SHA_A, BAD_TAG=SHA_A)
+        assert result.returncode != 0
+        assert current(server) == SHA_A and fingerprint(live) == before
+
+    @pytest.mark.parametrize("role", ["live", "rollback target", "unused"])
+    def test_a_modified_existing_release_is_refused_never_replaced(self, server, role):
+        for sha in (SHA_A, SHA_B):
+            assert stage_with_script(server, sha).returncode == 0
+            assert deploy(server, sha).returncode == 0
+        sha = {"live": SHA_B, "rollback target": SHA_A, "unused": SHA_C}[role]
+        if role == "unused":
+            assert stage_with_script(server, SHA_C).returncode == 0
+        release = server["root"] / "releases" / sha
+        (release / "deploy" / "nginx" / "prod-site.conf").write_text("# edited on the server\n")
+        before = fingerprint(release)
+        result = stage_with_script(server, sha)
+        assert result.returncode != 0
+        assert "DIFFERENT files" in result.stderr and "Nothing was changed" in result.stderr
+        if role != "unused":
+            assert f"it is the {role} release" in result.stderr
+        assert fingerprint(release) == before
+        assert not [n for n in releases(server) if n.startswith(".staging")]
+
+    def test_leftovers_of_an_interrupted_staging_are_cleaned(self, server):
+        leftover = server["root"] / "releases" / f".staging-{SHA_A}.abc123"
+        leftover.mkdir()
+        (leftover / "docker-compose.prod.yml").write_text("half-copied")
+        assert stage_with_script(server, SHA_A).returncode == 0
+        assert releases(server) == [SHA_A]
+
+    def test_incomplete_checkout_creates_nothing(self, server, tmp_path):
+        source = tmp_path / "checkout"
+        source.mkdir()
+        shutil.copy(REPO / "docker-compose.prod.yml", source)
+        result = stage_with_script(server, SHA_A, source)
+        assert result.returncode != 0 and "checkout is incomplete" in result.stderr
+        assert releases(server) == []
+
+    @pytest.mark.parametrize("sha", ["main", "a" * 39, f"{'a' * 40}/../x", "../../etc"])
+    def test_only_full_commit_shas(self, server, sha):
+        result = stage_with_script(server, sha)
+        assert result.returncode != 0 and "usage" in result.stderr
+        assert releases(server) == []
+
+
+def test_pruning_never_removes_the_live_or_rollback_release(server):
+    for sha in (SHA_A, SHA_B):
+        assert stage_with_script(server, sha).returncode == 0
+        assert deploy(server, sha).returncode == 0
+    # A and B are now the OLDEST folders; six newer releases exist.
+    os.utime(server["root"] / "releases" / SHA_A, (1, 1))
+    os.utime(server["root"] / "releases" / SHA_B, (2, 2))
+    newer = [f"{n:x}" * 40 for n in range(3, 9)]
+    for sha in newer:
+        stage(server, sha[:40])
+    hidden = server["root"] / "releases" / f".staging-{SHA_C}.keep"
+    hidden.mkdir()
+    assert deploy(server, SHA_B).returncode == 0  # redeploy of the live SHA prunes
+    kept = set(releases(server))
+    assert {SHA_A, SHA_B} <= kept  # rollback target and live release survive
+    assert len([n for n in kept if not n.startswith(".")]) == 7  # 5 newest + live + previous
+    assert hidden.name in kept  # hidden staging folders are never pruned by deploy.sh

@@ -120,18 +120,11 @@ jobs:
             deploy
           sparse-checkout-cone-mode: false
 
+      # Atomic and idempotent: never deletes or overwrites an existing release folder (the
+      # live one is in use by nginx; the previous one is the rollback target). Re-running
+      # the same SHA reuses its identical folder.
       - name: Stage release folder
-        run: |
-          set -euo pipefail
-          release="$MCQ_ROOT/releases/$GITHUB_SHA"
-          rm -rf "$release.staging"
-          mkdir -p "$release.staging"
-          cp docker-compose.prod.yml .env.prod.example "$release.staging/"
-          cp -r deploy "$release.staging/deploy"
-          chmod +x "$release.staging"/deploy/prod/*.sh
-          rm -rf "$release"
-          mv "$release.staging" "$release"
-          echo "staged $release"
+        run: bash deploy/prod/stage-release.sh "$GITHUB_SHA" "$GITHUB_WORKSPACE"
 
       - name: Log in to GHCR (temporary credentials for this job only)
         env:

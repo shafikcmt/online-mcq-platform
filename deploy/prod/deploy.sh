@@ -204,9 +204,13 @@ trap - ERR
 # ---- housekeeping (never touches volumes or the running/previous release) ---------------------
 keep_newest "$BACKUPS" 'pre-deploy-*.dump' 10
 KEEP_PREVIOUS="$(cat "$MCQ_ROOT/previous" 2>/dev/null || true)"
-find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' | sort -rn | tail -n +6 \
+KEEP_LIVE="$(basename "$(readlink "$MCQ_ROOT/current")")"
+# Only real release folders (40-character SHA names; never hidden staging folders), newest
+# 5 kept, and never the live release or the rollback target.
+find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -regextype posix-extended \
+    -regex '.*/[0-9a-f]{40}' -printf '%T@ %f\n' | sort -rn | tail -n +6 \
     | cut -d' ' -f2 | while read -r old; do
-        [[ "$old" == "$SHA" || "$old" == "$KEEP_PREVIOUS" ]] && continue
+        [[ "$old" == "$SHA" || "$old" == "$KEEP_LIVE" || "$old" == "$KEEP_PREVIOUS" ]] && continue
         rm -rf -- "${RELEASES:?}/$old"
     done
 docker image prune --all --force --filter "until=168h" >/dev/null || true

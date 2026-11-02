@@ -81,7 +81,8 @@ forwarding anything, so Django never receives that password.
 ├── .env.prod                     settings + secrets (mode 600) — init-env.sh
 ├── nginx/admin.htpasswd          Basic Auth (hash only) — set-admin-password.sh
 ├── certbot-www/                  Let's Encrypt renewal challenges
-├── releases/<sha>/               compose file + deploy/ of each release (last 5 kept)
+├── releases/<sha>/               compose file + deploy/ of each release (last 5 kept, plus
+│                                 always the live and the previous one)
 ├── current → releases/<sha>      the live release
 ├── previous                      SHA of the release before it
 ├── backups/                      pre-deploy-*.dump (last 10), daily-*.dump (last 14)
@@ -266,6 +267,11 @@ records, then add:
 ## 6. Operations
 
 ### 6.1 Deploy
+Each run first stages its files with `deploy/prod/stage-release.sh`: copied into a hidden
+folder and renamed into `releases/<sha>` in one step. An existing release folder is never
+deleted or overwritten — re-running the same commit (e.g. *Re-run jobs*, or redeploying
+the live SHA) reuses its identical folder; a folder whose files were edited on the server
+is refused with a message, never silently replaced.
 Merge to `main`. Watch *Actions → Deploy production*. The run is green only when the new
 release answers through nginx: website `/bn` 200, `www` 301, `/api/v1/health/` 200, admin
 pages 401 (Basic Auth), Celery worker and beat running and the worker answering a ping
