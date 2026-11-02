@@ -87,6 +87,10 @@ if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$PROJECT-nginx-1"; 
 fi
 [[ -s "$MCQ_ROOT/nginx/admin.htpasswd" ]] \
     || problems+=("$MCQ_ROOT/nginx/admin.htpasswd is missing — create it: $RELEASE/deploy/prod/set-admin-password.sh")
+# The compose file reads .env.prod from its own folder: it must be the link stage-release.sh
+# creates to the server's settings file.
+[[ -L "$RELEASE/.env.prod" && "$(readlink "$RELEASE/.env.prod")" == "$ENV_FILE" ]] \
+    || problems+=("$RELEASE/.env.prod must be a link to $ENV_FILE — run: ln -sfn $ENV_FILE $RELEASE/.env.prod")
 [[ -d "$MCQ_ROOT/certbot-www" ]] \
     || problems+=("$MCQ_ROOT/certbot-www is missing — run: mkdir -p $MCQ_ROOT/certbot-www")
 if ((${#problems[@]})); then
