@@ -66,7 +66,9 @@
         "Temperature",
         "Time"
       ],
-      "time": "18:42"
+      "time": "18:42",
+      "previous": "Previous",
+      "next": "Next"
     },
     "features": {
       "title": "Everything you need to practise",
