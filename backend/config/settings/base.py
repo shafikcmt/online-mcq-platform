@@ -401,6 +401,7 @@ SUBSCRIPTION_EXPIRY_MAX_BATCHES = env_int("SUBSCRIPTION_EXPIRY_MAX_BATCHES", 20)
 # environment; never committed, logged or returned by the API.
 # --------------------------------------------------------------------------------------
 # Provider used for new payments. Gateways are registered here (bKash/Nagad later).
+# "unavailable" = this server takes no payments at all (every purchase is refused).
 PAYMENT_PROVIDER = env_str("PAYMENT_PROVIDER", "mock")
 PAYMENT_PROVIDERS = {
     "mock": "apps.payments.gateways.mock.MockGateway",

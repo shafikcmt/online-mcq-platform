@@ -19,6 +19,7 @@ PACKAGE_NOT_PURCHASABLE_MESSAGE = _("This package is free and cannot be bought."
 PAYMENT_UNAVAILABLE_MESSAGE = _(
     "The payment could not be started. Please try again in a few minutes."
 )
+PAYMENTS_DISABLED_MESSAGE = _("Payments are temporarily unavailable. Please try again later.")
 IDEMPOTENCY_KEY_REUSED_MESSAGE = _(
     "This Idempotency-Key was already used for a payment for another package."
 )

@@ -65,7 +65,12 @@ def validate_payment_settings(
     callback_base_url: str,
     return_url: str,
 ) -> None:
-    """Production refuses fake money and broken provider configuration."""
+    """Production refuses fake money and broken provider configuration.
+
+    ``unavailable`` (apps.payments.gateways.PAYMENTS_UNAVAILABLE) is safe without any
+    credentials: that server refuses every purchase and never contacts a provider."""
+    if provider == "unavailable":
+        return
     problems = []
     if provider == "mock":
         problems.append(

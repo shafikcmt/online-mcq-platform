@@ -11,12 +11,16 @@ on:
     paths:
       - "web/**"
       - ".github/workflows/web-ci.yml"
+  # Also run as the test gate of the production deployment (deploy-production.yml).
+  workflow_call:
 
 permissions:
   contents: read
 
 concurrency:
-  group: web-ci-${{ github.ref }}
+  # github.workflow is the CALLER's name when run by the deployment, so the deployment's
+  # test gate never cancels (or is cancelled by) the ordinary CI run of the same push.
+  group: ${{ github.workflow }}-web-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

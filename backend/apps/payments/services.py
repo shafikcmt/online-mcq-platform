@@ -57,11 +57,13 @@ from .exceptions import (
     PACKAGE_MISSING_MESSAGE,
     PACKAGE_NOT_PURCHASABLE_MESSAGE,
     PAYMENT_UNAVAILABLE_MESSAGE,
+    PAYMENTS_DISABLED_MESSAGE,
     PROVIDER_DISABLED_MESSAGE,
     REVERIFY_TOO_SOON_MESSAGE,
     PaymentError,
 )
 from .gateways import (
+    PAYMENTS_UNAVAILABLE,
     CallbackKind,
     CallbackUrls,
     Customer,
@@ -184,6 +186,10 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
     if not (user.is_active and user.is_student):
         raise PaymentError("not_student", NOT_STUDENT_MESSAGE, status=403)
     provider = settings.PAYMENT_PROVIDER
+    if provider == PAYMENTS_UNAVAILABLE:
+        # This server takes no payments (no merchant credentials yet): refuse before
+        # anything is written — not even an earlier payment is replayed by its key.
+        raise PaymentError("payment_unavailable", PAYMENTS_DISABLED_MESSAGE, status=503)
     with transaction.atomic():
         if idempotency_key:
             existing = Payment.objects.filter(user=user, idempotency_key=idempotency_key).first()

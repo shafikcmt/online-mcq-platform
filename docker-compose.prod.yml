@@ -1,0 +1,217 @@
+# PRODUCTION stack — livemodeltest.com (public website) + admin.livemodeltest.com (Admin
+# Panel and its API). Not for local development (docker-compose.yml) or the staging demo
+# (docker-compose.staging.yml).
+#
+# Runs on the server from a release folder that the deploy workflow uploads:
+#   /srv/mcq/releases/<git sha>/docker-compose.prod.yml   (this file)
+#   /srv/mcq/releases/<git sha>/.env.prod  → symlink to /srv/mcq/.env.prod (server-only, 600)
+# and is always started through deploy/prod/deploy.sh (docs/PRODUCTION_DEPLOYMENT.md).
+#
+# Images are built and tested by GitHub Actions and pulled from GHCR by commit SHA
+# (IMAGE_TAG): nothing is built on the server, and every release can be rolled back.
+#
+# Networks:
+#   edge      nginx only — the ONLY service that publishes host ports (80, 443)
+#   internal  no internet route (internal: true): PostgreSQL and Redis live here only
+#   egress    internet access for the backend and Celery (payment gateway, SMS provider)
+# PostgreSQL and Redis are never published and never on a network with internet access.
+#
+# Memory limits are sized for the 8 GB VPS (≈5.5 GB in total, the rest for the OS,
+# Docker and page cache).
+
+name: mcq-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-backend: &backend
+  image: ${IMAGE_REGISTRY:-ghcr.io/shafikcmt/online-mcq-platform}/backend:${IMAGE_TAG:?IMAGE_TAG (the git commit SHA) must be set}
+  env_file: .env.prod
+  environment:
+    MEDIA_ROOT: /app/media
+  volumes:
+    - static_files:/app/staticfiles
+    - media_files:/app/media
+  networks:
+    - internal
+    - egress
+  restart: unless-stopped
+  logging: *logging
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env.prod   # POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    shm_size: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 1536m
+
+  redis:
+    image: redis:7-alpine
+    # Celery broker + cache. Never evict queued tasks (noeviction); nothing here is the
+    # source of truth (PostgreSQL is), and periodic jobs re-scan the database.
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "200mb", "--maxmemory-policy", "noeviction"]
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 256m
+
+  backend:
+    <<: *backend
+    # Image default: gunicorn config.wsgi:application --config gunicorn.conf.py
+    healthcheck:
+      # /api/v1/health/ through Django itself: the Host must be an allowed host and the
+      # request must look like it came through nginx over HTTPS (no SSL redirect).
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import os, urllib.request as r;
+          host = os.environ['DJANGO_ALLOWED_HOSTS'].split(',')[0].strip();
+          req = r.Request('http://127.0.0.1:8000/api/v1/health/',
+          headers={'Host': host, 'X-Forwarded-Proto': 'https'});
+          raise SystemExit(0 if r.urlopen(req, timeout=5).status == 200 else 1)
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    mem_limit: 1g
+
+  celery:
+    <<: *backend
+    command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    mem_limit: 768m
+
+  celery-beat:
+    <<: *backend
+    # Periodic jobs (attempt finalization, payment reconciliation, subscription expiry,
+    # result notifications) — see CELERY_BEAT_SCHEDULE.
+    command: ["celery", "-A", "config", "beat", "--loglevel=info", "--schedule", "/tmp/celerybeat-schedule"]
+    mem_limit: 256m
+
+  admin:
+    image: ${IMAGE_REGISTRY:-ghcr.io/shafikcmt/online-mcq-platform}/admin:${IMAGE_TAG:?IMAGE_TAG (the git commit SHA) must be set}
+    environment:
+      # Server-side reads go to the admin origin; on the internal network that name is an
+      # alias of the nginx container (see below), so they never leave the server.
+      API_ORIGIN: https://${ADMIN_HOST:?ADMIN_HOST must be set}
+    networks:
+      - internal
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/login').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 768m
+
+  website:
+    # Built in GitHub Actions with SITE_URL=https://livemodeltest.com and NO SITE_NOINDEX:
+    # the production website is indexable (robots.txt and sitemap come from the app).
+    image: ${IMAGE_REGISTRY:-ghcr.io/shafikcmt/online-mcq-platform}/website:${IMAGE_TAG:?IMAGE_TAG (the git commit SHA) must be set}
+    environment:
+      # Server-side reads of /api/v1/public/ go through nginx on the website's own host (an
+      # internal alias of nginx, see below) — the only API path that host serves.
+      API_ORIGIN: https://${SITE_HOST:?SITE_HOST must be set}
+    networks:
+      - internal
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/bn').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 768m
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_HOST: ${SITE_HOST:?SITE_HOST must be set}
+      ADMIN_HOST: ${ADMIN_HOST:?ADMIN_HOST must be set}
+      # Name of the Let's Encrypt certificate (/etc/letsencrypt/live/<CERT_NAME>/) that
+      # covers SITE_HOST, www.SITE_HOST and ADMIN_HOST.
+      CERT_NAME: ${CERT_NAME:-livemodeltest.com}
+      DJANGO_ADMIN_URL: ${DJANGO_ADMIN_URL:?DJANGO_ADMIN_URL must be set}
+      HSTS_SECONDS: ${HSTS_SECONDS:-86400}
+    volumes:
+      - ./deploy/nginx/prod-default.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./deploy/nginx/prod-site.conf:/etc/nginx/templates/site.conf.template:ro
+      - ./deploy/nginx/prod-admin.conf:/etc/nginx/templates/admin.conf.template:ro
+      - static_files:/srv/static:ro
+      - media_files:/srv/media:ro
+      # Basic Auth credentials for the admin host (created on the server, never committed).
+      - /srv/mcq/nginx/admin.htpasswd:/etc/nginx/auth/admin.htpasswd:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /srv/mcq/certbot-www:/var/www/certbot:ro
+    networks:
+      edge: {}
+      internal:
+        aliases:
+          - ${SITE_HOST}
+          - ${ADMIN_HOST}
+    depends_on:
+      backend:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+      website:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/nginx-health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    logging: *logging
+    mem_limit: 128m
+
+networks:
+  edge: {}
+  egress: {}
+  internal:
+    internal: true
+
+volumes:
+  postgres_data:
+  static_files:
+  media_files:

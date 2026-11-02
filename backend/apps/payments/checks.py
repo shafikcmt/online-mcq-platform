@@ -3,6 +3,8 @@
 from django.conf import settings
 from django.core.checks import Error, register
 
+from .gateways import PAYMENTS_UNAVAILABLE
+
 # (setting, minimum, maximum)
 BOUNDS = (
     ("PAYMENT_RECONCILE_MIN_AGE_SECONDS", 60, 86400),
@@ -24,11 +26,17 @@ def check_payment_settings(app_configs, **kwargs):
             messages.append(
                 Error(f"{name}={value} must be between {low} and {high}.", id="payments.E001")
             )
-    if settings.PAYMENT_PROVIDER not in settings.PAYMENT_PROVIDERS:
+    if (
+        settings.PAYMENT_PROVIDER not in settings.PAYMENT_PROVIDERS
+        and settings.PAYMENT_PROVIDER != PAYMENTS_UNAVAILABLE
+    ):
         messages.append(
             Error(
                 f"PAYMENT_PROVIDER={settings.PAYMENT_PROVIDER!r} is not configured.",
-                hint=f"Use one of: {', '.join(sorted(settings.PAYMENT_PROVIDERS))}.",
+                hint=(
+                    f"Use one of: {', '.join(sorted(settings.PAYMENT_PROVIDERS))}, "
+                    f"or {PAYMENTS_UNAVAILABLE!r} to take no payments."
+                ),
                 id="payments.E002",
             )
         )

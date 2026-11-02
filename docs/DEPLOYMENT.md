@@ -100,6 +100,8 @@ headers above. That is demo storage only; the production decision is still open.
 
 The production settings audit (Milestone 10H) — what is verified, fixed and still pending before the
 first production deployment — is in `docs/PRODUCTION_SETTINGS_AUDIT.md`.
+The production setup itself (livemodeltest.com, GitHub Actions, rollback) is in
+`docs/PRODUCTION_DEPLOYMENT.md`.
 
 Backend (`backend` service):
 
