@@ -366,6 +366,12 @@ class TestStagingConfig:
             not in (REPO / "deploy" / "nginx" / "demo-admin-http.conf").read_text()
         )
 
+    def test_nginx_never_reveals_its_version(self):
+        for path in sorted((REPO / "deploy" / "nginx").iterdir()):
+            text = path.read_text()
+            servers = len(re.findall(r"^\s*server \{", text, re.M))
+            assert servers and text.count("server_tokens off;") == servers, path.name
+
     def test_nginx_website_host_exposes_only_the_public_api(self):
         for name in ("demo-site.conf", "demo-site-http.conf"):
             text = (REPO / "deploy" / "nginx" / name).read_text()
