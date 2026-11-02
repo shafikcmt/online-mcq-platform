@@ -5,7 +5,14 @@
 Refuses unless the environment opts in (``DEMO_SEED_ALLOWED=true``,
 ``DEMO_ENVIRONMENT=staging-demo``) AND the database is a demo database
 (``online_mcq_demo``) — see ``apps.core.demo``. Never runs against QA (``mcq_m7_qa``),
-local, test or production databases.
+local or test databases.
+
+**Production preview** (``--production-preview``): the same data in the production
+database so the owner can see the live site filled, BEFORE launch only. It needs a one-off
+opt-in on the command line of that run (``DEMO_SEED_ALLOWED=true``,
+``DEMO_ENVIRONMENT=production-preview``) and refuses while any student, attempt,
+subscription or payment exists. It seeds no payments (payment records are permanent and
+could not be removed again). Remove it all with ``remove_demo`` before real students join.
 
 Everything is created through the normal services (audited like an admin would; students
 answer through the exam engine; subscriptions are granted/cancelled by the subscription
@@ -35,7 +42,11 @@ from django.db import transaction
 from django.test.utils import override_settings
 from django.utils import timezone
 
-from apps.core.demo import require_demo
+from apps.core.demo import (
+    require_demo,
+    require_no_real_activity,
+    require_production_preview_environment,
+)
 
 MARKER_SLUG = "demo-ssc"  # first demo category; the seed is one transaction, so it = seeded
 DEMO_PREFIX = "demo-"
@@ -362,18 +373,31 @@ class Command(BaseCommand):
         parser.add_argument(
             "--check", action="store_true", help="Only report whether the demo data exists."
         )
+        parser.add_argument(
+            "--production-preview",
+            action="store_true",
+            help="Seed the production database before launch (see the module docstring).",
+        )
 
-    def handle(self, *args, check=False, **options):
-        name = require_demo()
+    def handle(self, *args, check=False, production_preview=False, **options):
         from apps.catalog.models import Category
+        from apps.core.demo import database_name
+
+        if production_preview:
+            require_production_preview_environment()
+            name = database_name()
+        else:
+            name = require_demo()
 
         seeded = Category.objects.filter(slug=MARKER_SLUG).exists()
         if seeded or check:
             state = "already seeded — nothing changed" if seeded else "not seeded yet"
             self.stdout.write(f"seed_demo [{name}]: {state}.")
             return
+        if production_preview:
+            require_no_real_activity()
         with transaction.atomic():
-            counts = Seeder().run()
+            counts = Seeder(with_payments=not production_preview).run()
         summary = ", ".join(f"{key}={value}" for key, value in counts.items())
         self.stdout.write(self.style.SUCCESS(f"seed_demo [{name}]: seeded ({summary})."))
 
@@ -381,9 +405,13 @@ class Command(BaseCommand):
 class Seeder:
     """Builds the demo data through the normal services (one transaction)."""
 
-    def __init__(self):
+    def __init__(self, *, with_payments: bool = True):
         from apps.audit.services import AuditContext
 
+        # Payments and their events are permanent financial records (append-only, enforced
+        # by PostgreSQL), so they could never be removed again: the production preview
+        # seeds no payments.
+        self.with_payments = with_payments
         self.ctx = AuditContext()
         self.now = timezone.now()
 
@@ -661,6 +689,9 @@ class Seeder:
             people["Rafiq Ahmed"].pk, science_pack.pk, ctx=self.ctx
         )
         subscriptions.cancel_subscription(cancelled.subscription.pk, ctx=self.ctx)
+
+        if not self.with_payments:
+            return counts()
 
         # Payments (seed-only mock gateway; no network): a renewal (two verified payments
         # extend one subscription), failed, cancelled, pending, and a purchased-validity

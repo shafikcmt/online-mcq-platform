@@ -82,7 +82,7 @@ async function openHome(dashboard: unknown, language: "bn" | "en" = "en") {
 
 test("shows exams, package, results and unread count, with times from the server's clock", async () => {
   const backend = await openHome({ status: 200, body: fullDashboard() });
-  expect(await screen.findByText("Physics model test")).toBeOnTheScreen();
+  expect((await screen.findAllByText("Physics model test")).length).toBeGreaterThan(0);
   expect(backend.find("GET", "/me/dashboard/")[0].headers.Authorization).toBe("Bearer A1");
 
   expect(screen.getByText("Ends in 2 h 15 min")).toBeOnTheScreen();
@@ -145,16 +145,102 @@ test("a first load without internet offers a retry that then loads", async () =>
   expect(await screen.findByText("No internet connection. Check your connection and try again.")).toBeOnTheScreen();
   const user = userEvent.setup();
   await user.press(screen.getByRole("button", { name: "Try again" }));
-  expect(await screen.findByText("Physics model test")).toBeOnTheScreen();
+  expect((await screen.findAllByText("Physics model test")).length).toBeGreaterThan(0);
 });
 
 test("coming back to Home reloads quietly; a failed reload keeps the last data", async () => {
   const backend = await openHome([{ status: 200, body: fullDashboard() }, "network"]);
-  expect(await screen.findByText("Physics model test")).toBeOnTheScreen();
+  expect((await screen.findAllByText("Physics model test")).length).toBeGreaterThan(0);
   const user = userEvent.setup();
   await user.press(screen.getByRole("button", { name: /Profile/ }));
   await user.press(await screen.findByRole("button", { name: /Home/ }));
   expect(await screen.findByText(/Couldn't update just now/)).toBeOnTheScreen();
-  expect(screen.getByText("Physics model test")).toBeOnTheScreen();
+  expect(screen.getAllByText("Physics model test").length).toBeGreaterThan(0);
   expect(backend.find("GET", "/me/dashboard/")).toHaveLength(2);
+});
+
+
+// ======================================================================================
+// Redesigned top of Home: featured exam, categories, shortcuts
+// ======================================================================================
+test("features the open exam with a seconds countdown and one action", async () => {
+  const backend = await openHome({ status: 200, body: fullDashboard() });
+  // physics: open now, can start, ends in 2 h 15 min (server clock).
+  expect(await screen.findByLabelText("Ends in 2 hours 15 min 0 sec")).toBeOnTheScreen();
+  await act(async () => {
+    jest.advanceTimersByTime(5_000);
+  });
+  expect(screen.getByLabelText("Ends in 2 hours 14 min 55 sec")).toBeOnTheScreen();
+  const user = userEvent.setup();
+  await user.press(screen.getByRole("button", { name: "Join the exam: Physics model test" }));
+  await act(async () => {
+    jest.advanceTimersByTime(100);
+  });
+  expect(backend.find("GET", "/exams/physics/").length).toBeGreaterThan(0); // its detail page
+});
+
+test("a live exam comes first; with nothing open the next upcoming exam is featured", async () => {
+  const data = fullDashboard();
+  data.exams.available.items[3] = exam({ slug: "live", title: "Live final", exam_type: "live" });
+  await openHome({ status: 200, body: data });
+  expect(await screen.findByText("LIVE")).toBeOnTheScreen();
+  expect(screen.getByRole("button", { name: "Join the exam: Live final" })).toBeOnTheScreen();
+});
+
+test("nothing open: the upcoming exam is featured, counting down to its start", async () => {
+  const data = fullDashboard();
+  data.exams.available = { count: 0, items: [] };
+  await openHome({ status: 200, body: data });
+  expect(await screen.findByText("Up next")).toBeOnTheScreen();
+  expect(screen.getByLabelText("Starts in 0 hours 45 min 0 sec")).toBeOnTheScreen();
+  expect(screen.getByRole("button", { name: "View details: English grammar" })).toBeOnTheScreen();
+});
+
+test("no featured card for a new student; categories with exams and shortcuts are shown", async () => {
+  await resetDevice({ language: "bn", refresh: "R0" });
+  const backend = mockBackend({
+    "POST /auth/token/refresh/": { status: 200, body: { access: "A1", refresh: "R1" } },
+    "GET /me/": { status: 200, body: { ...STUDENT, preferred_language: "bn" } },
+    "GET /public/categories/": {
+      status: 200,
+      body: {
+        count: 2,
+        next: null,
+        previous: null,
+        results: [
+          { slug: "medical", name: "মেডিকেল ভর্তি", exam_count: 12 },
+          { slug: "empty", name: "খালি", exam_count: 0 },
+        ],
+      },
+    },
+  });
+  await renderApp("/home");
+  expect(await screen.findByText("মেডিকেল ভর্তি")).toBeOnTheScreen();
+  expect(screen.getByText("১২টি পরীক্ষা")).toBeOnTheScreen();
+  expect(screen.queryByText("খালি")).toBeNull(); // no exams yet: not shown
+  expect(screen.getByRole("heading", { name: "কুইক অ্যাক্সেস" })).toBeOnTheScreen();
+  expect(screen.queryByRole("button", { name: /পরীক্ষায় যোগ দিন/ })).toBeNull();
+
+  // A category opens the Exams tab filtered to it.
+  const user = userEvent.setup();
+  backend.calls.length = 0;
+  await user.press(screen.getByRole("link", { name: "মেডিকেল ভর্তি, ১২টি পরীক্ষা" }));
+  await act(async () => {
+    jest.advanceTimersByTime(100);
+  });
+  expect(await screen.findByRole("button", { name: "সব ক্যাটাগরি দেখান (এখন: মেডিকেল ভর্তি)" })).toBeOnTheScreen();
+  const query = backend.find("GET", "/exams/").at(-1)?.query;
+  expect(query).toMatchObject({ when: "open", category: "medical" });
+});
+
+test("Home still works when categories cannot load", async () => {
+  await resetDevice({ language: "en", refresh: "R0" });
+  mockBackend({
+    "POST /auth/token/refresh/": { status: 200, body: { access: "A1", refresh: "R1" } },
+    "GET /me/": { status: 200, body: STUDENT },
+    "GET /public/categories/": "network",
+  });
+  await renderApp("/home");
+  expect(await screen.findByText("No active package")).toBeOnTheScreen();
+  expect(screen.queryByRole("heading", { name: "Exam categories" })).toBeNull();
 });

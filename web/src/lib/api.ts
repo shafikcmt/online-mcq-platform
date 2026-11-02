@@ -78,7 +78,7 @@ export type Package = {
   is_featured: boolean;
 };
 
-export type Category = { slug: string; name: string; description: string; subjects: { slug: string; name: string; description: string }[] };
+export type Category = { slug: string; name: string; description: string; exam_count: number; subjects: { slug: string; name: string; description: string }[] };
 
 export type Notice = { title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };
 

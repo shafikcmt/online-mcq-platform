@@ -1024,13 +1024,22 @@ class TestPublic:
         make_subject("chemistry", category=science, sort_order=1)
         make_subject("biology", category=science, is_active=False)
         make_subject("algebra", category=maths)
+        chemistry = science.subjects.get(slug="chemistry")
+        physics = science.subjects.get(slug="physics")
+        make_exam(chemistry, title_en="Counted", publish=True)
+        make_exam(chemistry, title_en="Draft, not counted")
+        physics.__class__.objects.filter(pk=physics.pk).update(is_active=False)
         response = APIClient().get("/api/v1/public/categories/", HTTP_ACCEPT_LANGUAGE="bn")
         assert response.status_code == 200
         rows = response.json()["results"]
         assert [r["slug"] for r in rows] == ["maths", "science"]
-        assert set(rows[1]) == {"slug", "name", "description", "subjects"}
+        assert set(rows[1]) == {"slug", "name", "description", "subjects", "exam_count"}
+        # The same visibility rule as the public exam list.
+        assert [r["exam_count"] for r in rows] == [0, 1]
+        listed = APIClient().get(PUBLIC + "?category=science").json()["count"]
+        assert listed == 1
         assert rows[1]["name"] == "বিজ্ঞান"
-        assert [s["slug"] for s in rows[1]["subjects"]] == ["chemistry", "physics"]
+        assert [s["slug"] for s in rows[1]["subjects"]] == ["chemistry"]
         assert set(rows[1]["subjects"][0]) == {"slug", "name", "description"}
         assert "is_active" not in json.dumps(rows) and '"id"' not in json.dumps(rows)
 
