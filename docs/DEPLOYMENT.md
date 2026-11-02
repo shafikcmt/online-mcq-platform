@@ -98,6 +98,9 @@ headers above. That is demo storage only; the production decision is still open.
 
 ## 6. Production environment variables
 
+The production settings audit (Milestone 10H) — what is verified, fixed and still pending before the
+first production deployment — is in `docs/PRODUCTION_SETTINGS_AUDIT.md`.
+
 Backend (`backend` service):
 
 | Variable | Example | Note |

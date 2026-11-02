@@ -1,3 +1,7 @@
+import os
+import secrets
+import subprocess
+import sys
 from io import StringIO
 from unittest import mock
 
@@ -59,6 +63,42 @@ def test_production_settings_accept_safe_values():
 def test_production_settings_reject_unsafe_values(override):
     with pytest.raises(ImproperlyConfigured):
         validate_production_settings(**{**GOOD, **override})
+
+
+def test_production_settings_pass_djangos_deploy_check():
+    """`manage.py check --deploy` on config.settings.prod: HTTPS redirect, HSTS, secure
+    cookies, no DEBUG… A later settings change that weakens production fails here. Run in
+    a fresh process with throwaway random values (production refuses placeholders); the
+    one silenced check is HSTS preload, a deliberate later decision (prod.py)."""
+    random = lambda: secrets.token_urlsafe(48)  # noqa: E731
+    env = {
+        "PATH": os.environ["PATH"],
+        "DJANGO_SETTINGS_MODULE": "config.settings.prod",
+        "DJANGO_SECRET_KEY": random(),
+        "JWT_SIGNING_KEY": random(),
+        "DJANGO_ALLOWED_HOSTS": "api.example.invalid",
+        "POSTGRES_PASSWORD": random(),
+        "SMS_PROVIDER": "mock",
+        "SMS_ALLOW_MOCK_IN_PRODUCTION": "true",
+        "PAYMENT_PROVIDER": "sslcommerz",
+        "SSLCOMMERZ_STORE_ID": "check-only",
+        "SSLCOMMERZ_STORE_PASSWORD": random(),
+        "SSLCOMMERZ_SANDBOX": "true",
+        "PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION": "true",
+        "PAYMENT_CALLBACK_BASE_URL": "https://api.example.invalid",
+        "PAYMENT_RETURN_URL": "livemodeltest://payment-result",
+    }
+    result = subprocess.run(  # noqa: S603 — fixed arguments, no shell
+        [sys.executable, "manage.py", "check", "--deploy", "--fail-level", "WARNING"],
+        cwd=settings.BASE_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "no issues (1 silenced)" in result.stdout
 
 
 def test_custom_user_model_is_active():
