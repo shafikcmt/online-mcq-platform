@@ -137,7 +137,12 @@ VERIFICATION_TOKEN_TTL_SECONDS = env_int("VERIFICATION_TOKEN_TTL_SECONDS", 600)
 SMS_PROVIDER = env_str("SMS_PROVIDER", "mock")
 SMS_PROVIDERS = {
     "mock": "apps.verification.sms.mock.MockSmsProvider",
+    "bulksmsbd": "apps.verification.sms.bulksmsbd.BulkSmsBdProvider",
 }
+# BulkSMSBD gateway. The API key is a secret: keep it in the server's .env only.
+SMS_API_URL = env_str("SMS_API_URL", "https://bulksmsbd.net/api/smsapi")
+SMS_API_KEY = env_str("SMS_API_KEY", "")
+SMS_SENDER_ID = env_str("SMS_SENDER_ID", "")
 # Development only: print mock SMS text (incl. the code) to the console. Ignored unless DEBUG.
 SMS_MOCK_LOG_CONTENT = env_bool("SMS_MOCK_LOG_CONTENT", False)
 
