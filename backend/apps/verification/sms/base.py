@@ -39,6 +39,14 @@ class SmsProvider(ABC):
 
 
 def get_sms_provider() -> SmsProvider:
+    # An admin-enabled gateway (database) wins over the environment provider.
+    from apps.verification.models import SmsGatewaySettings
+
+    from .http_gateway import HttpGatewayProvider
+
+    config = SmsGatewaySettings.load()
+    if config is not None and config.enabled:
+        return HttpGatewayProvider(config)
     path = settings.SMS_PROVIDERS.get(settings.SMS_PROVIDER)
     if path is None:
         raise ImproperlyConfigured(

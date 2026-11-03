@@ -103,3 +103,44 @@ class VerificationToken(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.get_purpose_display()} token #{self.pk}"
+
+
+# --------------------------------------------------------------------------------------
+# SMS gateway (admin-controlled; one row). The API key is stored encrypted (apps/core/secret_box).
+# --------------------------------------------------------------------------------------
+class SmsNumberFormat(models.TextChoices):
+    WITH_PLUS = "with_plus", _("+8801XXXXXXXXX")
+    WITHOUT_PLUS = "without_plus", _("8801XXXXXXXXX")
+    LOCAL = "local", _("01XXXXXXXXX")
+
+
+class SmsGatewaySettings(TimeStampedModel):
+    SINGLETON_ID = 1
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=SINGLETON_ID, editable=False)
+    # When False, the environment provider (SMS_PROVIDER) is used instead.
+    enabled = models.BooleanField(_("use this gateway"), default=False)
+    api_url = models.CharField(_("API URL (https)"), max_length=500, blank=True)
+    sender_id = models.CharField(_("sender ID"), max_length=20, blank=True)
+    number_format = models.CharField(
+        _("number format"),
+        max_length=20,
+        choices=SmsNumberFormat.choices,
+        default=SmsNumberFormat.WITHOUT_PLUS,
+    )
+    # JSON body: values may contain {api_key} {sender_id} {number} {message}.
+    request_template = models.JSONField(_("request body"), default=dict, blank=True)
+    success_codes = models.JSONField(_("success codes"), default=list, blank=True)
+    retry_codes = models.JSONField(_("retry codes"), default=list, blank=True)
+    code_field = models.CharField(_("response code field"), max_length=64, default="response_code")
+    # Secret: encrypted at rest, never returned by the API (only the hint).
+    api_key_encrypted = models.TextField(blank=True, editable=False)
+    api_key_hint = models.CharField(max_length=4, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _("SMS gateway settings")
+
+    @classmethod
+    def load(cls):
+        """The single row, or None when the admin has never saved it."""
+        return cls.objects.filter(pk=cls.SINGLETON_ID).first()

@@ -101,6 +101,7 @@ class TestSend:
         assert KEY not in str(info.value)
 
 
+@pytest.mark.django_db
 class TestConfiguration:
     def test_refuses_plain_http_so_the_key_is_never_sent_unencrypted(self):
         with (
