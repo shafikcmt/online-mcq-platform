@@ -10,3 +10,4 @@ djangorestframework-simplejwt==5.5.1  # JWT + blacklist (2C). Exact pin: apps/ac
                                       # on its blacklist internals — re-test before upgrading
 Pillow==12.3.0              # image validation/re-encoding for question images (SECURITY_PLAN §3.6)
 gunicorn==23.0.0            # production WSGI server (staging/production image only)
+cryptography==46.0.6        # Fernet encryption for SMS gateway secrets stored in the database
