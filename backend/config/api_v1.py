@@ -32,6 +32,7 @@ from apps.subscriptions.api.urls import admin_urlpatterns as subscription_admin_
 from apps.subscriptions.api.urls import me_urlpatterns as subscription_me_urlpatterns
 from apps.subscriptions.api.urls import public_urlpatterns as subscription_public_urlpatterns
 from apps.subscriptions.api.urls import student_urlpatterns as subscription_student_urlpatterns
+from apps.verification.admin_urls import admin_urlpatterns as sms_admin_urlpatterns
 
 app_name = "api_v1"
 
@@ -49,6 +50,7 @@ admin_urlpatterns = [
     *cms_admin_urlpatterns,
     *audit_admin_urlpatterns,
     *dashboard_admin_urlpatterns,
+    *sms_admin_urlpatterns,
 ]
 
 urlpatterns = [

@@ -17,6 +17,7 @@ import {
   Mail,
   ListChecks,
   Library,
+  Smartphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -67,6 +68,7 @@ export const NAV: NavGroup[] = [
       { key: "nav.faq", href: "/faqs", icon: HelpCircle, ready: true },
       { key: "nav.pages", href: "/pages", icon: FileText, ready: true },
       { key: "nav.contact", href: "/contact-messages", icon: Mail, ready: true },
+      { key: "nav.sms", href: "/sms", icon: Smartphone, ready: true },
       { key: "nav.settings", href: "/settings", icon: Settings, ready: true },
     ],
   },
