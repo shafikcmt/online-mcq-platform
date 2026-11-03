@@ -225,3 +225,20 @@ class TestTestSms:
 
     def test_presets_are_available(self, api):
         assert "bulksmsbd" in api.get("/api/v1/admin/sms/presets/").data
+
+
+@pytest.mark.django_db(transaction=True)
+class TestOutsideTestTransaction:
+    """Production runs without an enclosing transaction; the save must still work."""
+
+    def test_save_works_without_an_outer_transaction(self, settings):
+        settings.SECRET_ENCRYPTION_KEY = KEY
+        client = APIClient()
+        client.force_login(make_user(Role.ADMIN))
+        response = client.patch(
+            "/api/v1/admin/sms/gateway/",
+            {"api_key": SECRET, **valid_body()},
+            format="json",
+        )
+        assert response.status_code == 200, response.content
+        assert SmsGatewaySettings.objects.get(pk=1).api_key_hint == "9876"

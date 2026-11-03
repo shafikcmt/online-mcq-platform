@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils import timezone
 
 from apps.audit import services as audit
@@ -166,6 +167,7 @@ def _audit_pair(old, new) -> dict:
     return {"from": old, "to": new}
 
 
+@transaction.atomic  # select_for_update and the audit entry must share one transaction
 def update_gateway(data: dict, *, api_key, clear_api_key: bool, ctx: AuditContext) -> dict:
     """Validate and save. ``api_key`` None = keep the stored key; a string = replace it."""
     unknown = set(data) - set(EDITABLE)
