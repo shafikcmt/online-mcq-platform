@@ -41,6 +41,15 @@ def check_otp_settings(app_configs, **kwargs):
                 id="verification.E004",
             )
         )
+    if settings.SMS_PROVIDER == "bulksmsbd" and not (
+        settings.SMS_API_KEY and settings.SMS_SENDER_ID
+    ):
+        messages.append(
+            Error(
+                "SMS_PROVIDER=bulksmsbd needs SMS_API_KEY and SMS_SENDER_ID.",
+                id="verification.E005",
+            )
+        )
     if settings.SMS_MOCK_LOG_CONTENT and not settings.DEBUG:
         messages.append(
             Warning(

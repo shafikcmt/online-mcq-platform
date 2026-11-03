@@ -23,6 +23,13 @@ class SmsDeliveryError(Exception):
     """Temporary delivery failure; the Celery task retries it."""
 
 
+class SmsRejectedError(Exception):
+    """Permanent rejection (bad sender, no balance, IP not allowed…); never retried.
+
+    The message must not contain secrets (API keys) — it may reach the task log.
+    """
+
+
 class SmsProvider(ABC):
     name: str = "base"
 
