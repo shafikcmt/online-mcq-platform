@@ -219,6 +219,23 @@ class TestTestSms:
         ]
         assert codes[:5] == [200] * 5 and codes[5] == 422
 
+    def test_failure_returns_error_envelope_with_reason(self, api, settings):
+        # The admin UI reads only {"error": {...}}; a bare {"ok": false} hid the reason.
+        settings.SMS_PROVIDER = "mock"
+        with mock.patch(
+            "apps.verification.sms_admin.get_sms_provider",
+            return_value=mock.Mock(
+                send=mock.Mock(
+                    side_effect=SmsRejectedError("SMS gateway rejected the message (code 1002)")
+                )
+            ),
+        ):
+            response = api.post("/api/v1/admin/sms/test/", {"phone": "01712345678"}, format="json")
+        assert response.status_code == 422
+        error = response.json()["error"]
+        assert error["code"] == "sms_test_failed"
+        assert "1002" in error["message"]
+
     def test_invalid_number_is_refused(self, api):
         response = api.post("/api/v1/admin/sms/test/", {"phone": "12345"}, format="json")
         assert response.status_code == 400

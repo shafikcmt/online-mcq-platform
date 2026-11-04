@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from apps.audit.services import AuditContext
 from apps.core.admin_api import AdminAPIMixin, to_drf_validation_error
+from apps.core.exceptions import ApiError
 from apps.core.phone import normalize_bd_mobile
 
 from . import sms_admin
@@ -75,7 +76,12 @@ class TestSmsAdminView(AdminAPIMixin, APIView):
             admin_id=request.user.pk,
             ctx=AuditContext.from_request(request),
         )
-        return Response(
-            result,
-            status=status.HTTP_200_OK if result["ok"] else status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
+        if not result["ok"]:
+            # Standard error envelope, so the admin UI shows the real reason
+            # (the reason never contains secrets; see http_gateway.py).
+            raise ApiError(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                code="sms_test_failed",
+                message=result["reason"],
+            )
+        return Response(result, status=status.HTTP_200_OK)
