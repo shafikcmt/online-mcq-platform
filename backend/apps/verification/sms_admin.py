@@ -235,23 +235,22 @@ def send_test(phone_e164: str, *, admin_id: int, ctx: AuditContext) -> dict:
         result = get_sms_provider().send(phone_e164, TEST_MESSAGE)
     except Exception as exc:  # noqa: BLE001 — provider errors carry no secrets by design
         reason = str(exc) or type(exc).__name__
+        _audit_test(ctx, sent=False)
+        return {"ok": False, "reason": reason}
+    _audit_test(ctx, sent=True)
+    return {"ok": True, "provider": result.provider}
+
+
+def _audit_test(ctx: AuditContext, *, sent: bool) -> None:
+    # audit.record() must run inside a transaction. The provider call above is
+    # deliberately outside any transaction, so the audit write gets its own.
+    with transaction.atomic():
         audit.record(
             ctx,
             action="sms_gateway.test",
             entity_type="sms.gateway",
             entity_id=1,
-            summary="SMS gateway test failed",
-            metadata={"values": {"result": "failed"}},
+            summary="SMS gateway test sent" if sent else "SMS gateway test failed",
+            metadata={"values": {"result": "sent" if sent else "failed"}},
             allowed_fields=("result",),
         )
-        return {"ok": False, "reason": reason}
-    audit.record(
-        ctx,
-        action="sms_gateway.test",
-        entity_type="sms.gateway",
-        entity_id=1,
-        summary="SMS gateway test sent",
-        metadata={"values": {"result": "sent"}},
-        allowed_fields=("result",),
-    )
-    return {"ok": True, "provider": result.provider}

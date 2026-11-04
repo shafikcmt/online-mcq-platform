@@ -242,3 +242,15 @@ class TestOutsideTestTransaction:
         )
         assert response.status_code == 200, response.content
         assert SmsGatewaySettings.objects.get(pk=1).api_key_hint == "9876"
+
+    def test_test_sms_works_without_an_outer_transaction(self, settings):
+        # Regression: the test endpoint wrote an audit row outside a transaction and
+        # returned HTTP 500 ("Something went wrong") in production even on success.
+        settings.SMS_PROVIDER = "mock"
+        settings.SMS_ALLOW_MOCK_IN_PRODUCTION = True
+        client = APIClient()
+        client.force_login(make_user(Role.ADMIN))
+        response = client.post("/api/v1/admin/sms/test/", {"phone": "01712345678"}, format="json")
+        assert response.status_code == 200, response.content
+        assert response.json()["ok"] is True
+        assert AuditLog.objects.filter(action="sms_gateway.test").exists()
