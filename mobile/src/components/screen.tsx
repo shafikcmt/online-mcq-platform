@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 import { colors, space } from "@/theme";
@@ -12,11 +12,15 @@ type Props = {
 };
 
 /** Safe-area + keyboard-aware scrolling page with the app background. Content is limited
- * to a readable width on tablets. */
+ * to a readable width on tablets.
+ *
+ * The keyboard is handled with "padding" on every platform. Android draws edge to edge
+ * (React Native 0.81+), so the window no longer shrinks when the keyboard opens and
+ * `softwareKeyboardLayoutMode: "resize"` alone left the fields under the keyboard. */
 export function Screen({ children, footer, edges = ["top", "bottom"], refreshControl }: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={edges}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
