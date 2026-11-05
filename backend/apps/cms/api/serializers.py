@@ -90,6 +90,9 @@ class AnnouncementAdminSerializer(serializers.ModelSerializer):
     is_pinned = serializers.BooleanField(required=False)
     published_at = serializers.DateTimeField(required=False, allow_null=True)
     expires_at = serializers.DateTimeField(required=False, allow_null=True)
+    # Write-only: "publish this now" using the server's clock, so a wrong clock on the
+    # admin's device can never leave a notice scheduled in the future or already ended.
+    publish_now = serializers.BooleanField(write_only=True, required=False)
     state = serializers.SerializerMethodField()
 
     class Meta:
@@ -104,11 +107,19 @@ class AnnouncementAdminSerializer(serializers.ModelSerializer):
             "is_pinned",
             "published_at",
             "expires_at",
+            "publish_now",
             "state",
             "created_at",
             "updated_at",
         )
         read_only_fields = ("id", "created_at", "updated_at")
+
+    def validate(self, attrs):
+        # ``publish_now`` is not a model field: consume it here. It wins over any
+        # ``published_at`` sent in the same request.
+        if attrs.pop("publish_now", False):
+            attrs["published_at"] = timezone.now()
+        return attrs
 
     def get_state(self, obj) -> str:
         """draft | scheduled | live | expired (computed from server time)."""

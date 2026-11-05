@@ -27,6 +27,15 @@ const PAIRS = {
 const PATHS: Record<CmsKind, string> = { announcement: "/admin/announcements/", faq: "/admin/faqs/", page: "/admin/pages/" };
 const PREFIX = { announcement: "announcements", faq: "faqs", page: "pages" } as const;
 
+/** When an announcement appears: right now (the server's clock), at a chosen time, or never (draft). */
+type Visibility = "now" | "at" | "draft";
+const VISIBILITIES: readonly Visibility[] = ["now", "at", "draft"];
+const VISIBILITY_LABEL = {
+  now: "announcements.visNow",
+  at: "announcements.visAt",
+  draft: "announcements.visDraft",
+} as const satisfies Record<Visibility, string>;
+
 type FormState = {
   first_bn: string;
   first_en: string;
@@ -34,7 +43,8 @@ type FormState = {
   second_en: string;
   audience: Audience;
   is_pinned: boolean;
-  published_at: string; // datetime-local, Asia/Dhaka
+  visibility: Visibility;
+  published_at: string; // datetime-local, Asia/Dhaka (used when visibility is "at")
   expires_at: string;
   is_active: boolean;
   sort_order: string;
@@ -52,6 +62,8 @@ function initialState(kind: CmsKind, entry: Entry | null): FormState {
     second_en: value(`${pair.second}_en`),
     audience: announcement?.audience ?? "all",
     is_pinned: announcement?.is_pinned ?? false,
+    // A new announcement is published right away; an existing one keeps its state.
+    visibility: !announcement ? "now" : announcement.published_at ? "at" : "draft",
     published_at: toDhakaInput(announcement?.published_at ?? null),
     expires_at: toDhakaInput(announcement?.expires_at ?? null),
     is_active: entry && "is_active" in entry ? entry.is_active : true,
@@ -93,7 +105,7 @@ export function CmsFormDialog({
     `${pair.first}_en`,
     `${pair.second}_bn`,
     `${pair.second}_en`,
-    ...(kind === "announcement" ? ["audience", "is_pinned", "published_at", "expires_at"] : []),
+    ...(kind === "announcement" ? ["audience", "is_pinned", "published_at", "expires_at", "publish_now"] : []),
     ...(kind === "faq" ? ["is_active", "sort_order"] : []),
     ...(kind === "page" ? ["slug", "is_active"] : []),
   ];
@@ -105,6 +117,10 @@ export function CmsFormDialog({
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (pending) return;
+    if (kind === "announcement" && form.visibility === "at" && !form.published_at.trim()) {
+      setErrors({ fields: { published_at: t("announcements.publishAtRequired") }, form: [] });
+      return;
+    }
     setPending(true);
     setErrors(NO_ERRORS);
     const body: Record<string, unknown> = {
@@ -116,7 +132,8 @@ export function CmsFormDialog({
     if (kind === "announcement") {
       body.audience = form.audience;
       body.is_pinned = form.is_pinned;
-      body.published_at = fromDhakaInput(form.published_at);
+      if (form.visibility === "now") body.publish_now = true; // the server stamps its own time
+      else body.published_at = form.visibility === "at" ? fromDhakaInput(form.published_at) : null;
       body.expires_at = fromDhakaInput(form.expires_at);
     }
     if (kind === "faq") {
@@ -223,9 +240,22 @@ export function CmsFormDialog({
               </div>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field id={`${formId}-publish`} label={t("announcements.publishAt")} optional hint={t("announcements.publishAtHint")} error={fieldError("published_at")}>
-                <Input type="datetime-local" value={form.published_at} onChange={(event) => set("published_at", event.target.value)} disabled={pending} />
+              <Field id={`${formId}-visibility`} label={t("announcements.visibility")} hint={t("announcements.visibilityHint")} error={fieldError("publish_now")}>
+                <Select value={form.visibility} onChange={(event) => set("visibility", event.target.value as Visibility)} disabled={pending}>
+                  {VISIBILITIES.map((visibility) => (
+                    <option key={visibility} value={visibility}>
+                      {t(VISIBILITY_LABEL[visibility])}
+                    </option>
+                  ))}
+                </Select>
               </Field>
+              {form.visibility === "at" && (
+                <Field id={`${formId}-publish`} label={t("announcements.publishAt")} required hint={t("announcements.publishAtHint")} error={fieldError("published_at")}>
+                  <Input type="datetime-local" value={form.published_at} onChange={(event) => set("published_at", event.target.value)} disabled={pending} />
+                </Field>
+              )}
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
               <Field id={`${formId}-expires`} label={t("announcements.expiresAt")} optional hint={t("announcements.expiresAtHint")} error={fieldError("expires_at")}>
                 <Input type="datetime-local" value={form.expires_at} onChange={(event) => set("expires_at", event.target.value)} disabled={pending} />
               </Field>

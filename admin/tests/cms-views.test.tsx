@@ -113,7 +113,7 @@ describe("AnnouncementsView", () => {
     expect(lastQuery().get("is_pinned")).toBe("true");
   });
 
-  it("create: bilingual pair, audience, pin, Bangladesh-time window (empty = draft / no end)", async () => {
+  it("create: bilingual pair, audience, pin, a set Bangladesh time (no end)", async () => {
     const { calls } = mockApi((call) => (call.method === "POST" ? json(201, announcement({ id: 9 })) : json(200, page([announcement()]))));
     view();
     fireEvent.click(screen.getByRole("button", { name: "New announcement" }));
@@ -122,6 +122,7 @@ describe("AnnouncementsView", () => {
     fireEvent.change(within(dialog).getAllByLabelText(/English/)[1], { target: { value: "Closed on Friday." } });
     fireEvent.change(within(dialog).getByLabelText("Shown to"), { target: { value: "students" } });
     fireEvent.click(within(dialog).getByRole("switch", { name: /Pin to the top/ }));
+    fireEvent.change(within(dialog).getByLabelText("Visibility"), { target: { value: "at" } });
     fireEvent.change(within(dialog).getByLabelText(/Publish at/), { target: { value: "2026-11-01T09:00" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
     expect(await screen.findByText("Announcement created.")).toBeInTheDocument();
@@ -137,6 +138,58 @@ describe("AnnouncementsView", () => {
       published_at: "2026-11-01T09:00:00+06:00",
       expires_at: null,
     });
+  });
+
+  async function openNewAnnouncement() {
+    const { calls } = mockApi((call) => (call.method === "POST" ? json(201, announcement({ id: 9 })) : json(200, page([announcement()]))));
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "New announcement" }));
+    const dialog = await screen.findByRole("dialog", { name: "New announcement" });
+    fireEvent.change(within(dialog).getAllByLabelText(/English/)[0], { target: { value: "Holiday" } });
+    fireEvent.change(within(dialog).getAllByLabelText(/English/)[1], { target: { value: "Closed on Friday." } });
+    return { calls, dialog };
+  }
+
+  it("a new announcement is published now by default (the server stamps the time)", async () => {
+    const { calls, dialog } = await openNewAnnouncement();
+    expect(within(dialog).getByLabelText("Visibility")).toHaveValue("now");
+    expect(within(dialog).queryByLabelText(/Publish at/)).not.toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
+    expect(await screen.findByText("Announcement created.")).toBeInTheDocument();
+    const body = calls.find((call) => call.method === "POST")!.body as Record<string, unknown>;
+    expect(body.publish_now).toBe(true);
+    expect("published_at" in body).toBe(false);
+  });
+
+  it("'Save as draft' sends no publish time", async () => {
+    const { calls, dialog } = await openNewAnnouncement();
+    fireEvent.change(within(dialog).getByLabelText("Visibility"), { target: { value: "draft" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
+    expect(await screen.findByText("Announcement created.")).toBeInTheDocument();
+    const body = calls.find((call) => call.method === "POST")!.body as Record<string, unknown>;
+    expect(body.published_at).toBeNull();
+    expect("publish_now" in body).toBe(false);
+  });
+
+  it("'Publish at a set time' needs a time before anything is sent", async () => {
+    const { calls, dialog } = await openNewAnnouncement();
+    fireEvent.change(within(dialog).getByLabelText("Visibility"), { target: { value: "at" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
+    expect(await within(dialog).findByText("Choose a publish time.")).toBeInTheDocument();
+    expect(calls.filter((call) => call.method === "POST")).toHaveLength(0);
+  });
+
+  it("editing a draft shows 'Save as draft' and can publish it now", async () => {
+    const draft = announcement({ id: 2, title_en: "Draft notice", title_bn: "", state: "draft", published_at: null });
+    const { calls } = mockApi((call) => (call.method === "PATCH" ? json(200, announcement({ id: 2 })) : json(200, page([draft]))));
+    view([draft]);
+    fireEvent.click(within(screen.getByRole("table")).getByRole("button", { name: "Edit Draft notice" }));
+    const dialog = await screen.findByRole("dialog", { name: "Edit announcement" });
+    expect(within(dialog).getByLabelText("Visibility")).toHaveValue("draft");
+    fireEvent.change(within(dialog).getByLabelText("Visibility"), { target: { value: "now" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Announcement saved.")).toBeInTheDocument();
+    expect((calls.find((call) => call.method === "PATCH")!.body as Record<string, unknown>).publish_now).toBe(true);
   });
 
   it("server field errors (pair rule, window) appear under their fields", async () => {

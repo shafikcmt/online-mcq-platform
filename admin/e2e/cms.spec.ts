@@ -62,6 +62,7 @@ test("announcements: a draft stays hidden; publishing shows it on the website; d
   await dialog.getByRole("group", { name: /Title/ }).getByLabel(/Bangla/).fill("ই২ই ছুটির নোটিশ");
   await dialog.getByRole("group", { name: /Text/ }).getByLabel(/Bangla/).fill("শুক্রবার কেন্দ্র বন্ধ থাকবে।");
   await dialog.getByLabel("Shown to").selectOption("public");
+  await dialog.getByLabel("Visibility").selectOption("draft"); // a new notice is otherwise published at once
   await page.screenshot({ path: `${SHOTS}/announcement-form-1440.png` });
   await dialog.getByRole("button", { name: "Create" }).click();
   await expect(page.getByText("Announcement created.")).toBeVisible();
@@ -70,7 +71,7 @@ test("announcements: a draft stays hidden; publishing shows it on the website; d
 
   await row("E2E holiday notice").getByRole("button", { name: "Edit E2E holiday notice" }).click();
   dialog = page.getByRole("dialog", { name: "Edit announcement" });
-  await dialog.getByLabel(/Publish at/).fill("2026-01-01T09:00");
+  await dialog.getByLabel("Visibility").selectOption("now");
   await dialog.getByRole("switch", { name: /Pin to the top/ }).click();
   await dialog.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Announcement saved.")).toBeVisible();
