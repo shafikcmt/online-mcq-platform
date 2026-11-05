@@ -579,9 +579,14 @@ class TestAdminStats:
         take(students[1], open_exam, "c--")
         open_attempt, _ = start(students[0], exam())
         overdue, _ = start(students[1], exam())
+        overdue_started = now - timedelta(hours=2)
         ExamAttempt.objects.filter(pk=overdue.pk).update(
-            started_at=now - timedelta(hours=2), deadline_at=now - timedelta(minutes=5)
+            started_at=overdue_started, deadline_at=now - timedelta(minutes=5)
         )
+        # Whether "2 hours ago" is still today depends on the time of day in Dhaka (shortly
+        # after local midnight it is yesterday), so derive the expectation from the same
+        # day boundary the dashboard uses instead of assuming it.
+        overdue_is_today = overdue_started >= selectors.periods(now).today_start
         # Subscriptions: two active rows for one student, one scheduled, one cancelled.
         gold = make_package("gold", rules=all_paid(), price=Decimal("500.00"))
         grant(students[0], gold)
@@ -602,7 +607,11 @@ class TestAdminStats:
         assert exams["draft"] == 0 and exams["archived"] == 0
         assert exams["open_now"] == 3  # open_exam + the two unscheduled ones
         assert exams["upcoming"] == 1
-        assert body["attempts"] == {"started_today": 4, "submitted_today": 2, "in_progress": 1}
+        assert body["attempts"] == {
+            "started_today": 3 + overdue_is_today,
+            "submitted_today": 2,
+            "in_progress": 1,
+        }
         # +2 subscriptions created by the successful payments (students[1]).
         assert body["subscriptions"] == {"active_now": 3, "students_with_active": 2}
         by_status = body["payments"]["by_status"]

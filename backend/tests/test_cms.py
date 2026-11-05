@@ -437,6 +437,58 @@ class TestAnnouncements:
         update = AuditLog.objects.get(action="announcement.update")
         assert update.metadata["changed_fields"] == ["published_at"]
 
+    def test_publish_now_uses_the_server_clock(self, api, public):
+        before = timezone.now()
+        response = api.post(
+            f"{ADMIN}announcements/",
+            {
+                "title_en": "Now",
+                "body_en": "Visible at once.",
+                "audience": "public",
+                "publish_now": True,
+            },
+            format="json",
+        )
+        assert response.status_code == 201, response.content
+        body = response.json()
+        assert body["state"] == "live"
+        assert "publish_now" not in body  # write-only
+        assert Announcement.objects.get(pk=body["id"]).published_at >= before
+        titles = {row["title"] for row in results(public.get(f"{PUBLIC}announcements/"))}
+        assert "Now" in titles
+
+    def test_publish_now_wins_over_a_client_supplied_time(self, api):
+        later = timezone.now() + timedelta(days=30)
+        response = api.post(
+            f"{ADMIN}announcements/",
+            {
+                "title_en": "T",
+                "body_en": "B",
+                "published_at": later.isoformat(),
+                "publish_now": True,
+            },
+            format="json",
+        )
+        assert response.status_code == 201, response.content
+        assert response.json()["state"] == "live"
+
+    def test_publish_now_publishes_an_existing_draft(self, api, public):
+        draft = announcement(title_en="Was a draft", audience="public", published_at=None)
+        assert draft.published_at is None
+        response = api.patch(
+            f"{ADMIN}announcements/{draft.pk}/", {"publish_now": True}, format="json"
+        )
+        assert response.status_code == 200, response.content
+        assert response.json()["state"] == "live"
+        titles = {row["title"] for row in results(public.get(f"{PUBLIC}announcements/"))}
+        assert "Was a draft" in titles
+
+    def test_without_publish_now_a_missing_time_stays_a_draft(self, api):
+        response = api.post(
+            f"{ADMIN}announcements/", {"title_en": "T", "body_en": "B"}, format="json"
+        )
+        assert response.json()["state"] == "draft"
+
     def test_translation_rules(self, api):
         for data, field in (
             ({"title_en": "Only title"}, "body_en"),
