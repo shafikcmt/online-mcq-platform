@@ -96,3 +96,12 @@ Name **Live Model Test** / **লাইভ মডেল টেস্ট**, Androi
 cannot change after the first Play Store upload), URL scheme `livemodeltest` (the backend's
 `APP_DEEP_LINK_SCHEME` must be the same). Icons, splash and the in-app mark come from the
 owner's logo (`assets/images/`; the Admin Panel uses the same mark).
+
+## Building an Android APK (test build, no Play Console needed)
+
+1. Install the CLI and sign in to a free Expo account: `npm i -g eas-cli && eas login`.
+2. Put your real staging API address in `eas.json` → `build.preview.env.EXPO_PUBLIC_API_URL`
+   (https, ending in `/api/v1`; this value is public, never put a secret here).
+3. From `mobile/`: `eas init` (first time only), then `eas build -p android --profile preview`.
+4. When it finishes, EAS prints a download link / QR code for the `.apk`; open it on the phone and install
+   (allow "install unknown apps"). The `production` profile builds an `.aab` for Google Play later.
