@@ -15,6 +15,7 @@
   "confirmBody": "{{price}} for {{days}}. You will pay on the payment provider's secure page; the app then checks the payment with our server.",
   "extendBody": "{{price}} adds {{days}} after your current package ends ({{date}}). You will pay on the payment provider's secure page.",
   "pay": "Continue to payment",
+  "payWith": "Pay with",
   "opening": "Opening the payment page…",
   "payment": {
     "title": "Payment",

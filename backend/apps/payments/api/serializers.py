@@ -20,6 +20,13 @@ M = {"max_digits": 12, "decimal_places": 2}
 
 class InitiateSerializer(serializers.Serializer):
     package_id = serializers.IntegerField(min_value=1)
+    # One of the methods listed by GET /payments/methods/; empty = the default method.
+    provider = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
+
+
+class PaymentMethodSerializer(serializers.Serializer):
+    provider = serializers.CharField()
+    label = serializers.CharField()
 
 
 class PaymentPackageSerializer(serializers.Serializer):

@@ -89,7 +89,11 @@ class CallbackData:
     """Parsed callback/IPN. Untrusted: only used to look up the payment and to decide
     what to ask the provider."""
 
-    merchant_reference: str
+    merchant_reference: str = ""
+    # Providers whose callback carries THEIR payment id but not our reference (bKash) set
+    # this instead: the payment is found by (provider, provider_payment_id). Lookup only —
+    # it decides nothing about the money.
+    provider_payment_id: str = ""
     verification_token: str = ""  # e.g. SSLCommerz val_id
     reported_status: str = ""
     signature_valid: bool = True
@@ -155,6 +159,18 @@ def get_gateway(code: str) -> PaymentGateway:
 
 
 def is_enabled(code: str) -> bool:
+    """Registered and allowed here. Used for callbacks and reconciliation of payments that
+    already exist; what a student may START is ``offered_providers``."""
     if code not in settings.PAYMENT_PROVIDERS:
         return False
     return code != "mock" or settings.PAYMENT_MOCK_ALLOWED
+
+
+def offered_providers() -> list[str]:
+    """The payment methods a student can choose for a NEW payment, in display order (the
+    first is the default). ``PAYMENT_PROVIDER=unavailable`` offers nothing, whatever else
+    is configured: it is the one switch that takes every payment off."""
+    if settings.PAYMENT_PROVIDER == PAYMENTS_UNAVAILABLE:
+        return []
+    codes = list(settings.PAYMENT_ENABLED_PROVIDERS) or [settings.PAYMENT_PROVIDER]
+    return [code for code in dict.fromkeys(codes) if is_enabled(code)]

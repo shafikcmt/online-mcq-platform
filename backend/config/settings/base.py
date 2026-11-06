@@ -413,7 +413,12 @@ PAYMENT_PROVIDER = env_str("PAYMENT_PROVIDER", "mock")
 PAYMENT_PROVIDERS = {
     "mock": "apps.payments.gateways.mock.MockGateway",
     "sslcommerz": "apps.payments.gateways.sslcommerz.SslCommerzGateway",
+    "bkash": "apps.payments.gateways.bkash.BkashGateway",
 }
+# Methods a student may choose from for NEW payments (comma-separated provider codes, in the
+# order they are shown; the first is the default). Empty = just PAYMENT_PROVIDER. Every code
+# must be registered above. PAYMENT_PROVIDER=unavailable still switches ALL payments off.
+PAYMENT_ENABLED_PROVIDERS = env_list("PAYMENT_ENABLED_PROVIDERS", "")
 # The mock provider grants access without real money: development/tests only.
 # prod.py forces this off (no override).
 PAYMENT_MOCK_ALLOWED = env_bool("PAYMENT_MOCK_ALLOWED", True)
@@ -432,6 +437,18 @@ PAYMENT_RECONCILE_MAX_BATCHES = env_int("PAYMENT_RECONCILE_MAX_BATCHES", 10)
 # Admin re-verify: at most one provider query per payment in this many seconds (a double
 # click, two admins, or right after a callback/reconciliation check) → 429 + Retry-After.
 PAYMENT_REVERIFY_COOLDOWN_SECONDS = env_int("PAYMENT_REVERIFY_COOLDOWN_SECONDS", 60)
+
+# bKash Tokenized Checkout (sandbox by default; live needs BKASH_SANDBOX=false). The four
+# credentials come from the merchant's bKash onboarding; they exist only in the server
+# environment — never in git, logs, API answers or the database.
+BKASH_APP_KEY = env_str("BKASH_APP_KEY", "")
+BKASH_APP_SECRET = env_str("BKASH_APP_SECRET", "")
+BKASH_USERNAME = env_str("BKASH_USERNAME", "")
+BKASH_PASSWORD = env_str("BKASH_PASSWORD", "")
+BKASH_SANDBOX = env_bool("BKASH_SANDBOX", True)
+# The API version in the URL path; changing it needs no code change (see bKash's reference).
+BKASH_API_VERSION = env_str("BKASH_API_VERSION", "v1.2.0-beta")
+BKASH_TIMEOUT_SECONDS = env_int("BKASH_TIMEOUT_SECONDS", 15)
 
 # SSLCommerz (sandbox by default; live needs SSLCOMMERZ_SANDBOX=false).
 SSLCOMMERZ_STORE_ID = env_str("SSLCOMMERZ_STORE_ID", "")

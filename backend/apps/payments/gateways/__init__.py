@@ -11,6 +11,7 @@ from .base import (
     VerificationResult,
     get_gateway,
     is_enabled,
+    offered_providers,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "VerificationResult",
     "get_gateway",
     "is_enabled",
+    "offered_providers",
 ]

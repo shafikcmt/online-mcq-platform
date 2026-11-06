@@ -12,6 +12,7 @@ BOUNDS = (
     ("PAYMENT_RECONCILE_BATCH_SIZE", 1, 1000),
     ("PAYMENT_RECONCILE_MAX_BATCHES", 1, 100),
     ("SSLCOMMERZ_TIMEOUT_SECONDS", 1, 60),
+    ("BKASH_TIMEOUT_SECONDS", 1, 60),
     ("SUBSCRIPTION_EXPIRY_BATCH_SIZE", 1, 10000),
     ("SUBSCRIPTION_EXPIRY_MAX_BATCHES", 1, 1000),
 )
@@ -40,6 +41,22 @@ def check_payment_settings(app_configs, **kwargs):
                 id="payments.E002",
             )
         )
+    for code in settings.PAYMENT_ENABLED_PROVIDERS:
+        if code not in settings.PAYMENT_PROVIDERS:
+            messages.append(
+                Error(
+                    f"PAYMENT_ENABLED_PROVIDERS contains {code!r}, which is not configured.",
+                    hint=f"Use any of: {', '.join(sorted(settings.PAYMENT_PROVIDERS))}.",
+                    id="payments.E005",
+                )
+            )
+        elif code == "mock" and not settings.PAYMENT_MOCK_ALLOWED:
+            messages.append(
+                Error(
+                    "PAYMENT_ENABLED_PROVIDERS contains mock while PAYMENT_MOCK_ALLOWED is off.",
+                    id="payments.E003",
+                )
+            )
     if settings.PAYMENT_PROVIDER == "mock" and not settings.PAYMENT_MOCK_ALLOWED:
         messages.append(
             Error("PAYMENT_PROVIDER=mock while PAYMENT_MOCK_ALLOWED is off.", id="payments.E003")

@@ -59,6 +59,7 @@ from .exceptions import (
     PAYMENT_UNAVAILABLE_MESSAGE,
     PAYMENTS_DISABLED_MESSAGE,
     PROVIDER_DISABLED_MESSAGE,
+    PROVIDER_NOT_OFFERED_MESSAGE,
     REVERIFY_TOO_SOON_MESSAGE,
     PaymentError,
 )
@@ -72,6 +73,7 @@ from .gateways import (
     VerificationResult,
     get_gateway,
     is_enabled,
+    offered_providers,
 )
 from .models import (
     LATE_SUCCESS_REASON,
@@ -176,28 +178,33 @@ def _move(
 # --------------------------------------------------------------------------------------
 # Initiation
 # --------------------------------------------------------------------------------------
-def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
+def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None, provider: str = ""):
     """Start buying ``package_id``. Returns ``(payment, created)``; a repeated
     ``idempotency_key`` returns the earlier payment (``created=False``).
 
     The amount, currency and validity are the package's **current server-side** values,
-    frozen on the payment (the package row is locked); the client only names the
-    package."""
+    frozen on the payment (the package row is locked); the client only names the package
+    and, optionally, which of the offered payment methods (``provider``) it wants. Without
+    one, the first offered method is used."""
     if not (user.is_active and user.is_student):
         raise PaymentError("not_student", NOT_STUDENT_MESSAGE, status=403)
-    provider = settings.PAYMENT_PROVIDER
-    if provider == PAYMENTS_UNAVAILABLE:
+    if settings.PAYMENT_PROVIDER == PAYMENTS_UNAVAILABLE:
         # This server takes no payments (no merchant credentials yet): refuse before
         # anything is written — not even an earlier payment is replayed by its key.
         raise PaymentError("payment_unavailable", PAYMENTS_DISABLED_MESSAGE, status=503)
+    requested = (provider or "").strip()
     with transaction.atomic():
         if idempotency_key:
             existing = Payment.objects.filter(user=user, idempotency_key=idempotency_key).first()
             if existing is not None:
-                return _same_request(existing, package_id), False
-        if not is_enabled(provider):
-            logger.error("Payment provider not enabled provider=%s", provider)
+                return _same_request(existing, package_id, requested), False
+        offered = offered_providers()
+        if not offered:
+            logger.error("No payment provider is enabled")
             raise PaymentError("payment_unavailable", PAYMENT_UNAVAILABLE_MESSAGE, status=503)
+        provider = requested or offered[0]
+        if provider not in offered:
+            raise PaymentError("provider_not_offered", PROVIDER_NOT_OFFERED_MESSAGE, status=400)
         # NO KEY UPDATE: a concurrent price change waits for this snapshot (or is seen).
         package = Package.objects.select_for_update(no_key=True).filter(pk=package_id).first()
         if package is None:
@@ -226,7 +233,7 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
                 raise
             # The same key raced in from another request: answer with that payment.
             existing = Payment.objects.get(user=user, idempotency_key=idempotency_key)
-            return _same_request(existing, package_id), False
+            return _same_request(existing, package_id, requested), False
         record_event(
             payment,
             PaymentEventType.INITIATED,
@@ -286,8 +293,8 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
     return payment, True
 
 
-def _same_request(existing: Payment, package_id) -> Payment:
-    if str(existing.package_id) != str(package_id):
+def _same_request(existing: Payment, package_id, provider: str = "") -> Payment:
+    if str(existing.package_id) != str(package_id) or (provider and existing.provider != provider):
         raise PaymentError("idempotency_key_reused", IDEMPOTENCY_KEY_REUSED_MESSAGE)
     return existing
 
@@ -514,6 +521,21 @@ def _decide(payment: Payment, result: VerificationResult) -> str:
 # --------------------------------------------------------------------------------------
 # Callbacks / IPN
 # --------------------------------------------------------------------------------------
+def _payment_for_callback(provider: str, callback) -> Payment | None:
+    """Find the payment a callback is about: by our merchant reference, or — for providers
+    whose callback carries only their own payment id — by (provider, provider_payment_id).
+    Only a lookup: nothing is granted from it; the server-to-server check decides."""
+    if callback.merchant_reference:
+        return Payment.objects.filter(
+            merchant_reference=callback.merchant_reference, provider=provider
+        ).first()
+    if callback.provider_payment_id:
+        return Payment.objects.filter(
+            provider=provider, provider_payment_id=callback.provider_payment_id
+        ).first()
+    return None
+
+
 def process_callback(provider: str, kind: str, data, *, ip=None) -> Payment | None:
     """Handle a browser callback (``success``/``fail``/``cancel``) or an IPN. Never grants
     anything by itself; returns the payment (``None`` for an unknown reference)."""
@@ -522,13 +544,7 @@ def process_callback(provider: str, kind: str, data, *, ip=None) -> Payment | No
         return None
     gateway = get_gateway(provider)
     callback = gateway.handle_callback(data)
-    payment = (
-        Payment.objects.filter(
-            merchant_reference=callback.merchant_reference, provider=provider
-        ).first()
-        if callback.merchant_reference
-        else None
-    )
+    payment = _payment_for_callback(provider, callback)
     if payment is None:
         logger.warning(
             "Payment callback for an unknown reference provider=%s kind=%s", provider, kind

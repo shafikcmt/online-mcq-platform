@@ -97,6 +97,61 @@ test("buy: confirm → the server opens a payment → provider page → the serv
   expect(screen.getByText("TXN-9")).toBeOnTheScreen();
 });
 
+const methods = (...codes: [string, string][]) => ok({ results: codes.map(([provider, label]) => ({ provider, label })) });
+
+test("two ways to pay: the student chooses, and the choice (not a price) goes to the server", async () => {
+  const backend = await signedIn(
+    {
+      "GET /packages/": page([pkg()]),
+      "GET /payments/methods/": methods(["bkash", "bKash"], ["sslcommerz", "SSLCommerz"]),
+      "POST /payments/": { status: 201, body: payment("pending") },
+      [`GET /payments/${PAY}/`]: ok(payment("pending")),
+    },
+    "/packages",
+  );
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.getByText("Pay with")).toBeOnTheScreen();
+  expect(screen.getByRole("radio", { name: "bKash" })).toBeSelected(); // the first is the default
+  await fireEvent.press(screen.getByRole("radio", { name: "SSLCommerz" }));
+  expect(screen.getByRole("radio", { name: "SSLCommerz" })).toBeSelected();
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, provider: "sslcommerz" });
+});
+
+test("two ways to pay, none touched: the default (first) method is sent", async () => {
+  const backend = await signedIn(
+    {
+      "GET /packages/": page([pkg()]),
+      "GET /payments/methods/": methods(["bkash", "bKash"], ["sslcommerz", "SSLCommerz"]),
+      "POST /payments/": { status: 201, body: payment("pending") },
+      [`GET /payments/${PAY}/`]: ok(payment("pending")),
+    },
+    "/packages",
+  );
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, provider: "bkash" });
+});
+
+test("a single way to pay shows no choice and sends only the package", async () => {
+  const backend = await signedIn(
+    {
+      "GET /packages/": page([pkg()]),
+      "GET /payments/methods/": methods(["bkash", "bKash"]),
+      "POST /payments/": { status: 201, body: payment("pending") },
+      [`GET /payments/${PAY}/`]: ok(payment("pending")),
+    },
+    "/packages",
+  );
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.queryByText("Pay with")).not.toBeOnTheScreen();
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7 });
+});
+
 test("already subscribed: Extend, and the dialog says it adds time after the current end", async () => {
   await signedIn({ "GET /packages/": page([pkg({ subscription: { active_now: true, expires_at: "2026-12-31T12:00:00Z" } })]) }, "/packages");
   expect(await screen.findByText("Active until 31 December 2026")).toBeOnTheScreen();

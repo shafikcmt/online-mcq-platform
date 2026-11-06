@@ -35,6 +35,7 @@ from drf_spectacular.utils import (
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
+    inline_serializer,
 )
 from rest_framework import generics, serializers, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -57,7 +58,7 @@ from apps.core.throttling import SecurityThrottle
 
 from .. import services
 from ..exceptions import PAYMENT_UNAVAILABLE_MESSAGE, PaymentError
-from ..gateways import CallbackKind, is_enabled
+from ..gateways import CallbackKind, is_enabled, offered_providers
 from ..gateways import mock as mock_gateway
 from ..models import IDEMPOTENCY_KEY_MAX_LENGTH, Payment, PaymentProvider, PaymentStatus
 from ..selectors import with_timeline
@@ -65,6 +66,7 @@ from .serializers import (
     AdminPaymentDetailSerializer,
     AdminPaymentSerializer,
     InitiateSerializer,
+    PaymentMethodSerializer,
     PaymentSerializer,
 )
 
@@ -153,6 +155,7 @@ class PaymentListCreateView(generics.ListAPIView):
                 data.validated_data["package_id"],
                 idempotency_key=key,
                 ip=get_client_ip(request),
+                provider=data.validated_data.get("provider", ""),
             )
         except DjangoValidationError as exc:
             raise to_drf_validation_error(exc) from exc
@@ -169,6 +172,28 @@ class PaymentListCreateView(generics.ListAPIView):
         return Response(
             PaymentSerializer(payment, context={"request": request}).data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+
+class PaymentMethodsView(APIView):
+    """The payment methods a student can choose from right now (in display order; the
+    first is the default). Empty while payments are switched off."""
+
+    @extend_schema(
+        tags=["payments"],
+        responses=inline_serializer(
+            "PaymentMethodsResponse", {"results": PaymentMethodSerializer(many=True)}
+        ),
+    )
+    def get(self, request):
+        return Response(
+            {
+                "results": [
+                    {"provider": code, "label": str(PaymentProvider(code).label)}
+                    for code in offered_providers()
+                    if code in PaymentProvider.values
+                ]
+            }
         )
 
 

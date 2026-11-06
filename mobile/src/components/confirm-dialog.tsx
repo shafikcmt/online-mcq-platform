@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -13,13 +14,15 @@ type Props = {
   confirmLabel: string;
   tone?: "primary" | "danger";
   busy?: boolean;
+  /** Extra content between the text and the buttons (for example a choice). */
+  children?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 };
 
 /** Our own confirmation sheet (consistent on Android and in the web QA build, where the
  * native Alert does nothing). Back button / tapping outside cancels. */
-export function ConfirmDialog({ open, title, body, confirmLabel, tone = "primary", busy, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, body, confirmLabel, tone = "primary", busy, children, onConfirm, onCancel }: Props) {
   const { t } = useTranslation();
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={busy ? undefined : onCancel} statusBarTranslucent>
@@ -31,6 +34,7 @@ export function ConfirmDialog({ open, title, body, confirmLabel, tone = "primary
             {title}
           </AppText>
           <AppText color={colors.inkMuted}>{body}</AppText>
+          {children}
           <View style={styles.actions}>
             <Button label={confirmLabel} variant={tone} onPress={onConfirm} loading={busy} />
             <Button label={t("cancel")} variant="secondary" onPress={onCancel} disabled={busy} />

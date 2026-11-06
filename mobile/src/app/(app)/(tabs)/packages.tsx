@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { Receipt } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -11,11 +11,12 @@ import { Banner } from "@/components/banner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PagedList } from "@/components/paged-list";
 import { EmptyNote } from "@/features/dashboard/section";
-import { fetchPackages, initiatePayment } from "@/features/packages/api";
+import { fetchPackages, fetchPaymentMethods, initiatePayment } from "@/features/packages/api";
 import { newPaymentKey, openCheckout } from "@/features/packages/checkout";
+import { MethodChoice } from "@/features/packages/method-choice";
 import { formatMoney } from "@/features/packages/money";
 import { PackageCard } from "@/features/packages/package-card";
-import type { Package } from "@/features/packages/types";
+import type { Package, PaymentMethod } from "@/features/packages/types";
 import { formatDate } from "@/lib/format";
 import { localizeDigits } from "@/lib/text";
 import { usePages, type Page } from "@/lib/use-pages";
@@ -24,7 +25,8 @@ import { colors, space, touchTarget } from "@/theme";
 const keyOf = (pkg: Package) => pkg.slug;
 
 /** Packages tab: what is on sale (prices from the server) and the student's own current
- * subscriptions. Buying: confirm → the server opens a payment (only the package is sent)
+ * subscriptions. Buying: confirm (and choose how to pay, when more than one way is offered)
+ * → the server opens a payment (only the package and the chosen method are sent)
  * → the provider's page in an in-app browser → the payment screen asks the server whether
  * it is paid. The app never decides that a payment succeeded. */
 export default function PackagesScreen() {
@@ -35,13 +37,33 @@ export default function PackagesScreen() {
   const [chosen, setChosen] = useState<Package | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
+  // The ways to pay the server offers. If they cannot be loaded, no choice is shown and the
+  // server's default method is used: buying never depends on this list.
+  const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [method, setMethod] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    fetchPaymentMethods()
+      .then((offered) => {
+        if (!alive) return;
+        setMethods(offered);
+        setMethod(offered[0]?.provider ?? "");
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const choosing = methods.length > 1;
 
   async function buy(pkg: Package) {
     setChosen(null);
     setBusy(pkg.slug);
     setFailure(null);
     try {
-      const payment = await initiatePayment(pkg.id, newPaymentKey());
+      const payment = await initiatePayment(pkg.id, newPaymentKey(), choosing ? method : undefined);
       if (payment.checkout_url) await openCheckout(payment.checkout_url);
       router.push({ pathname: "/payment/[id]", params: { id: payment.payment_id } });
     } catch (error) {
@@ -91,7 +113,9 @@ export default function PackagesScreen() {
           confirmLabel={t("packages:pay")}
           onConfirm={() => void buy(chosen)}
           onCancel={() => setChosen(null)}
-        />
+        >
+          {choosing ? <MethodChoice methods={methods} selected={method} onSelect={setMethod} /> : null}
+        </ConfirmDialog>
       ) : null}
     </SafeAreaView>
   );
