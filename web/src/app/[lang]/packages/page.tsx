@@ -20,7 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 /** Packages: every active package (price, validity, what it includes) and how buying
- * works. Buying happens in the app, where the payment is verified by the server. */
+ * works. A student signs in on this website with the app account and pays on the provider's
+ * secure page; the server verifies the payment and activates the package. The app only takes exams. */
 export default async function PackagesPage({ params }: { params: Promise<{ lang: string }> }) {
   const lang = (await params).lang as Lang;
   const t = translator(lang);
@@ -51,10 +52,15 @@ export default async function PackagesPage({ params }: { params: Promise<{ lang:
           ) : (
             <EmptyNote text={t("home.packages.empty")} />
           )}
-          <Link href={pageHref(lang, { access: "paid" })} className="mt-6 inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
-            {t("packagesPage.paidExams")}
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link href={`/${lang}/account/buy`} className="inline-flex min-h-11 items-center justify-center rounded-control bg-brand-600 px-5 font-semibold text-white hover:bg-brand-700">
+              {t("packagesPage.buyCta")}
+            </Link>
+            <Link href={pageHref(lang, { access: "paid" })} className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline">
+              {t("packagesPage.paidExams")}
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </div>
         </section>
 
         <section aria-labelledby="how-buy" className="mt-16">

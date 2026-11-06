@@ -144,6 +144,9 @@ services:
       # Server-side reads of /api/v1/public/ go through nginx on the website's own host (an
       # internal alias of nginx, see below) — the only API path that host serves.
       API_ORIGIN: https://${SITE_HOST:?SITE_HOST must be set}
+      # Student sign-in and checkout (Server Actions) need the whole /api/v1/, which only the
+      # admin host serves (Basic Auth does not cover /api/); same internal nginx alias.
+      ACCOUNT_API_ORIGIN: https://${ADMIN_HOST:?ADMIN_HOST must be set}
     networks:
       - internal
     healthcheck:

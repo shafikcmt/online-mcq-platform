@@ -272,21 +272,22 @@
       "title": "How to buy a package",
       "steps": [
         {
-          "title": "Open the app",
-          "body": "Sign in with your mobile number."
+          "title": "Register in the app",
+          "body": "Create your account in the app with your mobile number and the code we send."
         },
         {
-          "title": "Choose a package",
-          "body": "Compare packages in the Packages tab and pick one."
+          "title": "Sign in here and choose a package",
+          "body": "Sign in on this website with the same mobile number, then pick a package."
         },
         {
           "title": "Pay securely",
-          "body": "Pay through the secure payment page. Our server verifies the payment, then the package is active."
+          "body": "Pay through the secure payment page (bKash, Nagad or card). Our server verifies the payment, then the package is active in your app."
         }
       ]
     },
     "paidExams": "See paid exams",
-    "unavailable": "Packages can't be loaded right now. Please try again in a moment."
+    "unavailable": "Packages can't be loaded right now. Please try again in a moment.",
+    "buyCta": "Sign in to buy a package"
   },
   "pages": {
     "label": "Pages",
@@ -361,5 +362,68 @@
     "throttled": "Too many messages from your connection. Please try again later.",
     "failed": "Your message could not be sent. Please try again in a moment.",
     "noscript": "Please turn on JavaScript to send a message, or use the contact details on this page."
+  },
+  "account": {
+    "login": {
+      "title": "Sign in",
+      "body": "Sign in with the mobile number and password of your app account, then buy a package.",
+      "mobile": "Mobile number",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "help": "New here? Register in the app first. Forgot your password? Use “Forgot password” in the app.",
+      "expired": "Your session ended. Please sign in again.",
+      "check": "Enter your mobile number and password.",
+      "invalid": "The mobile number or password is incorrect.",
+      "tooMany": "Too many attempts. Please try again in a little while.",
+      "unavailable": "Sign-in isn't available right now. Please try again in a moment."
+    },
+    "buy": {
+      "title": "Buy a package",
+      "body": "Choose a package and pay on the secure payment page. When the payment is confirmed the package starts; then take your exams in the app.",
+      "pay": "Pay now",
+      "extend": "Extend",
+      "paying": "Opening payment…",
+      "payWith": "Pay with",
+      "activeUntil": "Active until {{date}}",
+      "secure": "You will be taken to the secure payment page (bKash, Nagad, cards).",
+      "signOut": "Sign out",
+      "empty": "No packages are available right now.",
+      "loadFailed": "Packages can't be loaded right now. Please try again in a moment.",
+      "notice": {
+        "unavailable": "Payments are temporarily unavailable. Please try again later.",
+        "failed": "We couldn't start the payment. Please try again."
+      }
+    },
+    "return": {
+      "title": "Payment status",
+      "success": {
+        "title": "Payment successful",
+        "body": "Your “{{name}}” package is active. Open the app to take your exams."
+      },
+      "pending": {
+        "title": "Confirming your payment…",
+        "body": "We are waiting for confirmation of your payment. This page updates by itself. If you have paid, the package starts as soon as it is confirmed."
+      },
+      "failed": {
+        "title": "The payment did not go through",
+        "body": "You can try again. If money was taken, the package starts once the payment is confirmed; otherwise please contact us."
+      },
+      "cancelled": {
+        "title": "Payment cancelled",
+        "body": "You cancelled the payment. You can try again whenever you like."
+      },
+      "signedOut": {
+        "title": "Sign in to see your payment",
+        "body": "If you have paid, your package starts automatically once the payment is confirmed. Sign in to see its status, or open the app."
+      },
+      "unknown": {
+        "title": "Payment not found",
+        "body": "We couldn't find this payment in your account."
+      },
+      "unavailable": "The payment status can't be loaded right now. Please try again in a moment.",
+      "tryAgain": "Try again",
+      "signIn": "Sign in"
+    }
   }
 }
