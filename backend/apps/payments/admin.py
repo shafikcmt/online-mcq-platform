@@ -3,7 +3,7 @@
 
 from django.contrib import admin
 
-from .models import Payment, PaymentEvent
+from .models import Payment, PaymentEvent, PaymentGateway, PaymentGatewayLog
 
 
 class _ReadOnly(admin.ModelAdmin):
@@ -44,4 +44,21 @@ class PaymentEventAdmin(_ReadOnly):
     list_display = ("created_at", "payment", "event_type")
     list_filter = ("event_type",)
     raw_id_fields = ("payment",)
+    ordering = ("-created_at", "-id")
+
+
+@admin.register(PaymentGateway)
+class PaymentGatewayAdmin(_ReadOnly):
+    """Read-only here: gateways are managed in the admin panel (secrets are never shown)."""
+
+    list_display = ("slug", "adapter", "mode", "enabled", "priority", "web_enabled", "app_enabled")
+    list_filter = ("adapter", "mode", "enabled")
+    ordering = ("priority", "id")
+
+
+@admin.register(PaymentGatewayLog)
+class PaymentGatewayLogAdmin(_ReadOnly):
+    list_display = ("created_at", "gateway", "event_type", "actor")
+    list_filter = ("event_type",)
+    raw_id_fields = ("gateway", "actor")
     ordering = ("-created_at", "-id")

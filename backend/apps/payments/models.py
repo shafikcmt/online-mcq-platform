@@ -50,6 +50,7 @@ IDEMPOTENCY_KEY_MAX_LENGTH = 64
 PROVIDER_ID_MAX_LENGTH = 100
 FAILURE_REASON_MAX_LENGTH = 64
 CHECKOUT_URL_MAX_LENGTH = 500
+PROVIDER_CODE_PATTERN = r"^[a-z][a-z0-9_]{0,19}$"
 
 
 class PaymentStatus(models.TextChoices):
@@ -84,7 +85,8 @@ class PaymentProvider(models.TextChoices):
     MOCK = "mock", _("Mock (development)")
     SSLCOMMERZ = "sslcommerz", _("SSLCommerz")
     BKASH = "bkash", _("bKash")  # future gateway (same interface, no schema change)
-    NAGAD = "nagad", _("Nagad")  # future gateway
+    NAGAD = "nagad", _("Nagad")  # registered, adapter not implemented
+    ROCKET = "rocket", _("Rocket")  # registered, adapter not implemented
 
 
 class Payment(TimeStampedModel):
@@ -109,7 +111,22 @@ class Payment(TimeStampedModel):
         blank=True,
         related_name="payments",
     )
-    provider = models.CharField(_("provider"), max_length=20, choices=PaymentProvider.choices)
+    # The adapter code (``PaymentProvider`` lists the known ones). Deliberately NOT a fixed
+    # choice list: a new adapter must not need a migration (see ``payments_provider_valid``).
+    provider = models.CharField(_("provider"), max_length=20)
+    # The configured gateway (merchant account) that took this payment, and the mode it was
+    # in at initiation. NULL / "" for payments made before gateways were stored in the
+    # database (those used the environment configuration). Frozen after creation.
+    gateway = models.ForeignKey(
+        "PaymentGateway",
+        verbose_name=_("gateway"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="payments",
+        editable=False,
+    )
+    mode = models.CharField(_("mode"), max_length=10, blank=True, default="", editable=False)
     amount = money_field(_("amount"))
     currency = models.CharField(_("currency"), max_length=3, choices=Currency.choices)
     # Snapshot of the package's validity at initiation: the duration this payment buys.
@@ -159,8 +176,12 @@ class Payment(TimeStampedModel):
                 name="payments_validity_days_valid",
             ),
             models.CheckConstraint(
-                condition=models.Q(provider__in=PaymentProvider.values),
+                condition=models.Q(provider__regex=PROVIDER_CODE_PATTERN),
                 name="payments_provider_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(mode__in=["", "sandbox", "live"]),
+                name="payments_mode_valid",
             ),
             # Success always carries its proof and the subscription it paid for.
             models.CheckConstraint(
@@ -260,3 +281,216 @@ class PaymentEvent(models.Model):
 
     def delete(self, *args, **kwargs):
         raise PaymentEventImmutable("Payment events cannot be deleted.")
+
+
+# --------------------------------------------------------------------------------------
+# Configured gateways (admin-managed). One row = one merchant account on one adapter, so
+# the same adapter can be configured more than once (e.g. two bKash merchants).
+# --------------------------------------------------------------------------------------
+GATEWAY_SLUG_PATTERN = r"^[a-z][a-z0-9-]{1,39}$"
+CREDENTIAL_FIELD_PATTERN = r"^[a-z][a-z0-9_]{0,39}$"
+GATEWAY_TEXT_LENGTH = 120
+GATEWAY_DESCRIPTION_LENGTH = 300
+GATEWAY_URL_LENGTH = 500
+
+
+class GatewayMode(models.TextChoices):
+    SANDBOX = "sandbox", _("Sandbox")
+    LIVE = "live", _("Live")
+
+
+class PaymentGateway(TimeStampedModel):
+    """A gateway configuration the admin manages. It holds NO secrets: those live encrypted
+    in ``PaymentGatewayCredential``. ``adapter`` names the code that talks to the provider
+    (``apps.payments.gateways``); a row cannot do anything the adapter does not implement.
+
+    Going live is guarded by ``gateway_store`` (credentials complete AND one successful
+    sandbox payment recorded for this gateway)."""
+
+    public_id = models.UUIDField(_("public ID"), default=uuid.uuid4, unique=True, editable=False)
+    slug = models.SlugField(_("slug"), max_length=40, unique=True)
+    adapter = models.CharField(_("adapter"), max_length=20)
+
+    name_en = models.CharField(_("name (English)"), max_length=GATEWAY_TEXT_LENGTH)
+    name_bn = models.CharField(_("name (Bangla)"), max_length=GATEWAY_TEXT_LENGTH, blank=True)
+    description_en = models.CharField(
+        _("description (English)"), max_length=GATEWAY_DESCRIPTION_LENGTH, blank=True
+    )
+    description_bn = models.CharField(
+        _("description (Bangla)"), max_length=GATEWAY_DESCRIPTION_LENGTH, blank=True
+    )
+    logo_url = models.CharField(_("logo URL (https)"), max_length=GATEWAY_URL_LENGTH, blank=True)
+
+    enabled = models.BooleanField(_("enabled"), default=False)
+    mode = models.CharField(
+        _("mode"), max_length=10, choices=GatewayMode.choices, default=GatewayMode.SANDBOX
+    )
+    priority = models.PositiveSmallIntegerField(_("priority (lower first)"), default=100)
+
+    # Where the gateway is offered, and where the student returns to afterwards.
+    web_enabled = models.BooleanField(_("offered on the website"), default=True)
+    app_enabled = models.BooleanField(_("offered in the mobile app"), default=True)
+    web_return_url = models.CharField(
+        _("website return URL"), max_length=GATEWAY_URL_LENGTH, blank=True
+    )
+    app_return_url = models.CharField(
+        _("app return URL"), max_length=GATEWAY_URL_LENGTH, blank=True
+    )
+
+    currencies = models.JSONField(_("supported currencies"), default=list)
+    min_amount = money_field(_("minimum amount"), null=True, blank=True)
+    max_amount = money_field(_("maximum amount"), null=True, blank=True)
+    # Non-secret, adapter-specific options (validated against the adapter's schema).
+    options = models.JSONField(_("options"), default=dict, blank=True)
+
+    # Health: written by the connection test only.
+    last_test_at = models.DateTimeField(_("last test at"), null=True, blank=True)
+    last_test_ok = models.BooleanField(_("last test passed"), null=True, blank=True)
+    last_test_message = models.CharField(_("last test message"), max_length=200, blank=True)
+    last_connected_at = models.DateTimeField(_("last successful connection"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("payment gateway")
+        verbose_name_plural = _("payment gateways")
+        ordering = ("priority", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(slug__regex=GATEWAY_SLUG_PATTERN), name="gateway_slug_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(adapter__regex=PROVIDER_CODE_PATTERN),
+                name="gateway_adapter_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(mode__in=GatewayMode.values), name="gateway_mode_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(min_amount__isnull=True) | models.Q(min_amount__gt=0),
+                name="gateway_min_amount_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(max_amount__isnull=True)
+                | models.Q(min_amount__isnull=True)
+                | models.Q(max_amount__gte=models.F("min_amount")),
+                name="gateway_amount_range_valid",
+            ),
+        ]
+        indexes = [models.Index(fields=["adapter", "enabled"], name="gateway_adapter_enabled_idx")]
+
+    def __str__(self) -> str:
+        return f"{self.slug} ({self.adapter}, {self.mode})"
+
+    def name_for(self, lang: str) -> str:
+        return self.name_bn if lang.startswith("bn") and self.name_bn else self.name_en
+
+    def description_for(self, lang: str) -> str:
+        if lang.startswith("bn") and self.description_bn:
+            return self.description_bn
+        return self.description_en
+
+
+class PaymentGatewayCredential(TimeStampedModel):
+    """One secret of one gateway in one mode (sandbox and live never share a row). The value
+    is Fernet-encrypted (``apps.core.secret_box``; the key is only in the environment) and is
+    never returned by any API: only the last four characters are kept as a hint."""
+
+    gateway = models.ForeignKey(
+        PaymentGateway,
+        verbose_name=_("gateway"),
+        on_delete=models.CASCADE,
+        related_name="credentials",
+    )
+    mode = models.CharField(_("mode"), max_length=10, choices=GatewayMode.choices)
+    field = models.CharField(_("field"), max_length=40)
+    value_encrypted = models.TextField(editable=False)
+    hint = models.CharField(max_length=4, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _("payment gateway credential")
+        verbose_name_plural = _("payment gateway credentials")
+        ordering = ("gateway_id", "mode", "field")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["gateway", "mode", "field"], name="gateway_credential_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(mode__in=GatewayMode.values),
+                name="gateway_credential_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(field__regex=CREDENTIAL_FIELD_PATTERN),
+                name="gateway_credential_field_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:  # never includes the value
+        return f"{self.gateway.slug}/{self.mode}/{self.field}"
+
+    def __repr__(self) -> str:
+        return f"<PaymentGatewayCredential {self}>"
+
+
+class GatewayLogType(models.TextChoices):
+    CREATED = "created", _("Created")
+    CONFIG_CHANGED = "config_changed", _("Configuration changed")
+    CREDENTIAL_CHANGED = "credential_changed", _("Credential changed")
+    MODE_CHANGED = "mode_changed", _("Mode changed")
+    ENABLED = "enabled", _("Enabled")
+    DISABLED = "disabled", _("Disabled")
+    CONNECTION_TEST = "connection_test", _("Connection test")
+    ERROR = "error", _("Gateway error")
+
+
+class PaymentGatewayLogQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        raise PaymentEventImmutable("Gateway log entries cannot be changed.")
+
+    def delete(self):
+        raise PaymentEventImmutable("Gateway log entries cannot be deleted.")
+
+
+class PaymentGatewayLog(models.Model):
+    """Append-only history of one gateway: who changed what, connection tests, provider
+    errors. ``details`` is sanitized and never holds a secret value (only field NAMES)."""
+
+    gateway = models.ForeignKey(
+        PaymentGateway, verbose_name=_("gateway"), on_delete=models.PROTECT, related_name="logs"
+    )
+    event_type = models.CharField(_("event type"), max_length=24, choices=GatewayLogType.choices)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("actor"),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    summary = models.CharField(_("summary"), max_length=200, blank=True)
+    details = models.JSONField(_("details"), default=dict, blank=True)
+    source_ip = models.GenericIPAddressField(_("source IP"), null=True, blank=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    objects = PaymentGatewayLogQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("gateway log entry")
+        verbose_name_plural = _("gateway log entries")
+        ordering = ("-created_at", "-id")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(event_type__in=GatewayLogType.values),
+                name="gateway_log_type_valid",
+            ),
+        ]
+        indexes = [models.Index(fields=["gateway", "-created_at"], name="gateway_log_gateway_idx")]
+
+    def __str__(self) -> str:
+        return f"{self.event_type} · gateway #{self.gateway_id}"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise PaymentEventImmutable("Gateway log entries cannot be changed.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise PaymentEventImmutable("Gateway log entries cannot be deleted.")
