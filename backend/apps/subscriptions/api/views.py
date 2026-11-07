@@ -223,6 +223,12 @@ def _subscription_queryset():
             OpenApiParameter("package", OpenApiTypes.INT),
             OpenApiParameter("user", OpenApiTypes.INT),
             OpenApiParameter(
+                "is_test",
+                OpenApiTypes.BOOL,
+                description="Test subscriptions (sandbox payments by testers) are hidden "
+                "unless is_test=true is passed.",
+            ),
+            OpenApiParameter(
                 "ordering",
                 OpenApiTypes.STR,
                 description="Comma-separated; '-' = descending. Fields: "
@@ -245,7 +251,7 @@ class SubscriptionListView(AdminAPIMixin, generics.ListAPIView):
 
     def get_queryset(self):
         request = self.request
-        queryset = _subscription_queryset()
+        queryset = _subscription_queryset().filter(is_test=bool(query_bool(request, "is_test")))
         stored = query_choice(request, "status", SubscriptionStatus.values)
         if stored:
             queryset = queryset.filter(status=stored)

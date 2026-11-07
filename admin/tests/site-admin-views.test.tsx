@@ -31,6 +31,10 @@ const settings = (overrides: Partial<SiteSettings> = {}): SiteSettings => ({
   contact_phone: "",
   app_download_url: "",
   app_open_url: "",
+  app_latest_version: "",
+  app_min_version: "",
+  app_update_note_bn: "",
+  app_update_note_en: "",
   default_language: "bn",
   public_leaderboard_name_mode: "masked",
   app_leaderboard_name_mode: "masked",
@@ -105,6 +109,26 @@ describe("SettingsView", () => {
     expect(screen.getByLabelText(/Contact phone/)).toHaveValue("+8801711000000");
     expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
     expect(screen.getByText(/Last saved/)).toBeInTheDocument();
+  });
+
+  it("the app update notice: link, versions and note are saved together", async () => {
+    const { calls } = mockApi(() => json(200, settings({ app_download_url: "https://files.example.org/app.apk", app_latest_version: "0.2.0", app_min_version: "0.1.0", app_update_note_en: "Bug fixes.", updated_at: STAMP })));
+    renderPanel(<SettingsView settings={settings()} />);
+    expect(screen.getByText("App update notice")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/App download link/), { target: { value: "https://files.example.org/app.apk" } });
+    fireEvent.change(screen.getByLabelText(/Latest version/), { target: { value: "0.2.0" } });
+    fireEvent.change(screen.getByLabelText(/Oldest version still allowed/), { target: { value: "0.1.0" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Save settings" })[0]);
+    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
+    expect(calls[0].body).toEqual({ app_download_url: "https://files.example.org/app.apk", app_latest_version: "0.2.0", app_min_version: "0.1.0" });
+  });
+
+  it("shows the server's version error on the field", async () => {
+    mockApi(() => apiError(400, "validation_error", "Invalid.", { app_min_version: ["The oldest allowed version cannot be newer than the latest."] }));
+    renderPanel(<SettingsView settings={settings()} />);
+    fireEvent.change(screen.getByLabelText(/Oldest version still allowed/), { target: { value: "9.0.0" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Save settings" })[0]);
+    expect(await screen.findAllByText("The oldest allowed version cannot be newer than the latest.")).not.toHaveLength(0);
   });
 
   it("nothing changed: no request", async () => {

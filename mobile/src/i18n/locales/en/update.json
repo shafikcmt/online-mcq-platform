@@ -1,0 +1,11 @@
+{
+  "title": "A new version is ready",
+  "titleRequired": "Please update the app",
+  "body": "Live Model Test {{version}} is available.",
+  "requiredBody": "This version is too old to keep using.",
+  "noteTitle": "What is new",
+  "stepsApk": "Tap Update now. Your phone downloads the file: open it and tap Install. If Android asks, allow installing from this source. Your account and results stay as they are.",
+  "stepsPlay": "Tap Update now to open Google Play, then tap Update.",
+  "update": "Update now",
+  "later": "Later"
+}

@@ -12,6 +12,7 @@ import bnPackages from "./locales/bn/packages.json";
 import bnProfile from "./locales/bn/profile.json";
 import bnResults from "./locales/bn/results.json";
 import bnRoom from "./locales/bn/room.json";
+import bnUpdate from "./locales/bn/update.json";
 import enAuth from "./locales/en/auth.json";
 import enCommon from "./locales/en/common.json";
 import enExams from "./locales/en/exams.json";
@@ -21,6 +22,7 @@ import enPackages from "./locales/en/packages.json";
 import enProfile from "./locales/en/profile.json";
 import enResults from "./locales/en/results.json";
 import enRoom from "./locales/en/room.json";
+import enUpdate from "./locales/en/update.json";
 
 /** UI translations (docs/LOCALIZATION.md §7): one JSON file per feature namespace and
  * language; every key exists in both languages (tests/i18n.test.ts checks it). The UI
@@ -29,8 +31,8 @@ export const LANGUAGES = ["bn", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const resources = {
-  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom, results: bnResults, packages: bnPackages, notifications: bnNotifications },
-  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom, results: enResults, packages: enPackages, notifications: enNotifications },
+  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom, results: bnResults, packages: bnPackages, notifications: bnNotifications, update: bnUpdate },
+  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom, results: enResults, packages: enPackages, notifications: enNotifications, update: enUpdate },
 } as const;
 
 const i18n = createInstance();
@@ -38,7 +40,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: "bn",
   fallbackLng: "bn",
-  ns: ["common", "auth", "profile", "home", "exams", "room", "results", "packages", "notifications"],
+  ns: ["common", "auth", "profile", "home", "exams", "room", "results", "packages", "notifications", "update"],
   defaultNS: "common",
   interpolation: { escapeValue: false }, // React escapes; no HTML is ever rendered
   returnNull: false,

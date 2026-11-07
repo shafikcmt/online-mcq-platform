@@ -228,6 +228,7 @@ class TestInitiation:
             "merchant_reference",
             "status",
             "provider",
+            "is_test",
             "amount",
             "currency",
             "package",
@@ -1762,7 +1763,7 @@ class TestConfiguration:
         with pytest.raises(ImproperlyConfigured):
             get_gateway("mock")
         with pytest.raises(ImproperlyConfigured):
-            get_gateway("bkash")  # future provider: not built yet
+            get_gateway("nagad")  # a provider that is not built yet
 
     def test_production_settings_force_mock_off(self):
         source = open("config/settings/prod.py", encoding="utf-8").read()

@@ -64,22 +64,29 @@ def validate_payment_settings(
     allow_sandbox: bool,
     callback_base_url: str,
     return_url: str,
+    enabled: list[str] | None = None,
+    bkash_credentials: tuple[str, str, str, str] = ("", "", "", ""),
+    bkash_sandbox: bool = True,
 ) -> None:
     """Production refuses fake money and broken provider configuration.
 
     ``unavailable`` (apps.payments.gateways.PAYMENTS_UNAVAILABLE) is safe without any
-    credentials: that server refuses every purchase and never contacts a provider."""
+    credentials: that server refuses every purchase and never contacts a provider.
+    ``enabled`` (PAYMENT_ENABLED_PROVIDERS) lists every method students may choose; each one
+    is checked, not just ``provider``."""
     if provider == "unavailable":
         return
+    offered = list(dict.fromkeys(enabled or [provider]))
     problems = []
-    if provider == "mock":
-        problems.append(
-            "PAYMENT_PROVIDER=mock grants access without payment and is never allowed in "
-            "production."
-        )
-    elif provider not in providers:
-        problems.append(f"PAYMENT_PROVIDER={provider!r} is not a configured provider.")
-    if provider == "sslcommerz":
+    for code in offered:
+        if code == "mock":
+            problems.append(
+                "The mock payment provider grants access without payment and is never allowed "
+                "in production."
+            )
+        elif code not in providers:
+            problems.append(f"Payment provider {code!r} is not a configured provider.")
+    if "sslcommerz" in offered:
         if store_id.strip().lower() in PLACEHOLDER_VALUES:
             problems.append("SSLCOMMERZ_STORE_ID must be set.")
         if store_password.strip().lower() in PLACEHOLDER_VALUES:
@@ -87,6 +94,16 @@ def validate_payment_settings(
         if sandbox and not allow_sandbox:
             problems.append(
                 "SSLCOMMERZ_SANDBOX=true takes no real money. Use live credentials, or set "
+                "PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true only for a non-public test deployment."
+            )
+    if "bkash" in offered:
+        names = ("BKASH_APP_KEY", "BKASH_APP_SECRET", "BKASH_USERNAME", "BKASH_PASSWORD")
+        for name, value in zip(names, bkash_credentials, strict=True):
+            if value.strip().lower() in PLACEHOLDER_VALUES:
+                problems.append(f"{name} must be set.")
+        if bkash_sandbox and not allow_sandbox:
+            problems.append(
+                "BKASH_SANDBOX=true takes no real money. Use live credentials, or set "
                 "PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true only for a non-public test deployment."
             )
     if not callback_base_url.startswith("https://"):

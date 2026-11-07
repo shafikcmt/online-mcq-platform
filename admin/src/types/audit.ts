@@ -31,6 +31,9 @@ export const AUDIT_ACTIONS = [
   "page.create", "page.update", "page.delete",
   "contact_message.status", "site_settings.update",
   "user.activate", "user.deactivate",
+  "payment_gateway.create", "payment_gateway.update", "payment_gateway.credentials", "payment_gateway.mode",
+  "payment_gateway.enable", "payment_gateway.disable",
+  "payment_tester.add", "payment_tester.remove",
 ] as const;
 
 export const AUDIT_ENTITY_TYPES = [
@@ -42,6 +45,8 @@ export const AUDIT_ENTITY_TYPES = [
   "subscriptions.package",
   "subscriptions.subscription",
   "payments.payment",
+  "payments.gateway",
+  "payments.tester",
   "cms.announcement",
   "cms.faq",
   "cms.page",

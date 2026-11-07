@@ -221,15 +221,16 @@ def admin_dashboard(now: datetime) -> dict:
         ),
     )
 
-    subscriptions = Subscription.objects.filter(active_window(now)).aggregate(
+    subscriptions = Subscription.objects.filter(active_window(now), is_test=False).aggregate(
         active_now=Count("id"), students_with_active=Count("user", distinct=True)
     )
 
     by_status = dict.fromkeys(PaymentStatus.values, 0)
-    for status, count in Payment.objects.order_by().values_list("status").annotate(n=Count("id")):
+    real_payments = Payment.objects.exclude(mode="sandbox")  # sandbox tests are not business
+    for status, count in real_payments.order_by().values_list("status").annotate(n=Count("id")):
         by_status[status] = count
     revenue = list(
-        Payment.objects.filter(status=PaymentStatus.SUCCESS)
+        real_payments.filter(status=PaymentStatus.SUCCESS)
         .filter(_between("verified_at", *month))
         .order_by("currency")
         .values("currency")

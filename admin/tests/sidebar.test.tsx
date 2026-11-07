@@ -39,6 +39,7 @@ describe("SidebarNav", () => {
     expect(screen.getByRole("link", { name: "Packages" })).toHaveAttribute("href", "/packages");
     expect(screen.getByRole("link", { name: "Subscriptions" })).toHaveAttribute("href", "/subscriptions");
     expect(screen.getByRole("link", { name: "Payments" })).toHaveAttribute("href", "/payments");
+    expect(screen.getByRole("link", { name: "Payment gateways" })).toHaveAttribute("href", "/payment-gateways");
     expect(screen.getByRole("link", { name: "Announcements" })).toHaveAttribute("href", "/announcements");
     expect(screen.getByRole("link", { name: "FAQ" })).toHaveAttribute("href", "/faqs");
     expect(screen.getByRole("link", { name: "Pages" })).toHaveAttribute("href", "/pages");

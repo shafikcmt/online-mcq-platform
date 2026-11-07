@@ -30,3 +30,5 @@ ALREADY_SUCCESSFUL_MESSAGE = _(
 REVERIFY_TOO_SOON_MESSAGE = _(
     "This payment was checked with the provider moments ago. Try again in %(seconds)s seconds."
 )
+PROVIDER_NOT_OFFERED_MESSAGE = _("This payment method is not available.")
+INVALID_CHANNEL_MESSAGE = _("The channel must be web or app.")

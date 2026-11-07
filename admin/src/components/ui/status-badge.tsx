@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleDashed, CircleSlash, Clock3, FileEdit, Archive, XCircle, Send, EyeOff } from "lucide-react";
+import { CheckCircle2, CircleDashed, CircleSlash, Clock3, FileEdit, Archive, XCircle, Send, EyeOff, FlaskConical, Radio, AlertTriangle } from "lucide-react";
 import type { ComponentType } from "react";
 
 import { cn } from "@/lib/utils";
@@ -19,6 +19,17 @@ export const STATUS_TONES: Record<string, { tone: Tone; icon: ComponentType<{ cl
   pending: { tone: "warning", icon: Clock3 },
   failed: { tone: "danger", icon: XCircle },
   cancelled: { tone: "neutral", icon: CircleSlash },
+  // payment gateways
+  sandbox: { tone: "info", icon: FlaskConical },
+  live: { tone: "brand", icon: Radio },
+  connected: { tone: "success", icon: CheckCircle2 },
+  untested: { tone: "neutral", icon: CircleDashed },
+  unsupported: { tone: "neutral", icon: CircleSlash },
+  ready: { tone: "success", icon: CheckCircle2 },
+  not_ready: { tone: "warning", icon: AlertTriangle },
+  not_implemented: { tone: "neutral", icon: CircleSlash },
+  scheduled: { tone: "info", icon: Clock3 },
+  expired: { tone: "neutral", icon: CircleSlash },
 };
 
 const TONE_CLASS: Record<Tone, string> = {

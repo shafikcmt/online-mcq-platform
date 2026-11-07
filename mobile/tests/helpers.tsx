@@ -19,6 +19,8 @@ export function mockBackend(routes: Record<string, Handler | Handler[]>) {
     "GET /me/dashboard/": { status: 200, body: emptyDashboard() },
     // Home's category grid (hidden while empty).
     "GET /public/categories/": { status: 200, body: { count: 0, next: null, previous: null, results: [] } },
+    // The root layout asks whether the app is out of date at launch; "no" unless a test says otherwise.
+    "GET /public/app-update/": { status: 200, body: { latest_version: "", min_version: "", download_url: "", note: "", update_available: false, update_required: false } },
     ...routes,
   };
   const queues = new Map(Object.entries(all).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value]));

@@ -27,6 +27,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
+from .config import GatewayConfig, env_config
+
 # ``PAYMENT_PROVIDER=unavailable``: the server takes no payments at all (e.g. production
 # before real merchant credentials exist). Not a gateway: every purchase attempt is refused
 # up front — no payment record, no provider call, never a success.
@@ -89,7 +91,11 @@ class CallbackData:
     """Parsed callback/IPN. Untrusted: only used to look up the payment and to decide
     what to ask the provider."""
 
-    merchant_reference: str
+    merchant_reference: str = ""
+    # Providers whose callback carries THEIR payment id but not our reference (bKash) set
+    # this instead: the payment is found by (provider, provider_payment_id). Lookup only —
+    # it decides nothing about the money.
+    provider_payment_id: str = ""
     verification_token: str = ""  # e.g. SSLCommerz val_id
     reported_status: str = ""
     signature_valid: bool = True
@@ -109,8 +115,30 @@ class VerificationResult:
     raw: dict = field(default_factory=dict)  # sanitized
 
 
+@dataclass(frozen=True)
+class ConnectionTest:
+    """Result of ``test_connection``. ``supported=False`` means the adapter has no
+    side-effect-free way to check its credentials: that is reported as such, never as a
+    pass."""
+
+    supported: bool
+    ok: bool = False
+    message: str = ""
+
+
+@dataclass(frozen=True)
+class RefundResult:
+    supported: bool = False
+    message: str = "refunds_not_supported"
+
+
 class PaymentGateway(ABC):
     code: str = "base"
+
+    def __init__(self, config: GatewayConfig | None = None):
+        # No config = the environment configuration (the behaviour before gateways moved
+        # into the database).
+        self.config = config if config is not None else env_config(self.code)
 
     @abstractmethod
     def initiate(self, payment, *, urls: CallbackUrls, customer: Customer) -> InitiateResult:
@@ -130,6 +158,16 @@ class PaymentGateway(ABC):
         """Server-to-server status of our merchant reference (reconciliation and admin
         re-verify). Never raises for provider trouble: returns ``Outcome.ERROR``."""
 
+    # ------------------------------------------------------------------------------
+    # Optional operations. An adapter overrides only what the provider's API really
+    # offers; the defaults say so explicitly (never a fake success).
+    # ------------------------------------------------------------------------------
+    def test_connection(self) -> ConnectionTest:
+        return ConnectionTest(supported=False, message="connection_test_not_supported")
+
+    def refund(self, payment, amount: Decimal) -> RefundResult:
+        return RefundResult()
+
 
 def parse_amount(value) -> Decimal | None:
     """Provider amount string → Decimal (exact), or None if it is not a number."""
@@ -142,19 +180,32 @@ def parse_amount(value) -> Decimal | None:
     return amount if amount.is_finite() else None
 
 
-def get_gateway(code: str) -> PaymentGateway:
-    """The gateway for ``code``; refuses providers that are not configured or not allowed
-    here (the mock gateway never runs in production)."""
+def get_gateway(code: str, config: GatewayConfig | None = None) -> PaymentGateway:
+    """The adapter for ``code`` running with ``config`` (default: the environment
+    configuration); refuses providers that are not configured or not allowed here (the
+    mock gateway never runs in production)."""
     path = settings.PAYMENT_PROVIDERS.get(code)
     if path is None:
         raise ImproperlyConfigured(f"Payment provider {code!r} is not configured.")
-    gateway = import_string(path)()
+    gateway = import_string(path)(config)
     if code == "mock" and not settings.PAYMENT_MOCK_ALLOWED:
         raise ImproperlyConfigured("The mock payment provider is disabled here.")
     return gateway
 
 
 def is_enabled(code: str) -> bool:
+    """Registered and allowed here. Used for callbacks and reconciliation of payments that
+    already exist; what a student may START is ``offered_providers``."""
     if code not in settings.PAYMENT_PROVIDERS:
         return False
     return code != "mock" or settings.PAYMENT_MOCK_ALLOWED
+
+
+def offered_providers() -> list[str]:
+    """The payment methods a student can choose for a NEW payment, in display order (the
+    first is the default). ``PAYMENT_PROVIDER=unavailable`` offers nothing, whatever else
+    is configured: it is the one switch that takes every payment off."""
+    if settings.PAYMENT_PROVIDER == PAYMENTS_UNAVAILABLE:
+        return []
+    codes = list(settings.PAYMENT_ENABLED_PROVIDERS) or [settings.PAYMENT_PROVIDER]
+    return [code for code in dict.fromkeys(codes) if is_enabled(code)]

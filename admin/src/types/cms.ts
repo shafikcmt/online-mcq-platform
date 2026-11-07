@@ -73,6 +73,11 @@ export type SiteSettings = {
   contact_phone: string;
   app_download_url: string;
   app_open_url: string;
+  /** "Update the app" notice: empty = off. The download link above is where updates come from. */
+  app_latest_version: string;
+  app_min_version: string;
+  app_update_note_bn: string;
+  app_update_note_en: string;
   default_language: LanguageCode;
   public_leaderboard_name_mode: LeaderboardNameMode;
   app_leaderboard_name_mode: LeaderboardNameMode;

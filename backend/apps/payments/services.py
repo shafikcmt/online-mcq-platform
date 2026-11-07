@@ -52,6 +52,7 @@ from apps.subscriptions.services import grant_subscription
 from .exceptions import (
     ALREADY_SUCCESSFUL_MESSAGE,
     IDEMPOTENCY_KEY_REUSED_MESSAGE,
+    INVALID_CHANNEL_MESSAGE,
     NOT_STUDENT_MESSAGE,
     PACKAGE_INACTIVE_MESSAGE,
     PACKAGE_MISSING_MESSAGE,
@@ -59,8 +60,16 @@ from .exceptions import (
     PAYMENT_UNAVAILABLE_MESSAGE,
     PAYMENTS_DISABLED_MESSAGE,
     PROVIDER_DISABLED_MESSAGE,
+    PROVIDER_NOT_OFFERED_MESSAGE,
     REVERIFY_TOO_SOON_MESSAGE,
     PaymentError,
+)
+from .gateway_manager import (
+    CHANNELS,
+    adapter_for_offer,
+    adapter_for_payment,
+    available_offers,
+    pick_offer,
 )
 from .gateways import (
     PAYMENTS_UNAVAILABLE,
@@ -73,6 +82,7 @@ from .gateways import (
     get_gateway,
     is_enabled,
 )
+from .gateways.config import lookup_config
 from .models import (
     LATE_SUCCESS_REASON,
     OPEN_STATUSES,
@@ -176,28 +186,44 @@ def _move(
 # --------------------------------------------------------------------------------------
 # Initiation
 # --------------------------------------------------------------------------------------
-def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
+def initiate_payment(
+    user,
+    package_id,
+    *,
+    idempotency_key: str = "",
+    ip=None,
+    provider: str = "",
+    gateway: str = "",
+    channel: str = "",
+):
     """Start buying ``package_id``. Returns ``(payment, created)``; a repeated
     ``idempotency_key`` returns the earlier payment (``created=False``).
 
     The amount, currency and validity are the package's **current server-side** values,
-    frozen on the payment (the package row is locked); the client only names the
-    package."""
+    frozen on the payment (the package row is locked); the client only names the package
+    and, optionally, which of the offered payment methods (``provider``) it wants. Without
+    one, the first offered method is used."""
     if not (user.is_active and user.is_student):
         raise PaymentError("not_student", NOT_STUDENT_MESSAGE, status=403)
-    provider = settings.PAYMENT_PROVIDER
-    if provider == PAYMENTS_UNAVAILABLE:
+    if settings.PAYMENT_PROVIDER == PAYMENTS_UNAVAILABLE:
         # This server takes no payments (no merchant credentials yet): refuse before
         # anything is written — not even an earlier payment is replayed by its key.
         raise PaymentError("payment_unavailable", PAYMENTS_DISABLED_MESSAGE, status=503)
+    if channel not in ("", *CHANNELS):
+        raise PaymentError("invalid_channel", INVALID_CHANNEL_MESSAGE, status=400)
+    # A gateway slug (admin-configured) or an adapter code (the first gateway of that adapter).
+    requested = (gateway or provider or "").strip()
     with transaction.atomic():
         if idempotency_key:
             existing = Payment.objects.filter(user=user, idempotency_key=idempotency_key).first()
             if existing is not None:
-                return _same_request(existing, package_id), False
-        if not is_enabled(provider):
-            logger.error("Payment provider not enabled provider=%s", provider)
+                return _same_request(existing, package_id, requested), False
+        offered = available_offers(user, channel)
+        if not offered:
+            logger.error("No payment provider is enabled")
             raise PaymentError("payment_unavailable", PAYMENT_UNAVAILABLE_MESSAGE, status=503)
+        if pick_offer(offered, requested) is None:
+            raise PaymentError("provider_not_offered", PROVIDER_NOT_OFFERED_MESSAGE, status=400)
         # NO KEY UPDATE: a concurrent price change waits for this snapshot (or is seen).
         package = Package.objects.select_for_update(no_key=True).filter(pk=package_id).first()
         if package is None:
@@ -208,11 +234,22 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
             raise PaymentError("package_inactive", PACKAGE_INACTIVE_MESSAGE)
         if package.price <= 0:
             raise PaymentError("package_not_purchasable", PACKAGE_NOT_PURCHASABLE_MESSAGE)
+        # Now that the amount is known, the gateways' minimum / maximum / currency apply.
+        offer = pick_offer(
+            available_offers(user, channel, amount=package.price, currency=package.currency),
+            requested,
+        )
+        if offer is None:
+            raise PaymentError("provider_not_offered", PROVIDER_NOT_OFFERED_MESSAGE, status=400)
+        provider = offer.adapter
         payment = Payment(
             merchant_reference=new_reference(),
             user=user,
             package=package,
             provider=provider,
+            gateway=offer.gateway,
+            mode=offer.mode,
+            channel=channel,
             amount=package.price,
             currency=package.currency,
             validity_days=package.validity_days,
@@ -226,7 +263,7 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
                 raise
             # The same key raced in from another request: answer with that payment.
             existing = Payment.objects.get(user=user, idempotency_key=idempotency_key)
-            return _same_request(existing, package_id), False
+            return _same_request(existing, package_id, requested), False
         record_event(
             payment,
             PaymentEventType.INITIATED,
@@ -248,7 +285,7 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
 
     # Provider session — outside any transaction (network call).
     try:
-        session = get_gateway(provider).initiate(
+        session = adapter_for_offer(offer).initiate(
             payment,
             urls=callback_urls(provider),
             customer=Customer(
@@ -286,8 +323,9 @@ def initiate_payment(user, package_id, *, idempotency_key: str = "", ip=None):
     return payment, True
 
 
-def _same_request(existing: Payment, package_id) -> Payment:
-    if str(existing.package_id) != str(package_id):
+def _same_request(existing: Payment, package_id, provider: str = "") -> Payment:
+    names = {existing.provider, existing.gateway.slug if existing.gateway_id else ""}
+    if str(existing.package_id) != str(package_id) or (provider and provider not in names):
         raise PaymentError("idempotency_key_reused", IDEMPOTENCY_KEY_REUSED_MESSAGE)
     return existing
 
@@ -328,6 +366,9 @@ def _succeed(payment: Payment, result: VerificationResult, now, ip, *, recovery=
                 price_paid=payment.amount,
                 validity_days=payment.validity_days,  # the snapshot, never the package
                 for_verified_payment=True,
+                # A sandbox payment (a designated tester's) buys a TEST subscription, kept
+                # apart from real ones and revocable; it never touches a real subscription.
+                is_test=payment.mode == "sandbox",
             )
             payment.subscription = grant.subscription
             payment.provider_transaction_id = result.provider_transaction_id
@@ -514,26 +555,45 @@ def _decide(payment: Payment, result: VerificationResult) -> str:
 # --------------------------------------------------------------------------------------
 # Callbacks / IPN
 # --------------------------------------------------------------------------------------
+def _payment_for_callback(provider: str, callback) -> Payment | None:
+    """Find the payment a callback is about: by our merchant reference, or — for providers
+    whose callback carries only their own payment id — by (provider, provider_payment_id).
+    Only a lookup: nothing is granted from it; the server-to-server check decides."""
+    if callback.merchant_reference:
+        return Payment.objects.filter(
+            merchant_reference=callback.merchant_reference, provider=provider
+        ).first()
+    if callback.provider_payment_id:
+        return Payment.objects.filter(
+            provider=provider, provider_payment_id=callback.provider_payment_id
+        ).first()
+    return None
+
+
 def process_callback(provider: str, kind: str, data, *, ip=None) -> Payment | None:
     """Handle a browser callback (``success``/``fail``/``cancel``) or an IPN. Never grants
     anything by itself; returns the payment (``None`` for an unknown reference)."""
     if not is_enabled(provider):
         logger.warning("Payment callback for a disabled provider provider=%s", provider)
         return None
-    gateway = get_gateway(provider)
-    callback = gateway.handle_callback(data)
-    payment = (
-        Payment.objects.filter(
-            merchant_reference=callback.merchant_reference, provider=provider
-        ).first()
-        if callback.merchant_reference
-        else None
-    )
+    # Two steps: first find the payment WITHOUT credentials (this only reads which payment
+    # it is about), then check the signature with the credentials of the merchant account
+    # that payment was made under (several accounts of one adapter may exist).
+    found = get_gateway(provider, lookup_config(provider)).handle_callback(data)
+    payment = _payment_for_callback(provider, found)
     if payment is None:
         logger.warning(
             "Payment callback for an unknown reference provider=%s kind=%s", provider, kind
         )
         return None
+    try:
+        gateway = adapter_for_payment(payment)
+    except GatewayError as exc:
+        logger.error(
+            "Payment callback: gateway unusable payment=%s reason=%s", payment.public_id, exc.reason
+        )
+        return payment
+    callback = gateway.handle_callback(data)
     event_type = (
         PaymentEventType.IPN_RECEIVED
         if kind == CallbackKind.IPN
@@ -563,6 +623,15 @@ def process_callback(provider: str, kind: str, data, *, ip=None) -> Payment | No
 # --------------------------------------------------------------------------------------
 # Reconciliation (Celery beat) and admin re-verify
 # --------------------------------------------------------------------------------------
+def _query(payment: Payment) -> VerificationResult:
+    """Ask the provider about ``payment`` with the configuration it was made under. A
+    gateway that cannot be built (credentials gone) is an ``ERROR`` answer: nothing changes."""
+    try:
+        return adapter_for_payment(payment).query(payment)
+    except GatewayError as exc:
+        return VerificationResult(Outcome.ERROR, provider=payment.provider, reason=exc.reason)
+
+
 def _abandon(payment_id) -> None:
     with transaction.atomic():
         payment = Payment.objects.select_for_update().get(pk=payment_id)
@@ -602,7 +671,7 @@ def reconcile_payments(*, batch_size: int | None = None, max_batches: int | None
                     payment.provider,
                 )
                 continue
-            result = get_gateway(payment.provider).query(payment)
+            result = _query(payment)
             record_event(
                 payment,
                 PaymentEventType.RECONCILIATION,
@@ -670,7 +739,7 @@ def admin_reverify(public_id, *, ctx: AuditContext) -> Payment:
         raise PaymentError("provider_disabled", PROVIDER_DISABLED_MESSAGE)
     _claim_reverify(payment)
     before = payment.status
-    result = get_gateway(payment.provider).query(payment)  # outside any transaction
+    result = _query(payment)  # outside any transaction
     with transaction.atomic():
         record_event(
             payment,

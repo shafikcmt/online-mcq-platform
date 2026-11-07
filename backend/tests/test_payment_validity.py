@@ -11,6 +11,7 @@ from unittest import mock
 
 import pytest
 from django.core.cache import cache
+from django.core.management import call_command
 from django.db import IntegrityError, connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.utils import timezone
@@ -289,6 +290,13 @@ class TestTimeline:
 class TestMigrationUpgrade:
     """Roll payments back to 0001, create legacy rows (no snapshot column), migrate
     forward and check every backfill source and the report."""
+
+    @pytest.fixture(autouse=True)
+    def _back_to_latest_schema(self):
+        # These tests stop at payments.0002; later migrations must not stay unapplied for
+        # the tests that run after this class.
+        yield
+        call_command("migrate", verbosity=0)
 
     def test_backfill_from_audit_history(self, capsys):
         executor = MigrationExecutor(connection)

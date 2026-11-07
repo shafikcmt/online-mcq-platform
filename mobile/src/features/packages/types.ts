@@ -31,3 +31,6 @@ export type Payment = {
   created_at: string;
   updated_at: string;
 };
+
+/** `GET /payments/methods/`: one way to pay (`provider` is the code sent back when buying). */
+export type PaymentMethod = { provider: string; label: string };

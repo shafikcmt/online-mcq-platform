@@ -3,6 +3,7 @@ from .base import (
     CallbackData,
     CallbackKind,
     CallbackUrls,
+    ConnectionTest,
     Customer,
     GatewayError,
     InitiateResult,
@@ -11,6 +12,7 @@ from .base import (
     VerificationResult,
     get_gateway,
     is_enabled,
+    offered_providers,
 )
 
 __all__ = [
@@ -18,6 +20,7 @@ __all__ = [
     "CallbackData",
     "CallbackKind",
     "CallbackUrls",
+    "ConnectionTest",
     "Customer",
     "GatewayError",
     "InitiateResult",
@@ -26,4 +29,5 @@ __all__ = [
     "VerificationResult",
     "get_gateway",
     "is_enabled",
+    "offered_providers",
 ]

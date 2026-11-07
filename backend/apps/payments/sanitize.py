@@ -39,6 +39,14 @@ ALLOWED_KEYS = frozenset(
         "validated_on",
         "card_type",
         "card_brand",
+        # bKash (Tokenized Checkout) facts
+        "transactionStatus",
+        "statusCode",
+        "statusMessage",
+        "merchantInvoiceNumber",
+        "trxID",
+        "intent",
+        "paymentExecuteTime",
         # our own normalized fields
         "outcome",
         "reason",

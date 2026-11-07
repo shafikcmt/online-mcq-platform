@@ -189,6 +189,7 @@ class SubscriptionAdminSerializer(serializers.ModelSerializer):
             "expires_at",
             "price_paid",
             "currency",
+            "is_test",
             "created_at",
             "updated_at",
         )

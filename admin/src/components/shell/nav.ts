@@ -18,6 +18,7 @@ import {
   ListChecks,
   Library,
   Smartphone,
+  Landmark,
   type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +60,7 @@ export const NAV: NavGroup[] = [
     items: [
       { key: "nav.packages", href: "/packages", icon: Package, ready: true },
       { key: "nav.payments", href: "/payments", icon: CreditCard, ready: true },
+      { key: "nav.gateways", href: "/payment-gateways", icon: Landmark, ready: true },
     ],
   },
   {

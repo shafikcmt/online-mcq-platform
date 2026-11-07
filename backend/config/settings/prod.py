@@ -3,10 +3,16 @@
 from .base import *  # noqa: F403
 from .base import (
     ALLOWED_HOSTS,
+    BKASH_APP_KEY,
+    BKASH_APP_SECRET,
+    BKASH_PASSWORD,
+    BKASH_SANDBOX,
+    BKASH_USERNAME,
     DATABASES,
     DEBUG,
     JWT_SIGNING_KEY,
     PAYMENT_CALLBACK_BASE_URL,
+    PAYMENT_ENABLED_PROVIDERS,
     PAYMENT_PROVIDER,
     PAYMENT_PROVIDERS,
     PAYMENT_RETURN_URL,
@@ -38,6 +44,9 @@ validate_payment_settings(
     allow_sandbox=env_bool("PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION", False),
     callback_base_url=PAYMENT_CALLBACK_BASE_URL,
     return_url=PAYMENT_RETURN_URL,
+    enabled=PAYMENT_ENABLED_PROVIDERS,
+    bkash_credentials=(BKASH_APP_KEY, BKASH_APP_SECRET, BKASH_USERNAME, BKASH_PASSWORD),
+    bkash_sandbox=BKASH_SANDBOX,
 )
 # The mock payment provider can never run in production — not even for old payments.
 PAYMENT_MOCK_ALLOWED = False

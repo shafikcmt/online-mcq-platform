@@ -66,6 +66,10 @@ class SiteSettingsAdminSerializer(serializers.ModelSerializer):
     contact_phone = _text(30)
     app_download_url = _text(URL_MAX_LENGTH)
     app_open_url = _text(URL_MAX_LENGTH)
+    app_latest_version = _text(12)
+    app_min_version = _text(12)
+    app_update_note_bn = _text(300)
+    app_update_note_en = _text(300)
     default_language = serializers.ChoiceField(choices=LanguageChoice.choices, required=False)
     public_leaderboard_name_mode = serializers.ChoiceField(
         choices=LeaderboardNameMode.choices, required=False
@@ -240,6 +244,21 @@ class PublicSettingsSerializer(LocalizedSerializer):
 class PublicAppLinksSerializer(serializers.Serializer):
     app_download_url = serializers.CharField()
     app_open_url = serializers.CharField()
+
+
+class PublicAppUpdateSerializer(LocalizedSerializer):
+    """The "update the app" notice. ``update_available`` / ``update_required`` are decided
+    by the server for the version the app reports (``?version=``)."""
+
+    latest_version = serializers.CharField()
+    min_version = serializers.CharField()
+    download_url = serializers.CharField()
+    note = serializers.SerializerMethodField()
+    update_available = serializers.BooleanField()
+    update_required = serializers.BooleanField()
+
+    def get_note(self, obj) -> str:
+        return self.text(obj, "app_update_note")
 
 
 class PublicAnnouncementSerializer(LocalizedSerializer):

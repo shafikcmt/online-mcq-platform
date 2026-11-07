@@ -321,6 +321,10 @@ class Subscription(TimeStampedModel):
     # Snapshot: the amount actually paid (sum of all periods when extended); later
     # package price changes never touch it.
     price_paid = money_field(_("price paid"), validators=[MinValueValidator(0)])
+    # A test subscription is what a SANDBOX payment by a designated tester creates. It is
+    # kept apart from real subscriptions everywhere: never extended by a real payment,
+    # never counted in reports, listed only when asked for, and revocable by an admin.
+    is_test = models.BooleanField(_("test subscription"), default=False, editable=False)
 
     class Meta:
         verbose_name = _("subscription")
@@ -341,7 +345,7 @@ class Subscription(TimeStampedModel):
             ),
             # Renewal extends the active row, so there is never a second one.
             models.UniqueConstraint(
-                fields=["user", "package"],
+                fields=["user", "package", "is_test"],
                 condition=models.Q(status=SubscriptionStatus.ACTIVE),
                 name="subscriptions_one_active_per_package",
             ),

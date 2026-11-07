@@ -34,6 +34,8 @@ from apps.core.i18n import (
 )
 from apps.core.models import TimeStampedModel
 
+from .app_version import VERSION_PATTERN, parse_version
+
 LANGUAGES = ("bn", "en")
 TITLE_MAX_LENGTH = 200
 ANNOUNCEMENT_BODY_MAX_LENGTH = 5000
@@ -208,6 +210,23 @@ class SiteSettings(TimeStampedModel):
     app_open_url = models.CharField(
         _("app open link"), max_length=URL_MAX_LENGTH, blank=True, validators=[validate_app_url]
     )
+    # "Update the app" notice. The download link above is where the update comes from: an
+    # APK link now, the Google Play link after launch — changing that one link moves the
+    # website button and the in-app notice together. Empty version = that notice is off.
+    app_latest_version = models.CharField(
+        _("latest app version"),
+        max_length=12,
+        blank=True,
+        validators=[RegexValidator(VERSION_PATTERN, _("Use the form 1.2.3."))],
+    )
+    app_min_version = models.CharField(
+        _("oldest app version still allowed"),
+        max_length=12,
+        blank=True,
+        validators=[RegexValidator(VERSION_PATTERN, _("Use the form 1.2.3."))],
+    )
+    app_update_note_bn = models.CharField(_("update note (Bangla)"), max_length=300, blank=True)
+    app_update_note_en = models.CharField(_("update note (English)"), max_length=300, blank=True)
     default_language = models.CharField(
         _("default language"), max_length=2, choices=LanguageChoice.choices
     )
@@ -229,6 +248,10 @@ class SiteSettings(TimeStampedModel):
         "contact_phone",
         "app_download_url",
         "app_open_url",
+        "app_latest_version",
+        "app_min_version",
+        "app_update_note_bn",
+        "app_update_note_en",
         "default_language",
         "public_leaderboard_name_mode",
         "app_leaderboard_name_mode",
@@ -295,10 +318,27 @@ class SiteSettings(TimeStampedModel):
         self.contact_phone = clean_single_line(normalize_digits(self.contact_phone or ""))
         self.app_download_url = clean_single_line(self.app_download_url)
         self.app_open_url = clean_single_line(self.app_open_url)
+        self.app_latest_version = clean_single_line(self.app_latest_version)
+        self.app_min_version = clean_single_line(self.app_min_version)
+        for lang in LANGUAGES:
+            name = f"app_update_note_{lang}"
+            setattr(self, name, normalize_line(getattr(self, name)))
 
     def clean_fields(self, exclude=None):
         self.normalize()
         super().clean_fields(exclude=exclude)
+
+    def clean(self):
+        super().clean()
+        latest, oldest = parse_version(self.app_latest_version), parse_version(self.app_min_version)
+        if latest is not None and oldest is not None and oldest > latest:
+            raise ValidationError(
+                {
+                    "app_min_version": _(
+                        "The oldest allowed version cannot be newer than the latest."
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
         self.id = self.SINGLETON_ID
