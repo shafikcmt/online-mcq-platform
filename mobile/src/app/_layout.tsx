@@ -16,6 +16,7 @@ import "@/i18n";
 import { AuthProvider, useAuth } from "@/auth/provider";
 import { OfflineScreen } from "@/components/offline-screen";
 import { ToastProvider } from "@/components/toast";
+import { UpdatePrompt } from "@/features/update/update-prompt";
 import { LanguageProvider, useLanguage } from "@/i18n/provider";
 import { colors } from "@/theme";
 
@@ -43,6 +44,7 @@ export default function RootLayout() {
           <ToastProvider>
             <StatusBar style="dark" />
             <RootNavigator fontsReady={fontsLoaded || !!fontError} />
+            <UpdatePrompt />
           </ToastProvider>
         </AuthProvider>
       </LanguageProvider>

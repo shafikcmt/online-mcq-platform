@@ -11,15 +11,16 @@ const isAndroid = () => /Android/i.test(navigator.userAgent);
 type Labels = { download: string; open: string; soon: string };
 type Props = { downloadUrl: string; openUrl: string; labels: Labels; lang: string; className?: string; size?: "md" | "lg" };
 
-/** The website's main action. Desktop and iPhone: "Download App" (the Play Store link).
+/** The website's main action. Desktop and iPhone: "Download App" (the download page).
  * Android: "Open App" — tries the app's own link and, if the app is not installed (the
- * page is still visible after a moment), goes to the Play Store. Without a store link yet
+ * page is still visible after a moment), goes to the download page. Without a store link yet
  * (set in the Admin Panel → Site settings) it points to the Home page's "coming soon" section. */
 export function AppButton({ downloadUrl, openUrl, labels, lang, className, size = "md" }: Props) {
   // The device is known only in the browser; the server renders "Download".
   const android = useSyncExternalStore(noop, isAndroid, () => false);
   const canOpen = android && !!openUrl;
-  const href = downloadUrl || `/${lang}#get-app`;
+  // The download page (install and update steps) opens first; it holds the real link.
+  const href = downloadUrl ? `/${lang}/download` : `/${lang}#get-app`;
   const classes = cn(
     // A long label (Bangla "coming soon") may wrap on a phone: padding and a tight line
     // height keep two lines inside the button.
@@ -39,7 +40,7 @@ export function AppButton({ downloadUrl, openUrl, labels, lang, className, size 
   }
 
   return (
-    <a href={canOpen ? openUrl : href} onClick={open} className={classes} rel={downloadUrl ? "noopener" : undefined}>
+    <a href={canOpen ? openUrl : href} onClick={open} className={classes}>
       {canOpen ? <Smartphone className="size-5 shrink-0" aria-hidden /> : <Download className="size-5 shrink-0" aria-hidden />}
       {canOpen ? labels.open : downloadUrl ? labels.download : labels.soon}
     </a>

@@ -11,6 +11,7 @@ from .views import (
     PageListCreateView,
     PublicAnnouncementListView,
     PublicAppLinksView,
+    PublicAppUpdateView,
     PublicContactView,
     PublicFaqListView,
     PublicPageView,
@@ -38,6 +39,7 @@ admin_urlpatterns = [
 public_urlpatterns = [
     path("settings/", PublicSettingsView.as_view(), name="settings"),
     path("app-links/", PublicAppLinksView.as_view(), name="app-links"),
+    path("app-update/", PublicAppUpdateView.as_view(), name="app-update"),
     path("announcements/", PublicAnnouncementListView.as_view(), name="announcement-list"),
     path("faqs/", PublicFaqListView.as_view(), name="faq-list"),
     path("pages/<slug:slug>/", PublicPageView.as_view(), name="page-detail"),

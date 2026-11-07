@@ -12,10 +12,10 @@ function agent(userAgent: string) {
   vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(userAgent);
 }
 
-test("desktop: Download App → the store link", () => {
+test("desktop: Download App → the download page (which holds the real link)", () => {
   agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
   render(<AppButton downloadUrl={store} openUrl="livemodeltest://open" labels={labels} lang="en" />);
-  expect(screen.getByRole("link", { name: "Download App" })).toHaveAttribute("href", store);
+  expect(screen.getByRole("link", { name: "Download App" })).toHaveAttribute("href", "/en/download");
 });
 
 test("Android with the app link: Open App → the app's own link", () => {

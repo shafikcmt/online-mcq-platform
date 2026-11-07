@@ -29,6 +29,10 @@ const FIELDS: (keyof Draft)[] = [
   "contact_phone",
   "app_download_url",
   "app_open_url",
+  "app_latest_version",
+  "app_min_version",
+  "app_update_note_bn",
+  "app_update_note_en",
   "default_language",
   "public_leaderboard_name_mode",
   "app_leaderboard_name_mode",
@@ -78,7 +82,7 @@ export function SettingsView({ settings: initial }: { settings: SiteSettings }) 
     }
   }
 
-  const pair = (name: "platform_name" | "tagline" | "address", label: string, maxLength: number, multiline = false) => (
+  const pair = (name: "platform_name" | "tagline" | "address" | "app_update_note", label: string, maxLength: number, multiline = false) => (
     <BilingualField
       id={`settings-${name}`}
       label={label}
@@ -145,6 +149,18 @@ export function SettingsView({ settings: initial }: { settings: SiteSettings }) 
         <Field id="settings-open" label={t("settings.openUrl")} optional hint={t("settings.openUrlHint")} error={error("app_open_url")}>
           <Input inputMode="url" autoComplete="off" lang="en" maxLength={500} value={draft.app_open_url} onChange={(event) => set("app_open_url", event.target.value)} disabled={busy} />
         </Field>
+      </FormSection>
+
+      <FormSection title={t("settings.sectionUpdate")} description={t("settings.sectionUpdateHint")}>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field id="settings-latest" label={t("settings.latestVersion")} optional hint={t("settings.latestVersionHint")} error={error("app_latest_version")}>
+            <Input inputMode="numeric" autoComplete="off" lang="en" maxLength={12} placeholder="0.2.0" value={draft.app_latest_version} onChange={(event) => set("app_latest_version", event.target.value)} disabled={busy} />
+          </Field>
+          <Field id="settings-minimum" label={t("settings.minVersion")} optional hint={t("settings.minVersionHint")} error={error("app_min_version")}>
+            <Input inputMode="numeric" autoComplete="off" lang="en" maxLength={12} placeholder="0.1.0" value={draft.app_min_version} onChange={(event) => set("app_min_version", event.target.value)} disabled={busy} />
+          </Field>
+        </div>
+        {pair("app_update_note", t("settings.updateNote"), 300, true)}
       </FormSection>
 
       <FormSection title={t("settings.sectionDisplay")}>

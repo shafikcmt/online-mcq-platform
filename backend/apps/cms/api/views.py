@@ -13,6 +13,7 @@ Student (student JWT): ``GET /api/v1/announcements/`` — notices for students +
 """
 
 import logging
+from types import SimpleNamespace
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
@@ -36,6 +37,7 @@ from apps.core.public_api import PublicAPIMixin
 from apps.core.throttling import SecurityThrottle
 
 from .. import selectors, services
+from ..app_version import update_state
 from ..models import (
     Announcement,
     Audience,
@@ -54,6 +56,7 @@ from .serializers import (
     PageAdminSerializer,
     PublicAnnouncementSerializer,
     PublicAppLinksSerializer,
+    PublicAppUpdateSerializer,
     PublicFaqSerializer,
     PublicPageSerializer,
     PublicSettingsSerializer,
@@ -333,6 +336,42 @@ class PublicAppLinksView(PublicAPIMixin, APIView):
     @extend_schema(responses=PublicAppLinksSerializer)
     def get(self, request):
         return Response(PublicAppLinksSerializer(selectors.current_settings()).data)
+
+
+class PublicAppUpdateView(PublicAPIMixin, APIView):
+    """What the running app should do about updates. The app sends its own version
+    (``?version=1.2.3``); the answer says whether an update is available or required, with
+    the download link (an APK now, the Google Play page after launch) and a short note.
+    Nothing is offered while no download link is set, so a notice can never lead nowhere."""
+
+    http_method_names = ["get", "options"]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "version", OpenApiTypes.STR, description="The app's version, e.g. 1.2.3."
+            )
+        ],
+        responses=PublicAppUpdateSerializer,
+    )
+    def get(self, request):
+        current = selectors.current_settings()
+        state = update_state(
+            request.query_params.get("version", ""),
+            current.app_latest_version,
+            current.app_min_version,
+        )
+        if not current.app_download_url:
+            state = {"update_available": False, "update_required": False}
+        notice = SimpleNamespace(
+            latest_version=current.app_latest_version,
+            min_version=current.app_min_version,
+            download_url=current.app_download_url,
+            app_update_note_bn=current.app_update_note_bn,
+            app_update_note_en=current.app_update_note_en,
+            **state,
+        )
+        return Response(PublicAppUpdateSerializer(notice, context={"request": request}).data)
 
 
 class PublicAnnouncementListView(PublicAPIMixin, generics.ListAPIView):
