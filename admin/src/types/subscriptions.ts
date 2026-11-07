@@ -16,6 +16,8 @@ export type AdminSubscription = {
   /** Total paid for this subscription (all periods), decimal string. */
   price_paid: string;
   currency: string;
+  /** A test subscription made by a sandbox payment (hidden from lists unless asked for). */
+  is_test: boolean;
   created_at: string;
   updated_at: string;
 };

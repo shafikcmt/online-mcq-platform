@@ -28,6 +28,7 @@ function subscription(overrides: Partial<AdminSubscription> = {}): AdminSubscrip
     expires_at: "2026-10-31T08:00:00Z",
     price_paid: "500.00",
     currency: "BDT",
+    is_test: false,
     created_at: "2026-10-01T08:00:00Z",
     updated_at: "2026-10-01T08:00:00Z",
     ...overrides,
