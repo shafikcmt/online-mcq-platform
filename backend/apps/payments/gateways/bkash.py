@@ -21,7 +21,7 @@ Flow:
 4. ``query`` (reconciliation, admin re-verify) is read-only: it NEVER executes, so a
    background job can never take money from a student who already walked away.
 
-Credentials (app key/secret, username, password) are read from settings (environment) and
+Credentials (app key/secret, username, password) come from the gateway's ``GatewayConfig`` and
 sent only to bKash over HTTPS; the token is cached (it is rate-limited) and never logged,
 stored in the database or returned. Answers pass through ``payments.sanitize``.
 """
@@ -29,13 +29,13 @@ stored in the database or returned. Answers pass through ``payments.sanitize``.
 import logging
 from collections.abc import Mapping
 
-from django.conf import settings
 from django.core.cache import cache
 
 from ..sanitize import sanitize
 from .base import (
     CallbackData,
     CallbackUrls,
+    ConnectionTest,
     Customer,
     GatewayError,
     InitiateResult,
@@ -86,15 +86,20 @@ class BkashGateway(PaymentGateway):
     # ----------------------------------------------------------------------------------
     @property
     def _base(self) -> str:
-        host = SANDBOX_HOST if settings.BKASH_SANDBOX else LIVE_HOST
-        return f"{host}/{settings.BKASH_API_VERSION.strip('/')}/tokenized/checkout"
+        host = SANDBOX_HOST if self.config.sandbox else LIVE_HOST
+        version = str(self.config.option("api_version", "v1.2.0-beta")).strip("/")
+        return f"{host}/{version}/tokenized/checkout"
+
+    @property
+    def _timeout(self) -> float:
+        return float(self.config.option("timeout_seconds", 15))
 
     def _credentials(self) -> tuple[str, str, str, str]:
         creds = (
-            settings.BKASH_APP_KEY,
-            settings.BKASH_APP_SECRET,
-            settings.BKASH_USERNAME,
-            settings.BKASH_PASSWORD,
+            self.config.credential("app_key"),
+            self.config.credential("app_secret"),
+            self.config.credential("username"),
+            self.config.credential("password"),
         )
         if not all(creds):
             raise GatewayError("not_configured")
@@ -102,7 +107,8 @@ class BkashGateway(PaymentGateway):
 
     @property
     def _token_cache_key(self) -> str:
-        return f"payments:bkash:id_token:{'sandbox' if settings.BKASH_SANDBOX else 'live'}"
+        # Per merchant account AND mode: two gateways (or sandbox and live) never share a token.
+        return f"payments:bkash:id_token:{self.config.scope}:{self.config.mode}"
 
     def _token(self, *, refresh: bool = False) -> str:
         if not refresh:
@@ -115,7 +121,7 @@ class BkashGateway(PaymentGateway):
             f"{self._base}/token/grant",
             body={"app_key": app_key, "app_secret": app_secret},
             headers={"username": username, "password": password},
-            timeout=settings.BKASH_TIMEOUT_SECONDS,
+            timeout=self._timeout,
         )
         token = answer.get("id_token")
         if (
@@ -138,7 +144,7 @@ class BkashGateway(PaymentGateway):
                     f"{self._base}{path}",
                     body=body,
                     headers={"Authorization": token, "X-APP-Key": app_key},
-                    timeout=settings.BKASH_TIMEOUT_SECONDS,
+                    timeout=self._timeout,
                 )
             except GatewayError as exc:
                 if attempt == 0 and exc.reason == "http_401":
@@ -277,3 +283,12 @@ class BkashGateway(PaymentGateway):
             if final.outcome != Outcome.ERROR:
                 return final
         return self.query(payment)
+
+    def test_connection(self) -> ConnectionTest:
+        """Asks bKash for a fresh token: proves the four credentials and the host work
+        together. Starts no payment and moves no money."""
+        try:
+            self._token(refresh=True)
+        except GatewayError as exc:
+            return ConnectionTest(supported=True, ok=False, message=exc.reason)
+        return ConnectionTest(supported=True, ok=True, message="token_granted")

@@ -228,6 +228,7 @@ class TestInitiation:
             "merchant_reference",
             "status",
             "provider",
+            "is_test",
             "amount",
             "currency",
             "package",

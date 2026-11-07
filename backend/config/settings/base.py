@@ -428,6 +428,9 @@ PAYMENT_CALLBACK_BASE_URL = env_str("PAYMENT_CALLBACK_BASE_URL", "http://localho
 # Where the browser is sent after a callback (app return page or app scheme), with
 # ?payment=<id>&status=<status>. Empty = a small JSON answer (development).
 PAYMENT_RETURN_URL = env_str("PAYMENT_RETURN_URL", "")
+# The same for payments started on the WEBSITE (the app keeps PAYMENT_RETURN_URL). Empty =
+# fall back to PAYMENT_RETURN_URL. A gateway's own return URLs (admin panel) win over both.
+PAYMENT_WEB_RETURN_URL = env_str("PAYMENT_WEB_RETURN_URL", "")
 # Reconciliation: only payments older than this are re-queried; one the provider has
 # never heard of is closed as "abandoned" after PAYMENT_ABANDON_AFTER_SECONDS.
 PAYMENT_RECONCILE_MIN_AGE_SECONDS = env_int("PAYMENT_RECONCILE_MIN_AGE_SECONDS", 900)

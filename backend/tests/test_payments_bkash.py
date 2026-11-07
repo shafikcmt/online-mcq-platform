@@ -161,15 +161,18 @@ class TestMethodsEndpoint:
         settings.PAYMENT_ENABLED_PROVIDERS = ["bkash", "sslcommerz"]
         response = jwt_client(student).get(f"{PAYMENTS}methods/", HTTP_ACCEPT_LANGUAGE="en")
         assert response.status_code == 200
-        assert response.json()["results"] == [
-            {"provider": "bkash", "label": "bKash"},
-            {"provider": "sslcommerz", "label": "SSLCommerz"},
+        rows = response.json()["results"]
+        assert [(r["provider"], r["gateway"], r["label"]) for r in rows] == [
+            ("bkash", "bkash", "bKash"),
+            ("sslcommerz", "sslcommerz", "SSLCommerz"),
         ]
+        assert all(r["is_test"] is False for r in rows)
 
     def test_labels_follow_the_requested_language(self, settings, student):
         settings.PAYMENT_ENABLED_PROVIDERS = ["bkash"]
         response = jwt_client(student).get(f"{PAYMENTS}methods/", HTTP_ACCEPT_LANGUAGE="bn")
-        assert response.json()["results"] == [{"provider": "bkash", "label": "বিকাশ"}]
+        rows = response.json()["results"]
+        assert [(r["provider"], r["label"]) for r in rows] == [("bkash", "বিকাশ")]
 
     def test_empty_while_payments_are_off(self, settings, student):
         settings.PAYMENT_PROVIDER = "unavailable"

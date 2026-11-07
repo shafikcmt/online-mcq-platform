@@ -28,8 +28,6 @@ import urllib.parse
 import urllib.request
 from collections.abc import Mapping
 
-from django.conf import settings
-
 from ..sanitize import sanitize
 from .base import (
     CallbackData,
@@ -121,18 +119,23 @@ class SslCommerzGateway(PaymentGateway):
 
     # ----------------------------------------------------------------------------------
     @property
+    def _timeout(self) -> float:
+        return float(self.config.option("timeout_seconds", 15))
+
+    @property
     def host(self) -> str:
-        return SANDBOX_HOST if settings.SSLCOMMERZ_SANDBOX else LIVE_HOST
+        return SANDBOX_HOST if self.config.sandbox else LIVE_HOST
 
     def _credentials(self) -> tuple[str, str]:
-        store_id, password = settings.SSLCOMMERZ_STORE_ID, settings.SSLCOMMERZ_STORE_PASSWORD
+        store_id = self.config.credential("store_id")
+        password = self.config.credential("store_password")
         if not store_id or not password:
             raise GatewayError("not_configured")
         return store_id, password
 
     def _get(self, path: str, params: dict) -> dict:
         url = f"{self.host}{path}?{urllib.parse.urlencode(params)}"
-        return http_request("GET", url, timeout=settings.SSLCOMMERZ_TIMEOUT_SECONDS)
+        return http_request("GET", url, timeout=self._timeout)
 
     # ----------------------------------------------------------------------------------
     def initiate(self, payment, *, urls: CallbackUrls, customer: Customer) -> InitiateResult:
@@ -149,20 +152,19 @@ class SslCommerzGateway(PaymentGateway):
             "cancel_url": urls.cancel,
             "ipn_url": urls.ipn,
             "cus_name": _clip(customer.name, 50) or "Student",
-            "cus_email": _clip(customer.email, 50) or settings.SSLCOMMERZ_CUSTOMER_EMAIL,
+            "cus_email": _clip(customer.email, 50)
+            or self.config.option("customer_email", "customer@example.com"),
             "cus_phone": _clip(customer.phone, 20),
-            "cus_add1": settings.SSLCOMMERZ_CUSTOMER_ADDRESS,
-            "cus_city": settings.SSLCOMMERZ_CUSTOMER_CITY,
-            "cus_country": settings.SSLCOMMERZ_CUSTOMER_COUNTRY,
+            "cus_add1": self.config.option("customer_address", "Dhaka"),
+            "cus_city": self.config.option("customer_city", "Dhaka"),
+            "cus_country": self.config.option("customer_country", "Bangladesh"),
             "shipping_method": "NO",
             "num_of_item": "1",
             "product_name": _clip(package.name_en or package.name_bn or package.slug, 100),
             "product_category": "Subscription",
             "product_profile": "non-physical-goods",
         }
-        body = http_request(
-            "POST", self.host + SESSION_PATH, form=form, timeout=settings.SSLCOMMERZ_TIMEOUT_SECONDS
-        )
+        body = http_request("POST", self.host + SESSION_PATH, form=form, timeout=self._timeout)
         checkout_url = str(body.get("GatewayPageURL") or "")
         if str(body.get("status", "")).upper() != "SUCCESS" or not checkout_url:
             raise GatewayError("init_rejected")
@@ -180,7 +182,7 @@ class SslCommerzGateway(PaymentGateway):
             merchant_reference=_clip(data.get("tran_id", ""), 64),
             verification_token=_clip(data.get("val_id", ""), 100),
             reported_status=_clip(data.get("status", ""), 32),
-            signature_valid=signature_is_valid(data, settings.SSLCOMMERZ_STORE_PASSWORD),
+            signature_valid=signature_is_valid(data, self.config.credential("store_password")),
             raw=sanitize(dict(data)),
         )
 

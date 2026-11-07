@@ -22,11 +22,23 @@ class InitiateSerializer(serializers.Serializer):
     package_id = serializers.IntegerField(min_value=1)
     # One of the methods listed by GET /payments/methods/; empty = the default method.
     provider = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
+    # A gateway ``slug`` from GET /payments/methods/ (several merchant accounts of one
+    # provider can exist); it wins over ``provider``.
+    gateway = serializers.CharField(max_length=40, required=False, allow_blank=True, default="")
+    # Where the student pays from; decides where the browser returns to afterwards.
+    channel = serializers.ChoiceField(choices=["web", "app"], required=False, default="")
 
 
 class PaymentMethodSerializer(serializers.Serializer):
-    provider = serializers.CharField()
-    label = serializers.CharField()
+    provider = serializers.CharField()  # the adapter (bkash, sslcommerz ...)
+    gateway = serializers.CharField()  # what to send back as ``gateway``
+    label = serializers.CharField()  # = name, kept for older clients
+    name = serializers.CharField()
+    description = serializers.CharField(allow_blank=True)
+    logo_url = serializers.CharField(allow_blank=True)
+    min_amount = serializers.DecimalField(**M, allow_null=True)
+    max_amount = serializers.DecimalField(**M, allow_null=True)
+    is_test = serializers.BooleanField()  # a sandbox gateway shown to a designated tester
 
 
 class PaymentPackageSerializer(serializers.Serializer):
@@ -41,6 +53,7 @@ class PaymentSerializer(serializers.Serializer):
     merchant_reference = serializers.CharField()
     status = serializers.ChoiceField(choices=PaymentStatus.choices)
     provider = serializers.ChoiceField(choices=PaymentProvider.choices)
+    is_test = serializers.SerializerMethodField()
     amount = serializers.DecimalField(**M)
     currency = serializers.CharField()
     package = serializers.SerializerMethodField()
@@ -49,6 +62,9 @@ class PaymentSerializer(serializers.Serializer):
     verified_at = serializers.DateTimeField(allow_null=True)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
+
+    def get_is_test(self, payment) -> bool:
+        return payment.mode == "sandbox"
 
     def get_package(self, payment) -> PaymentPackageSerializer:
         request = self.context.get("request")

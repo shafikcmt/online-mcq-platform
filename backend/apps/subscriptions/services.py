@@ -461,6 +461,7 @@ def grant_subscription(
     starts_at: datetime | None = None,
     validity_days: int | None = None,
     for_verified_payment: bool = False,
+    is_test: bool = False,
 ) -> GrantResult:
     """Give a student a package (manual/admin grant now; verified payments in M5).
 
@@ -503,7 +504,12 @@ def grant_subscription(
 
     rows = list(
         Subscription.objects.select_for_update()
-        .filter(user_id=user.pk, package_id=package.pk, status=SubscriptionStatus.ACTIVE)
+        .filter(
+            user_id=user.pk,
+            package_id=package.pk,
+            status=SubscriptionStatus.ACTIVE,
+            is_test=is_test,  # a test period never extends a real one, nor the reverse
+        )
         .order_by("pk")
     )
     running = [s for s in rows if s.expires_at > now]
@@ -564,6 +570,7 @@ def grant_subscription(
         starts_at=starts_at,
         expires_at=starts_at + validity,
         price_paid=amount,
+        is_test=is_test,
     )
     subscription.full_clean(validate_constraints=False)
     subscription.save()

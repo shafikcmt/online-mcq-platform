@@ -55,10 +55,11 @@ from apps.core.exceptions import ApiError
 from apps.core.net import get_client_ip
 from apps.core.public_api import PublicAPIMixin
 from apps.core.throttling import SecurityThrottle
+from apps.subscriptions.models import Package
 
-from .. import services
-from ..exceptions import PAYMENT_UNAVAILABLE_MESSAGE, PaymentError
-from ..gateways import CallbackKind, is_enabled, offered_providers
+from .. import gateway_manager, services
+from ..exceptions import INVALID_CHANNEL_MESSAGE, PAYMENT_UNAVAILABLE_MESSAGE, PaymentError
+from ..gateways import CallbackKind, is_enabled
 from ..gateways import mock as mock_gateway
 from ..models import IDEMPOTENCY_KEY_MAX_LENGTH, Payment, PaymentProvider, PaymentStatus
 from ..selectors import with_timeline
@@ -156,6 +157,8 @@ class PaymentListCreateView(generics.ListAPIView):
                 idempotency_key=key,
                 ip=get_client_ip(request),
                 provider=data.validated_data.get("provider", ""),
+                gateway=data.validated_data.get("gateway", ""),
+                channel=data.validated_data.get("channel", ""),
             )
         except DjangoValidationError as exc:
             raise to_drf_validation_error(exc) from exc
@@ -181,17 +184,48 @@ class PaymentMethodsView(APIView):
 
     @extend_schema(
         tags=["payments"],
+        parameters=[
+            OpenApiParameter("channel", OpenApiTypes.STR, enum=["web", "app"]),
+            OpenApiParameter(
+                "package_id", OpenApiTypes.INT, description="Applies the gateways' amount limits."
+            ),
+        ],
         responses=inline_serializer(
             "PaymentMethodsResponse", {"results": PaymentMethodSerializer(many=True)}
         ),
     )
     def get(self, request):
+        channel = request.query_params.get("channel", "")
+        if channel not in ("", "web", "app"):
+            raise serializers.ValidationError({"channel": [INVALID_CHANNEL_MESSAGE]})
+        amount, currency = None, ""
+        package_id = request.query_params.get("package_id", "")
+        if package_id.isdecimal():
+            package = Package.objects.filter(pk=int(package_id)).first()
+            if package is not None:
+                amount, currency = package.price, package.currency
+        offers = gateway_manager.available_offers(
+            request.user, channel, amount=amount, currency=currency
+        )
         return Response(
             {
                 "results": [
-                    {"provider": code, "label": str(PaymentProvider(code).label)}
-                    for code in offered_providers()
-                    if code in PaymentProvider.values
+                    {
+                        "provider": offer.adapter,
+                        "gateway": offer.slug,
+                        "label": offer.name(),
+                        "name": offer.name(),
+                        "description": offer.description(),
+                        "logo_url": offer.logo_url,
+                        "min_amount": None
+                        if offer.min_amount is None
+                        else f"{offer.min_amount:.2f}",
+                        "max_amount": None
+                        if offer.max_amount is None
+                        else f"{offer.max_amount:.2f}",
+                        "is_test": offer.mode == "sandbox",
+                    }
+                    for offer in offers
                 ]
             }
         )
@@ -261,11 +295,16 @@ class PaymentCallbackView(_ProviderView):
         params = {"status": payment.status if payment is not None else "unknown"}
         if payment is not None:
             params["payment"] = str(payment.public_id)
-        if settings.PAYMENT_RETURN_URL:
-            separator = "&" if "?" in settings.PAYMENT_RETURN_URL else "?"
-            return _return_redirect(
-                settings.PAYMENT_RETURN_URL + separator + urllib.parse.urlencode(params)
-            )
+        # The website and the app have different return pages; the payment remembers which
+        # one it was started from (and its gateway may carry its own).
+        target = (
+            gateway_manager.return_url_for(payment)
+            if payment is not None
+            else settings.PAYMENT_RETURN_URL
+        )
+        if target:
+            separator = "&" if "?" in target else "?"
+            return _return_redirect(target + separator + urllib.parse.urlencode(params))
         return Response(params)
 
     def get(self, request, provider, kind):

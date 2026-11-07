@@ -127,6 +127,9 @@ class Payment(TimeStampedModel):
         editable=False,
     )
     mode = models.CharField(_("mode"), max_length=10, blank=True, default="", editable=False)
+    # Where the student started the payment ("web" or "app"); decides which return URL the
+    # browser is sent back to. "" for older payments (the app return URL is used).
+    channel = models.CharField(_("channel"), max_length=5, blank=True, default="", editable=False)
     amount = money_field(_("amount"))
     currency = models.CharField(_("currency"), max_length=3, choices=Currency.choices)
     # Snapshot of the package's validity at initiation: the duration this payment buys.
@@ -182,6 +185,10 @@ class Payment(TimeStampedModel):
             models.CheckConstraint(
                 condition=models.Q(mode__in=["", "sandbox", "live"]),
                 name="payments_mode_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(channel__in=["", "web", "app"]),
+                name="payments_channel_valid",
             ),
             # Success always carries its proof and the subscription it paid for.
             models.CheckConstraint(
@@ -494,3 +501,33 @@ class PaymentGatewayLog(models.Model):
 
     def delete(self, *args, **kwargs):
         raise PaymentEventImmutable("Gateway log entries cannot be deleted.")
+
+
+class PaymentTester(models.Model):
+    """A student account an admin designated to make SANDBOX payments. Sandbox gateways are
+    offered to these accounts only, and what they buy is a test subscription (never a real
+    one). Removing the row takes the sandbox methods away again."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        on_delete=models.CASCADE,
+        related_name="payment_tester",
+    )
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("added by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("payment tester")
+        verbose_name_plural = _("payment testers")
+        ordering = ("-created_at", "-id")
+
+    def __str__(self) -> str:
+        return f"payment tester #{self.user_id}"
