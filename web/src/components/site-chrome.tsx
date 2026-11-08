@@ -88,7 +88,12 @@ export function SiteFooter({ lang, settings }: { lang: Lang; settings: Settings 
               {line}
             </p>
           ))}
-          <AppButton downloadUrl={settings?.app_download_url ?? ""} openUrl={settings?.app_open_url ?? ""} labels={appLabels(lang)} lang={lang} className="self-start" />
+          {/* A quiet text link, not a second button: the header already carries the main one. */}
+          {settings?.app_download_url ? (
+            <Link href={`/${lang}/download`} className="self-start text-sm font-semibold text-brand-700 hover:underline">
+              {appLabels(lang).download}
+            </Link>
+          ) : null}
         </div>
       </div>
       <div className="flex flex-col items-center justify-between gap-2 border-t border-line px-4 py-5 text-center text-xs text-ink-subtle sm:flex-row sm:px-6 lg:mx-auto lg:max-w-6xl">
