@@ -252,18 +252,21 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </section>
       ) : null}
 
-      {/* Get the app */}
-      <section id="get-app" aria-labelledby="final" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-16 sm:px-6">
-        <div className="flex flex-col items-start gap-5 rounded-dialog bg-gradient-to-br from-brand-700 to-brand-950 p-8 text-white sm:p-12 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-xl">
-            <h2 id="final" className="text-2xl font-bold sm:text-3xl">
-              {m.final.title}
-            </h2>
-            <p className="mt-2 text-brand-100">{settings?.app_download_url ? m.final.body : t("app.soonBody")}</p>
+      {/* "Coming soon" notice: shown only until a download link exists. Afterwards the header
+          and the hero already carry the one download button, so this block would repeat it. */}
+      {settings?.app_download_url ? null : (
+        <section id="get-app" aria-labelledby="final" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-16 sm:px-6">
+          <div className="flex flex-col items-start gap-5 rounded-dialog bg-gradient-to-br from-brand-700 to-brand-950 p-8 text-white sm:p-12 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl">
+              <h2 id="final" className="text-2xl font-bold sm:text-3xl">
+                {m.final.title}
+              </h2>
+              <p className="mt-2 text-brand-100">{t("app.soonBody")}</p>
+            </div>
+            <AppButton {...app} size="lg" className="bg-white text-brand-800 hover:bg-brand-50" />
           </div>
-          <AppButton {...app} size="lg" className="bg-white text-brand-800 hover:bg-brand-50" />
-        </div>
-      </section>
+        </section>
+      )}
     </>
   );
 }

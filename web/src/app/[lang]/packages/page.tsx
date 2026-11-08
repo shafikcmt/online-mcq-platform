@@ -2,9 +2,8 @@ import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AppButton } from "@/components/app-button";
 import { EmptyNote, PackageCard, PageIntro, SectionHead, UnavailableNote } from "@/components/cards";
-import { getSettings, publicGet, type Package, type Page } from "@/lib/api";
+import { publicGet, type Package, type Page } from "@/lib/api";
 import { pageHref } from "@/lib/exam-filters";
 import { digits } from "@/lib/format";
 import { isLang, messages, translator, type Lang } from "@/lib/i18n";
@@ -26,13 +25,7 @@ export default async function PackagesPage({ params }: { params: Promise<{ lang:
   const lang = (await params).lang as Lang;
   const t = translator(lang);
   const how = messages(lang).packagesPage.how;
-  const [packages, settings] = await Promise.all([publicGet<Page<Package>>("packages/?page_size=100", lang), getSettings(lang)]);
-  const app = {
-    downloadUrl: settings?.app_download_url ?? "",
-    openUrl: settings?.app_open_url ?? "",
-    labels: { download: t("app.download"), open: t("app.open"), soon: t("app.soon") },
-    lang,
-  };
+  const packages = await publicGet<Page<Package>>("packages/?page_size=100", lang);
 
   return (
     <>
@@ -74,7 +67,6 @@ export default async function PackagesPage({ params }: { params: Promise<{ lang:
               </li>
             ))}
           </ol>
-          <AppButton {...app} size="lg" className="mt-8" />
         </section>
       </div>
     </>
