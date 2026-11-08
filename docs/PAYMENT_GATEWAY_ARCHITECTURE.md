@@ -33,6 +33,10 @@ per-provider notes (bKash sandbox checklist, Nagad, Rocket, Bangla QR, Google Pl
    admin adds a gateway for an adapter, the panel wins for it.
 3. `PAYMENT_PROVIDER=unavailable` switches **every** payment off, whatever else is configured.
    It is the emergency switch.
+4. `PAYMENT_PROVIDER=database` offers **only** the database gateways: no environment
+   fallback, and production's startup check asks for no `BKASH_*` / `SSLCOMMERZ_*`
+   credentials (it still requires the callback and return addresses). This is the intended
+   production value once gateways are managed in the panel.
 
 ## 3. Modes and testers
 

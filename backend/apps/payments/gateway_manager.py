@@ -12,6 +12,7 @@ Two sources, database first:
    moment an admin configures an adapter in the panel, the panel wins.
 
 ``PAYMENT_PROVIDER=unavailable`` still switches every payment off, whatever else is set.
+``PAYMENT_PROVIDER=database`` offers only the database gateways (no environment fallback).
 
 **Sandbox rule.** A sandbox-mode database gateway is offered only to designated testers
 (``PaymentTester``); everyone else never sees it. What a tester buys through it is a *test*

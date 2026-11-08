@@ -6,7 +6,7 @@ provider calls in the tests are fakes.
 
 > **সারসংক্ষেপ (Bangla):** সিস্টেমের কাঠামো, নিরাপত্তা আর টেস্ট তৈরি। কিন্তু bKash বা
 > SSLCommerz-এর আসল sandbox-এ একবারও চালানো হয়নি, তাই কোনো gateway-কে "production-ready"
-> বলা যাবে না। Live-এর আগে নিচের "Gap" গুলো (বিশেষ করে G1, G2) মেটাতে হবে।
+> বলা যাবে না। Live-এর আগে নিচের "Gap" গুলো (বিশেষ করে G2) মেটাতে হবে। G1 (সার্ভার সুইচ) এখন `PAYMENT_PROVIDER=database` দিয়ে মেটানো।
 > ততদিন সার্ভারে `PAYMENT_PROVIDER=unavailable` থাকবে।
 
 ## 1. Verdict
@@ -29,7 +29,7 @@ provider calls in the tests are fakes.
 
 | # | Gap | Impact | What closes it |
 |---|---|---|---|
-| **G1** | **Server switch vs panel.** `PAYMENT_PROVIDER=unavailable` offers nothing, panel gateways included. Any other value makes production's startup check demand that provider's `BKASH_*` / `SSLCOMMERZ_*` **environment** credentials (real, non-placeholder; sandbox values refused without `PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true`) even though the panel's gateway is the one used. So panel-only operation is not possible in production today. | Setting up and testing needs awkward environment values; a mistake could expose the environment fallback. Documented workaround in `PAYMENT_GATEWAY_SETUP.md` §1. | **Proposed fix (needs approval):** a new `PAYMENT_PROVIDER=database` value meaning "offers come only from the panel's gateways; no environment credentials required; `unavailable` stays the kill switch". Small change in `gateway_manager`, the startup check, tests and docs. |
+| **G1** | ~~Server switch vs panel~~ **Resolved:** `PAYMENT_PROVIDER=database` offers only the panel's gateways and needs no environment credentials; `unavailable` stays the kill switch. Found during this review (before, any value other than `unavailable` made production demand `BKASH_*` / `SSLCOMMERZ_*` environment credentials that the panel's gateway never used). | None now. The server still runs `unavailable`; change it to `database` only when you begin sandbox testing. | Done (tests in `test_payment_database_mode.py`). Takes effect on the server after the next deploy and a `.env.prod` change. |
 | **G2** | **No real provider run.** Signature rules, status names, amount formats, whether the reference is echoed, token limits, failure paths are assumptions from public descriptions. | A real payment could be refused (fail-closed) or mishandled until corrected. | Run `PAYMENT_GATEWAY_TESTING.md` §4 and `PAYMENT_METHODS.md` §4 with the client's sandbox credentials; fix the adapter for each difference. |
 | **G3** | **No key rotation or re-encryption tool.** Changing or losing `SECRET_ENCRYPTION_KEY` makes stored credentials (and the SMS key) unreadable. | Payments through DB gateways fail until credentials are typed in again. | Keep the key backed up; a rotation tool can be added later (decrypt with old key, encrypt with new). |
 | **G4** | **Return into the app.** `PAYMENT_RETURN_URL` in `.env.prod.example` is the website's `/payment-return` page. An in-app payment returns to the website page, not into the app, unless the app's return URL is `livemodeltest://payment-result` (server setting or the gateway's own app return URL). | Only matters if students pay inside the app. The app's checkout waits for the app link to close the in-app browser. | Set the app return URL when app payments are used; test on a device. Whether the app may sell subscriptions outside Google Play Billing is **unconfirmed for Bangladesh** (`PAYMENT_METHODS.md` §8). |
@@ -46,7 +46,7 @@ All items are the owner's unless stated.
 
 - [ ] Merchant account(s) exist **in the client's name**; sandbox and live credentials received
       through the provider's channel, never chat.
-- [ ] G1 resolved (approve the proposed fix, or accept the documented workaround).
+- [ ] `PAYMENT_PROVIDER=database` set on the server (G1: resolved in code; needs the deploy and the `.env.prod` edit).
 - [ ] `SECRET_ENCRYPTION_KEY` set and **backed up** in the password store (G3).
 - [ ] Gateway added in the panel; credentials entered in sandbox mode; connection test run.
 - [ ] Tester account added; **every step 1–13 of `PAYMENT_GATEWAY_TESTING.md` §4 passed** for
@@ -95,7 +95,7 @@ the gateway so students are not sent to a broken page.
 Migrations (all additive): `payments` 0003 (gateways, credentials, log, payment gateway/mode),
 `payments` 0004 (channel, testers), `subscriptions` 0003 (`is_test`), `cms` 0002 (app update
 notice). No data was removed. Environment variables added to `.env.prod.example` (placeholders
-only): `PAYMENT_WEB_RETURN_URL`, `SECRET_ENCRYPTION_KEY` note, optional `THROTTLE_PAYMENT_METHODS`.
+only): `PAYMENT_PROVIDER=database` (new value), `PAYMENT_WEB_RETURN_URL`, `SECRET_ENCRYPTION_KEY` note, optional `THROTTLE_PAYMENT_METHODS`.
 Not verified by the author: that the Deploy production runs for these commits succeeded; check
 GitHub Actions.
 

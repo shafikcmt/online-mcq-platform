@@ -1,4 +1,5 @@
 from .base import (
+    PAYMENTS_DATABASE,
     PAYMENTS_UNAVAILABLE,
     CallbackData,
     CallbackKind,
@@ -16,6 +17,7 @@ from .base import (
 )
 
 __all__ = [
+    "PAYMENTS_DATABASE",
     "PAYMENTS_UNAVAILABLE",
     "CallbackData",
     "CallbackKind",

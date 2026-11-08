@@ -11,6 +11,7 @@ vi.mock("next/navigation", () => ({
 import { GatewayDetailView } from "@/components/gateways/gateway-detail-view";
 import { GatewayListView } from "@/components/gateways/gateway-list-view";
 import { TestingView } from "@/components/gateways/testing-view";
+import type { GatewayStats } from "@/types/gateways";
 import type { AdminSubscription } from "@/types/subscriptions";
 
 import { apiError, json, mockApi, renderPanel } from "./content-helpers";
@@ -23,7 +24,8 @@ beforeEach(() => router.push.mockReset());
 afterEach(() => vi.restoreAllMocks());
 
 describe("gateway list", () => {
-  const view = (rows = [gateway()]) => renderPanel(<GatewayListView gateways={rows} adapters={[bkashAdapter, nagadAdapter]} stats={stats()} />);
+  const view = (rows = [gateway()], over: Partial<GatewayStats> = {}) =>
+    renderPanel(<GatewayListView gateways={rows} adapters={[bkashAdapter, nagadAdapter]} stats={stats(over)} />);
 
   it("shows gateways with mode, readiness, channels and the real/test statistics apart", () => {
     view();
@@ -37,6 +39,22 @@ describe("gateway list", () => {
     const test = screen.getByRole("region", { name: "Test payments (sandbox)" });
     expect(within(test).getByText("৳ 500.00")).toBeInTheDocument();
     expect(test).toHaveTextContent("never counted in revenue");
+  });
+
+  it("tells the admin when the server has payments switched off", () => {
+    view([gateway()], { payment_switch: "unavailable" });
+    const note = screen.getByText("Payments are switched off on the server");
+    expect(note).toBeInTheDocument();
+    expect(screen.getByText(/Students cannot pay, whatever is set below/)).toBeInTheDocument();
+  });
+
+  it("explains the environment fallback, and says nothing when only the panel's gateways run", () => {
+    const { unmount } = view([gateway()], { payment_switch: "environment" });
+    expect(screen.getByText("The server also has environment payment settings")).toBeInTheDocument();
+    unmount();
+    view([gateway()], { payment_switch: "database" });
+    expect(screen.queryByText("Payments are switched off on the server")).not.toBeInTheDocument();
+    expect(screen.queryByText("The server also has environment payment settings")).not.toBeInTheDocument();
   });
 
   it("lists providers without an adapter as not available", () => {

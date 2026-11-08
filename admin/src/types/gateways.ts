@@ -75,6 +75,9 @@ export type GatewayStats = {
   real: StatBlock;
   sandbox: StatBlock;
   gateways: { id: string; slug: string; adapter: string; live: StatBlock; sandbox: StatBlock }[];
+  /** The server's PAYMENT_PROVIDER: "unavailable" (nothing is offered), "database" (only this
+   * panel's gateways) or "environment" (also the environment fallback). */
+  payment_switch: "unavailable" | "database" | "environment";
 };
 
 export type GatewayLogEntry = {
