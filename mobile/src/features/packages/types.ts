@@ -22,6 +22,8 @@ export type Payment = {
   merchant_reference: string;
   status: PaymentStatus;
   provider: string;
+  /** A sandbox payment by a designated tester (a test subscription, not a real one). */
+  is_test: boolean;
   amount: string;
   currency: string;
   package: { slug: string; name: string };
@@ -32,5 +34,17 @@ export type Payment = {
   updated_at: string;
 };
 
-/** `GET /payments/methods/`: one way to pay (`provider` is the code sent back when buying). */
-export type PaymentMethod = { provider: string; label: string };
+/** `GET /payments/methods/?channel=app`: one way to pay. `gateway` (the merchant account's
+ * identifier) is what is sent back when buying; `provider` is the adapter (bkash, sslcommerz…).
+ * `is_test` marks a sandbox gateway shown to a designated tester. Limits are decimal strings. */
+export type PaymentMethod = {
+  provider: string;
+  gateway: string;
+  label: string;
+  name: string;
+  description: string;
+  logo_url: string;
+  min_amount: string | null;
+  max_amount: string | null;
+  is_test: boolean;
+};

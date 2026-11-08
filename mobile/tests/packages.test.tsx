@@ -31,6 +31,7 @@ function payment(status: Payment["status"], overrides: Partial<Payment> = {}): P
     merchant_reference: "MCQABC123",
     status,
     provider: "mock",
+    is_test: false,
     amount: "500.00",
     currency: "BDT",
     package: { slug: "gold", name: "Gold" },
@@ -87,7 +88,7 @@ test("buy: confirm → the server opens a payment → provider page → the serv
 
   expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
   const post = backend.find("POST", "/payments/")[0];
-  expect(post.body).toEqual({ package_id: 7 }); // never a price from the app
+  expect(post.body).toEqual({ package_id: 7, channel: "app" }); // never a price from the app
   expect(post.headers["Idempotency-Key"]).toMatch(/^[A-Za-z0-9._:-]{1,64}$/);
   expect(WebBrowser.openAuthSessionAsync).toHaveBeenCalledWith("https://pay.example/checkout/MCQABC123", expect.stringContaining("payment-result"));
 
@@ -97,18 +98,45 @@ test("buy: confirm → the server opens a payment → provider page → the serv
   expect(screen.getByText("TXN-9")).toBeOnTheScreen();
 });
 
-const methods = (...codes: [string, string][]) => ok({ results: codes.map(([provider, label]) => ({ provider, label })) });
+type Gw = { gateway: string; name: string } & Partial<{ provider: string; description: string; logo_url: string; min_amount: string | null; max_amount: string | null; is_test: boolean }>;
+const methods = (...items: Gw[]) =>
+  ok({
+    results: items.map((item) => ({
+      provider: "bkash",
+      label: item.name,
+      description: "",
+      logo_url: "",
+      min_amount: null,
+      max_amount: null,
+      is_test: false,
+      ...item,
+    })),
+  });
 
-test("two ways to pay: the student chooses, and the choice (not a price) goes to the server", async () => {
-  const backend = await signedIn(
+const bkash: Gw = { gateway: "bkash-main", name: "bKash", provider: "bkash" };
+const ssl: Gw = { gateway: "sslcommerz", name: "SSLCommerz", provider: "sslcommerz" };
+
+async function buyWith(items: Gw[], extra: Record<string, { status: number; body?: unknown }> = {}) {
+  return signedIn(
     {
       "GET /packages/": page([pkg()]),
-      "GET /payments/methods/": methods(["bkash", "bKash"], ["sslcommerz", "SSLCommerz"]),
+      "GET /payments/methods/": methods(...items),
       "POST /payments/": { status: 201, body: payment("pending") },
       [`GET /payments/${PAY}/`]: ok(payment("pending")),
+      ...extra,
     },
     "/packages",
   );
+}
+
+test("the app asks for its own methods (channel app)", async () => {
+  const backend = await buyWith([bkash]);
+  await screen.findByRole("button", { name: "Buy" });
+  expect(backend.find("GET", "/payments/methods/")[0].query).toEqual({ channel: "app" });
+});
+
+test("two ways to pay: the student chooses, and the gateway (not a price) goes to the server with the app channel", async () => {
+  const backend = await buyWith([bkash, ssl]);
   await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
   expect(screen.getByText("Pay with")).toBeOnTheScreen();
   expect(screen.getByRole("radio", { name: "bKash" })).toBeSelected(); // the first is the default
@@ -116,40 +144,81 @@ test("two ways to pay: the student chooses, and the choice (not a price) goes to
   expect(screen.getByRole("radio", { name: "SSLCommerz" })).toBeSelected();
   await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
   expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
-  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, provider: "sslcommerz" });
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, channel: "app", gateway: "sslcommerz" });
 });
 
-test("two ways to pay, none touched: the default (first) method is sent", async () => {
-  const backend = await signedIn(
-    {
-      "GET /packages/": page([pkg()]),
-      "GET /payments/methods/": methods(["bkash", "bKash"], ["sslcommerz", "SSLCommerz"]),
-      "POST /payments/": { status: 201, body: payment("pending") },
-      [`GET /payments/${PAY}/`]: ok(payment("pending")),
-    },
-    "/packages",
-  );
+test("two ways to pay, none touched: the default (first) gateway is sent", async () => {
+  const backend = await buyWith([bkash, ssl]);
   await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
   await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
   expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
-  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, provider: "bkash" });
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, channel: "app", gateway: "bkash-main" });
 });
 
-test("a single way to pay shows no choice and sends only the package", async () => {
-  const backend = await signedIn(
-    {
-      "GET /packages/": page([pkg()]),
-      "GET /payments/methods/": methods(["bkash", "bKash"]),
-      "POST /payments/": { status: 201, body: payment("pending") },
-      [`GET /payments/${PAY}/`]: ok(payment("pending")),
-    },
-    "/packages",
-  );
+test("two merchant accounts of one provider are told apart by their gateway", async () => {
+  const backend = await buyWith([bkash, { gateway: "bkash-two", name: "bKash (second account)", provider: "bkash", description: "Second merchant" }]);
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.getByText("Second merchant")).toBeOnTheScreen();
+  await fireEvent.press(screen.getByRole("radio", { name: "bKash (second account)" }));
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, channel: "app", gateway: "bkash-two" });
+});
+
+test("a single way to pay is shown as a row (no radio) and its gateway is sent", async () => {
+  const backend = await buyWith([{ ...bkash, description: "Pay with bKash" }]);
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.getByText("Pay with")).toBeOnTheScreen();
+  expect(screen.getByText("Pay with bKash")).toBeOnTheScreen();
+  expect(screen.queryByRole("radio")).not.toBeOnTheScreen();
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, channel: "app", gateway: "bkash-main" });
+});
+
+test("a test gateway (a tester's sandbox) is marked as a test payment", async () => {
+  await buyWith([{ ...bkash, is_test: true }]);
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.getByText("Test payment")).toBeOnTheScreen();
+  expect(screen.getByText(/Test mode: this payment is only a test/)).toBeOnTheScreen();
+});
+
+test("a method whose limits do not fit the price is not offered", async () => {
+  const backend = await buyWith([{ ...bkash, min_amount: "1000.00" }, ssl]); // the package costs 500
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.queryByText("bKash")).not.toBeOnTheScreen();
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, channel: "app", gateway: "sslcommerz" });
+});
+
+test("no method fits the price: a note, and the payment cannot be started", async () => {
+  const backend = await buyWith([{ ...bkash, max_amount: "100.00" }]);
+  await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
+  expect(screen.getByText("No payment method is available for this package right now.")).toBeOnTheScreen();
+  await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
+  expect(backend.find("POST", "/payments/")).toHaveLength(0);
+});
+
+test("the methods cannot be loaded: no choice, the server's default is used (still the app channel)", async () => {
+  const backend = await buyWith([], { "GET /payments/methods/": { status: 500, body: { code: "server_error" } } });
   await fireEvent.press(await screen.findByRole("button", { name: "Buy" }));
   expect(screen.queryByText("Pay with")).not.toBeOnTheScreen();
   await fireEvent.press(screen.getByRole("button", { name: "Continue to payment" }));
   expect(await screen.findByText("Checking your payment with the server…")).toBeOnTheScreen();
-  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7 });
+  expect(backend.find("POST", "/payments/")[0].body).toEqual({ package_id: 7, channel: "app" });
+});
+
+test("a test payment's result says it is only a test", async () => {
+  await signedIn({ [`GET /payments/${PAY}/`]: ok(payment("success", { is_test: true })) }, `/payment/${PAY}`);
+  expect(await screen.findByText("Payment successful")).toBeOnTheScreen();
+  expect(screen.getByText(/Test mode: this payment is only a test/)).toBeOnTheScreen();
+});
+
+test("a real payment's result carries no test note", async () => {
+  await signedIn({ [`GET /payments/${PAY}/`]: ok(payment("success")) }, `/payment/${PAY}`);
+  expect(await screen.findByText("Payment successful")).toBeOnTheScreen();
+  expect(screen.queryByText(/Test mode/)).not.toBeOnTheScreen();
 });
 
 test("already subscribed: Extend, and the dialog says it adds time after the current end", async () => {

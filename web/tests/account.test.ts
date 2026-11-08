@@ -95,11 +95,15 @@ describe("API client", () => {
     const headers = init.headers as Record<string, string>;
     expect(headers.Authorization).toBe("Bearer tok");
     expect(headers["Idempotency-Key"]).toBe("web-key-1");
-    expect(JSON.parse(String(init.body))).toEqual({ package_id: 7 }); // only the package: the price is the server's
+    // Only the package and the channel: the price is the server's.
+    expect(JSON.parse(String(init.body))).toEqual({ package_id: 7, channel: "web" });
+    await startPayment("tok", 7, "web-key-2", "en", { gateway: "bkash-main", provider: "bkash" });
+    // The gateway (merchant account) wins over the adapter code.
+    expect(JSON.parse(String((fetchMock.mock.calls[1] as [string, RequestInit])[1].body))).toEqual({ package_id: 7, channel: "web", gateway: "bkash-main" });
     fetchMock.mockResolvedValue(json(200, { count: 0, results: [] }));
     await listPackages("tok", "bn");
     await getPayment("tok", PAYMENT_ID, "bn");
-    expect((fetchMock.mock.calls[2] as [string])[0]).toMatch(new RegExp(`/api/v1/payments/${PAYMENT_ID}/$`));
+    expect((fetchMock.mock.calls[3] as [string])[0]).toMatch(new RegExp(`/api/v1/payments/${PAYMENT_ID}/$`));
   });
 });
 
@@ -197,23 +201,28 @@ describe("startCheckout", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  test("the chosen payment method is sent to the API; without one nothing extra is sent", async () => {
+  test("the chosen gateway or method is sent to the API with the web channel; without one nothing extra is sent", async () => {
     state.cookies.set(SESSION_COOKIE, "tok");
     fetchMock.mockResolvedValue(json(201, paymentBody("https://pay.example/gw")));
+    const bodyOf = (index: number) => JSON.parse(String((fetchMock.mock.calls[index] as [string, RequestInit])[1].body));
     await redirectOf(() => startCheckout(pay({ provider: "bkash" })));
-    expect(JSON.parse(String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body))).toEqual({ package_id: 5, provider: "bkash" });
+    expect(bodyOf(0)).toEqual({ package_id: 5, channel: "web", provider: "bkash" });
+    await redirectOf(() => startCheckout(pay({ gateway: "bkash-main" })));
+    expect(bodyOf(1)).toEqual({ package_id: 5, channel: "web", gateway: "bkash-main" });
+    await redirectOf(() => startCheckout(pay({ gateway: "bkash-main", provider: "bkash" })));
+    expect(bodyOf(2)).toEqual({ package_id: 5, channel: "web", gateway: "bkash-main" }); // the gateway wins
     await redirectOf(() => startCheckout(pay()));
-    expect(JSON.parse(String((fetchMock.mock.calls[1] as [string, RequestInit])[1].body))).toEqual({ package_id: 5 });
+    expect(bodyOf(3)).toEqual({ package_id: 5, channel: "web" });
   });
 
   test("a malformed method code is dropped before it reaches the API", async () => {
     state.cookies.set(SESSION_COOKIE, "tok");
     fetchMock.mockResolvedValue(json(201, paymentBody("https://pay.example/gw")));
-    for (const bad of ["BKASH", "bkash; drop", "../x", "a".repeat(40)]) {
-      await redirectOf(() => startCheckout(pay({ provider: bad })));
+    for (const bad of ["BKASH", "bkash; drop", "../x", "a".repeat(41)]) {
+      await redirectOf(() => startCheckout(pay({ provider: bad, gateway: bad })));
     }
     for (const call of fetchMock.mock.calls as [string, RequestInit][]) {
-      expect(JSON.parse(String(call[1].body))).toEqual({ package_id: 5 });
+      expect(JSON.parse(String(call[1].body))).toEqual({ package_id: 5, channel: "web" });
     }
   });
 

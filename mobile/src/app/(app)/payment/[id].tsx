@@ -104,6 +104,11 @@ function State({ payment, polling, checkAgain }: { payment: Payment; polling: bo
   return (
     <>
       {hero}
+      {payment.is_test ? (
+        <AppText variant="small" color={colors.warning700} align="center">
+          {t("packages:testNote")}
+        </AppText>
+      ) : null}
       <Card style={styles.facts}>
         {facts.map(([label, value], index) => (
           <View key={label} style={[styles.fact, index > 0 && styles.factLine]}>
