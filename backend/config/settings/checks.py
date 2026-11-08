@@ -72,11 +72,16 @@ def validate_payment_settings(
 
     ``unavailable`` (apps.payments.gateways.PAYMENTS_UNAVAILABLE) is safe without any
     credentials: that server refuses every purchase and never contacts a provider.
+    ``database`` offers only the gateways managed in the Admin Panel and needs no environment
+    credentials.
     ``enabled`` (PAYMENT_ENABLED_PROVIDERS) lists every method students may choose; each one
     is checked, not just ``provider``."""
     if provider == "unavailable":
         return
-    offered = list(dict.fromkeys(enabled or [provider]))
+    # "database": only the Admin Panel's gateways are offered (their credentials are stored
+    # encrypted in the database), so no environment credentials are required or checked here;
+    # the callback and return addresses are still needed.
+    offered = [] if provider == "database" else list(dict.fromkeys(enabled or [provider]))
     problems = []
     for code in offered:
         if code == "mock":

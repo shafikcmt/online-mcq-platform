@@ -110,6 +110,16 @@ export function GatewayListView({
         }
       />
 
+      {stats.payment_switch === "unavailable" ? (
+        <Alert tone="warning" title={t("gw.switchOffTitle")}>
+          {t("gw.switchOffText")}
+        </Alert>
+      ) : stats.payment_switch === "environment" ? (
+        <Alert tone="info" title={t("gw.switchEnvTitle")}>
+          {t("gw.switchEnvText")}
+        </Alert>
+      ) : null}
+
       <div className="grid gap-4 lg:grid-cols-2">
         <StatCard title={t("gw.statsReal")} block={stats.real} tone="real" />
         <StatCard title={t("gw.statsSandbox")} note={t("gw.statsSandboxNote")} block={stats.sandbox} tone="test" />

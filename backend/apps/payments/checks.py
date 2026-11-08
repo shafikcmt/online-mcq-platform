@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.core.checks import Error, register
 
-from .gateways import PAYMENTS_UNAVAILABLE
+from .gateways import PAYMENTS_DATABASE, PAYMENTS_UNAVAILABLE
 
 # (setting, minimum, maximum)
 BOUNDS = (
@@ -29,13 +29,14 @@ def check_payment_settings(app_configs, **kwargs):
             )
     if (
         settings.PAYMENT_PROVIDER not in settings.PAYMENT_PROVIDERS
-        and settings.PAYMENT_PROVIDER != PAYMENTS_UNAVAILABLE
+        and settings.PAYMENT_PROVIDER not in (PAYMENTS_UNAVAILABLE, PAYMENTS_DATABASE)
     ):
         messages.append(
             Error(
                 f"PAYMENT_PROVIDER={settings.PAYMENT_PROVIDER!r} is not configured.",
                 hint=(
                     f"Use one of: {', '.join(sorted(settings.PAYMENT_PROVIDERS))}, "
+                    f"{PAYMENTS_DATABASE!r} for the Admin Panel's gateways only, "
                     f"or {PAYMENTS_UNAVAILABLE!r} to take no payments."
                 ),
                 id="payments.E002",

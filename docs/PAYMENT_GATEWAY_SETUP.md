@@ -6,6 +6,7 @@ form, never into chat, git, e-mail or a screenshot.
 
 > **সারসংক্ষেপ (Bangla):** ১) সার্ভারে `SECRET_ENCRYPTION_KEY` আছে কিনা দেখুন।
 > ২) Admin Panel → Commerce → Payment gateways-এ gateway যোগ করুন (প্রথমে sandbox)।
+> পেমেন্ট চালুর সুইচ: সার্ভারে `PAYMENT_PROVIDER=database`, বন্ধ করতে `unavailable`।
 > ৩) sandbox credential বসান (পাসওয়ার্ড লাগবে)। ৪) নিজের একটা অ্যাকাউন্টকে tester করুন।
 > ৫) সেই অ্যাকাউন্টে ওয়েবসাইট থেকে sandbox পেমেন্ট করে দেখুন। ৬) সফল হলে live credential
 > বসিয়ে Live করুন। ধাপ ৫ ছাড়া Live করা যায় না।
@@ -35,35 +36,36 @@ Put it in `/srv/mcq/.env.prod` as `SECRET_ENCRYPTION_KEY=...` and restart the ba
 change it afterwards: stored credentials (and the SMS key) become unreadable, and every
 gateway credential would have to be typed in again.
 
-## 1. The server-level switch (read this before step 2)
+## 1. The server-level switch
 
-> **Known gap G1 (see `PAYMENT_GATEWAY_READINESS.md`).** Today the server switch and the panel
-> do **not** yet work cleanly together in production. Until G1 is fixed, follow this section
-> exactly.
+`PAYMENT_PROVIDER` in `/srv/mcq/.env.prod` is the one server-side switch. It has three kinds of
+value:
 
-How `PAYMENT_PROVIDER` in `/srv/mcq/.env.prod` behaves today:
+| Value | Meaning |
+|---|---|
+| `unavailable` (the default) | **Emergency stop.** The server takes no payments at all: nothing is offered, not even the panel's gateways or sandbox tests. The panel still works (you can prepare gateways, credentials and testers). Needs no credentials. |
+| `database` | **Use the Admin Panel.** Students are offered only the gateways you manage in the panel. No provider credentials are needed in `.env.prod`; they live encrypted in the database. This is the value to use. |
+| `bkash` / `sslcommerz` | The older, environment-based way: that provider runs from `BKASH_*` / `SSLCOMMERZ_*` variables, and production refuses to start without them. Only for a server that has no panel gateways. |
 
-- `unavailable` (the default and the emergency switch): the server takes **no** payments,
-  including the panel's gateways and sandbox tests. The panel itself still works (you can
-  create gateways, store credentials and read history), but nothing is ever offered.
-- `bkash` or `sslcommerz`: panel gateways can be offered, **but** production's startup check
-  then also requires that provider's **environment** credentials (`BKASH_APP_KEY`,
-  `BKASH_APP_SECRET`, `BKASH_USERNAME`, `BKASH_PASSWORD`, or `SSLCOMMERZ_STORE_ID`,
-  `SSLCOMMERZ_STORE_PASSWORD`) to be set to real, non-placeholder values, and refuses
-  sandbox values unless `PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true`. Without them the backend
-  **will not start**. Those environment values are **not used** for an adapter that already
-  has a gateway row in the panel (the panel wins); they are only there to pass the check.
+A panel gateway never takes a payment unless it is enabled **and** the server value is
+`database` (or an environment value, if you chose the old way). Even then, a gateway in
+sandbox mode is visible only to testers.
 
-Because of that, do it in this order so students are never exposed by accident:
+Recommended path:
 
-1. Do steps 2–4 below **first**, with `PAYMENT_PROVIDER=unavailable`. A gateway row (even a
-   disabled one) hides the environment fallback for its adapter, so adding the row before
-   changing the switch means the environment values can never be offered by themselves.
-2. When you are ready for step 5 (sandbox test) set `PAYMENT_PROVIDER` to the provider and
-   provide its environment values (plus `PAYMENT_ALLOW_SANDBOX_IN_PRODUCTION=true` and the
-   `*_SANDBOX=true` flag while you only hold sandbox values), then restart the backend. Real
-   students still cannot pay: the gateway is disabled or in sandbox mode (testers only).
+1. Leave `PAYMENT_PROVIDER=unavailable` while you do steps 2–4 (the panel works regardless).
+2. When you are ready for step 5 (sandbox test), set `PAYMENT_PROVIDER=database` in
+   `/srv/mcq/.env.prod` and restart the backend. Real students still cannot pay: a sandbox
+   gateway is shown only to testers, and a gateway you have not enabled is shown to nobody.
 3. Switch back to `unavailable` at any time to stop everything.
+
+`database` also needs `PAYMENT_CALLBACK_BASE_URL` (the public https address of the API) and
+`PAYMENT_RETURN_URL`; both are already set. `PAYMENT_ENABLED_PROVIDERS` is ignored under
+`database`.
+
+The Admin Panel shows a banner on the Payment gateways page when the server is set to
+`unavailable` ("Payments are switched off on the server"), or when it still has environment
+payment settings, so you can see why students are not offered anything.
 
 Restart the backend after editing `.env.prod`.
 
@@ -141,7 +143,7 @@ subscription or counts in revenue.
 
 - **Switch a gateway off for new payments**: Disable. Payments already started still settle.
 - **Emergency stop of all payments**: set `PAYMENT_PROVIDER=unavailable` and restart the
-  backend (nothing is offered, whatever the panel says).
+  backend (nothing is offered, whatever the panel says). Back on: `database`.
 - **Rotate a credential**: enter the new value (password required). Old and new are never mixed
   within one payment attempt; payments already started continue with the credentials of their
   mode.

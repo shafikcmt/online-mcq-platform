@@ -723,4 +723,22 @@ def stats() -> dict:
                 "sandbox": block(sandbox.filter(gateway=gateway)),
             }
         )
-    return {"real": block(real), "sandbox": block(sandbox), "gateways": per_gateway}
+    return {
+        "real": block(real),
+        "sandbox": block(sandbox),
+        "gateways": per_gateway,
+        "payment_switch": payment_switch(),
+    }
+
+
+def payment_switch() -> str:
+    """The server-level ``PAYMENT_PROVIDER`` setting as a stable code for the panel (never a
+    credential): ``unavailable`` (nothing is offered), ``database`` (only this panel's gateways)
+    or ``environment`` (this panel's gateways plus the environment fallback)."""
+    from django.conf import settings
+
+    from .gateways import PAYMENTS_DATABASE, PAYMENTS_UNAVAILABLE
+
+    if settings.PAYMENT_PROVIDER in (PAYMENTS_UNAVAILABLE, PAYMENTS_DATABASE):
+        return settings.PAYMENT_PROVIDER
+    return "environment"

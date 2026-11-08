@@ -69,5 +69,6 @@ export const stats = (overrides: Partial<GatewayStats> = {}): GatewayStats => ({
   real: block({ total: 4, success: 3, failed: 1, collected: "1500.00" }),
   sandbox: block({ total: 2, success: 1, collected: "500.00" }),
   gateways: [{ id: "11111111-1111-4111-8111-111111111111", slug: "bkash-main", adapter: "bkash", live: block({ total: 4, success: 3, collected: "1500.00" }), sandbox: block({ total: 2, success: 1 }) }],
+  payment_switch: "database",
   ...overrides,
 });

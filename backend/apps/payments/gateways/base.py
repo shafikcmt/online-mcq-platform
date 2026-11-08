@@ -33,6 +33,9 @@ from .config import GatewayConfig, env_config
 # before real merchant credentials exist). Not a gateway: every purchase attempt is refused
 # up front — no payment record, no provider call, never a success.
 PAYMENTS_UNAVAILABLE = "unavailable"
+# ``PAYMENT_PROVIDER=database``: students are offered only the gateways managed in the Admin
+# Panel; no environment (BKASH_* / SSLCOMMERZ_*) credentials are needed or used.
+PAYMENTS_DATABASE = "database"
 
 
 class Outcome:
@@ -205,7 +208,9 @@ def offered_providers() -> list[str]:
     """The payment methods a student can choose for a NEW payment, in display order (the
     first is the default). ``PAYMENT_PROVIDER=unavailable`` offers nothing, whatever else
     is configured: it is the one switch that takes every payment off."""
-    if settings.PAYMENT_PROVIDER == PAYMENTS_UNAVAILABLE:
+    if settings.PAYMENT_PROVIDER in (PAYMENTS_UNAVAILABLE, PAYMENTS_DATABASE):
+        # ``database``: no environment methods at all; the panel's gateways are offered by
+        # the gateway manager.
         return []
     codes = list(settings.PAYMENT_ENABLED_PROVIDERS) or [settings.PAYMENT_PROVIDER]
     return [code for code in dict.fromkeys(codes) if is_enabled(code)]
