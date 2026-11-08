@@ -442,6 +442,7 @@ never only by the ID in the URL (prevents IDOR).
 | `submit` | 10 per minute per user |
 | `payment_init` | 10 per hour per user |
 | `payment_callback` | 120 per minute per IP *(M5: provider callbacks/IPN)* |
+| `payment_methods` | 60 per minute per user (the payment method list) |
 | anonymous public API | 120 per minute per IP |
 | authenticated general | 600 per minute per user |
 

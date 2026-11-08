@@ -12,6 +12,7 @@ Rules enforced here, in front of ``gateway_store``:
   subscription that an admin can revoke.
 """
 
+import logging
 import re
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlsplit
@@ -41,6 +42,8 @@ from .models import (
     PaymentStatus,
     PaymentTester,
 )
+
+logger = logging.getLogger(__name__)
 
 AUDIT_FIELDS = (
     "slug",
@@ -590,6 +593,12 @@ def test_connection(gateway: PaymentGateway, *, ctx: AuditContext) -> dict:
             result = {"supported": outcome.supported, "ok": outcome.ok, "message": outcome.message}
         except GatewayError as exc:
             result = {"supported": True, "ok": False, "message": exc.reason}
+        except Exception as exc:  # noqa: BLE001 - an adapter bug must not become a 500 here
+            # Only the exception TYPE is logged: its text may quote request headers.
+            logger.error(
+                "Gateway connection test crashed gateway=%s type=%s", gateway.pk, type(exc).__name__
+            )
+            result = {"supported": True, "ok": False, "message": "unexpected_error"}
     now = timezone.now()
     with transaction.atomic():
         row = PaymentGateway.objects.select_for_update().get(pk=gateway.pk)

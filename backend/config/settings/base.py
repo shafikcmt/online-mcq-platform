@@ -309,6 +309,9 @@ AUTH_THROTTLE_RATES = {
     "token_refresh": env_str("THROTTLE_TOKEN_REFRESH", "120/hour"),
     "payment_init": env_str("THROTTLE_PAYMENT_INIT", "10/hour"),  # per student
     "payment_callback": env_str("THROTTLE_PAYMENT_CALLBACK", "120/minute"),  # per client IP
+    # The list of payment methods reads the gateways and checks their credentials: bounded per
+    # student (a real student opens the buy screen a few times a minute at most).
+    "payment_methods": env_str("THROTTLE_PAYMENT_METHODS", "60/minute"),
     "contact_form": env_str("THROTTLE_CONTACT_FORM", "5/hour"),  # per client IP
 }
 

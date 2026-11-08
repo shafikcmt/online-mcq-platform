@@ -111,6 +111,15 @@ class PaymentInitThrottle(SecurityThrottle):
         return super().allow_request(request, view)
 
 
+class PaymentMethodsThrottle(SecurityThrottle):
+    """``payment_methods``: per student; the list reads every gateway and its credentials."""
+
+    scope = "payment_methods"
+
+    def identity(self, request, view) -> str:
+        return f"user:{request.user.pk}"
+
+
 class PaymentCallbackThrottle(SecurityThrottle):
     """``payment_callback``: per client IP — every known reference costs a provider call."""
 
@@ -181,6 +190,8 @@ class PaymentListCreateView(generics.ListAPIView):
 class PaymentMethodsView(APIView):
     """The payment methods a student can choose from right now (in display order; the
     first is the default). Empty while payments are switched off."""
+
+    throttle_classes = [PaymentMethodsThrottle]
 
     @extend_schema(
         tags=["payments"],
