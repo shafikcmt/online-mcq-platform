@@ -5,10 +5,12 @@ import {
   MAX_SESSION_SECONDS,
   RateLimiter,
   clientIp,
+  gatewayCode,
   isHttpsUrl,
   isPaymentId,
   loginFailure,
   methodCode,
+  methodsForPrice,
   newIdempotencyKey,
   safeNext,
   sessionSeconds,
@@ -134,5 +136,35 @@ describe("methodCode", () => {
     for (const bad of ["", "BKASH", "bkash nagad", "bkash;", "../x", "a".repeat(21), null, undefined, 5]) {
       expect(methodCode(bad), String(bad)).toBe("");
     }
+  });
+});
+
+describe("gatewayCode", () => {
+  test("keeps a gateway identifier and drops anything else", () => {
+    expect(gatewayCode("bkash-main")).toBe("bkash-main");
+    expect(gatewayCode("sslcommerz")).toBe("sslcommerz");
+    for (const bad of ["", "a", "-x", "BKASH", "bkash main", "bkash_main", "../x", "a".repeat(41), null, undefined, 5]) {
+      expect(gatewayCode(bad), String(bad)).toBe("");
+    }
+  });
+});
+
+describe("methodsForPrice", () => {
+  const method = (gateway: string, min: string | null, max: string | null) => ({ gateway, min_amount: min, max_amount: max });
+  const all = [method("a", null, null), method("b", "100.00", null), method("c", null, "300.00"), method("d", "100.00", "300.00")];
+
+  test("hides the methods whose limits the price does not fit", () => {
+    expect(methodsForPrice(all, "50.00").map((m) => m.gateway)).toEqual(["a", "c"]);
+    expect(methodsForPrice(all, "200.00").map((m) => m.gateway)).toEqual(["a", "b", "c", "d"]);
+    expect(methodsForPrice(all, "500.00").map((m) => m.gateway)).toEqual(["a", "b"]);
+  });
+
+  test("the limits themselves are allowed", () => {
+    expect(methodsForPrice(all, "100.00").map((m) => m.gateway)).toEqual(["a", "b", "c", "d"]);
+    expect(methodsForPrice(all, "300.00").map((m) => m.gateway)).toEqual(["a", "b", "c", "d"]);
+  });
+
+  test("an unreadable price hides nothing (the server decides)", () => {
+    expect(methodsForPrice(all, "abc")).toHaveLength(4);
   });
 });

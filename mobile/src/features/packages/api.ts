@@ -9,18 +9,19 @@ export function fetchPackages(page: number) {
 
 /** Starts buying a package. Only the package (and the chosen method) is sent: the price comes from the server.
  * The same Idempotency-Key returns the same payment (a double tap cannot pay twice). */
-export function initiatePayment(packageId: number, idempotencyKey: string, provider?: string) {
+export function initiatePayment(packageId: number, idempotencyKey: string, gateway?: string) {
+  // `channel: "app"` selects the app's availability and return link on the server.
   return api<Payment>("/payments/", {
     method: "POST",
-    body: provider ? { package_id: packageId, provider } : { package_id: packageId },
+    body: gateway ? { package_id: packageId, channel: "app", gateway } : { package_id: packageId, channel: "app" },
     headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 
-/** The payment methods the student can choose from now, in display order (the first is the
+/** The payment methods the student can choose from now in the app, in display order (the first is the
  * default). Empty while payments are off. */
 export async function fetchPaymentMethods(): Promise<PaymentMethod[]> {
-  const answer = await api<{ results: PaymentMethod[] }>("/payments/methods/");
+  const answer = await api<{ results: PaymentMethod[] }>("/payments/methods/?channel=app");
   return answer.results;
 }
 

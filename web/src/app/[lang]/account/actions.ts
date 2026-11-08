@@ -5,7 +5,7 @@ import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { IDEMPOTENCY_KEY, RateLimiter, clientIp, isHttpsUrl, loginFailure, methodCode, newIdempotencyKey, safeNext, type LoginFailure } from "@/lib/account-helpers";
+import { IDEMPOTENCY_KEY, RateLimiter, clientIp, gatewayCode, isHttpsUrl, loginFailure, methodCode, newIdempotencyKey, safeNext, type LoginFailure } from "@/lib/account-helpers";
 import { clearSession, getToken, login, setSession, startPayment } from "@/lib/account";
 import { DEFAULT_LANG, isLang, type Lang } from "@/lib/i18n";
 
@@ -59,7 +59,7 @@ export async function startCheckout(formData: FormData): Promise<void> {
   const supplied = String(formData.get("idempotency_key") ?? "");
   const key = IDEMPOTENCY_KEY.test(supplied) ? supplied : newIdempotencyKey(randomBytes(8).toString("hex"));
 
-  const result = await startPayment(token, packageId, key, lang, methodCode(formData.get("provider")));
+  const result = await startPayment(token, packageId, key, lang, { gateway: gatewayCode(formData.get("gateway")), provider: methodCode(formData.get("provider")) });
   if (!result.ok) {
     if (result.status === 401) redirect(loginPath(lang, buy, "&expired=1"));
     redirect(`${buy}?notice=${result.code === "payment_unavailable" ? "unavailable" : "failed"}`);

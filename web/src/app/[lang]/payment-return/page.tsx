@@ -28,6 +28,7 @@ export default async function PaymentReturnPage({ params, searchParams }: { para
 
   let kind: "success" | "pending" | "failed" | "cancelled" | "signedOut" | "unknown" | "unavailable" = "unknown";
   let packageName = "";
+  let isTest = false;
   if (isPaymentId(paymentId)) {
     const token = await getToken();
     if (!token) kind = "signedOut";
@@ -36,6 +37,7 @@ export default async function PaymentReturnPage({ params, searchParams }: { para
       if (result.ok) {
         kind = result.data.status;
         packageName = result.data.package.name;
+        isTest = result.data.is_test === true;
       } else if (result.status === 401) kind = "signedOut";
       else if (result.status === 404) kind = "unknown";
       else kind = "unavailable";
@@ -55,6 +57,7 @@ export default async function PaymentReturnPage({ params, searchParams }: { para
           <section role="status" aria-live="polite" className="flex flex-col items-start gap-4 rounded-card border border-line bg-surface p-6 shadow-sm">
             <h2 className="text-xl font-bold text-ink">{t(`account.return.${kind}.title`)}</h2>
             <p className="text-ink-muted">{t(`account.return.${kind}.body`, { name: packageName })}</p>
+            {isTest ? <p className="text-sm font-medium text-warning-700">{t("account.buy.testNote")}</p> : null}
             {kind === "pending" ? <AutoRefresh /> : null}
             {kind === "failed" || kind === "cancelled" || kind === "unknown" ? (
               <Link href={buy} className={button}>

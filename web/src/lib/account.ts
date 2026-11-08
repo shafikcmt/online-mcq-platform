@@ -42,12 +42,26 @@ export type PaymentStatus = "pending" | "success" | "failed" | "cancelled";
 export type Payment = {
   payment_id: string;
   status: PaymentStatus;
+  is_test?: boolean;
   package: { slug: string; name: string };
   checkout_url: string | null;
 };
 
 type Page<T> = { count: number; results: T[] };
-export type PaymentMethod = { provider: string; label: string };
+/** `GET /payments/methods/`: one way to pay. `gateway` (the merchant account's identifier) is what
+ * is sent back when buying; `provider` is the adapter (bkash, sslcommerz…). `is_test` marks a
+ * sandbox gateway shown to a designated tester. */
+export type PaymentMethod = {
+  provider: string;
+  gateway: string;
+  label: string;
+  name: string;
+  description: string;
+  logo_url: string;
+  min_amount: string | null;
+  max_amount: string | null;
+  is_test: boolean;
+};
 type Tokens = { access: string };
 
 async function call<T>(
@@ -129,17 +143,22 @@ export function listPackages(token: string, lang: Lang) {
 
 /** The payment methods the student can choose from now (empty while payments are off). */
 export function listMethods(token: string, lang: Lang) {
-  return call<{ results: PaymentMethod[] }>("/payments/methods/", { token, lang });
+  // The website's own list: gateways switched off for the website are not returned.
+  return call<{ results: PaymentMethod[] }>("/payments/methods/?channel=web", { token, lang });
 }
 
 /** Starts buying a package: only the package (and, if the student chose one, the payment
  * method) is sent; the price comes from the server. The same Idempotency-Key returns the same
  * payment, so a double click cannot pay twice. */
-export function startPayment(token: string, packageId: number, idempotencyKey: string, lang: Lang, provider = "") {
+export function startPayment(token: string, packageId: number, idempotencyKey: string, lang: Lang, choice: { gateway?: string; provider?: string } = {}) {
+  // `channel: "web"` selects the website's availability and return page on the server.
+  const body: Record<string, unknown> = { package_id: packageId, channel: "web" };
+  if (choice.gateway) body.gateway = choice.gateway;
+  else if (choice.provider) body.provider = choice.provider;
   return call<Payment>("/payments/", {
     method: "POST",
     token,
-    body: provider ? { package_id: packageId, provider } : { package_id: packageId },
+    body,
     headers: { "Idempotency-Key": idempotencyKey },
     lang,
   });

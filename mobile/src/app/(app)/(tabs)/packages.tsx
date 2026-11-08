@@ -14,6 +14,7 @@ import { EmptyNote } from "@/features/dashboard/section";
 import { fetchPackages, fetchPaymentMethods, initiatePayment } from "@/features/packages/api";
 import { newPaymentKey, openCheckout } from "@/features/packages/checkout";
 import { MethodChoice } from "@/features/packages/method-choice";
+import { methodsForPrice } from "@/features/packages/methods";
 import { formatMoney } from "@/features/packages/money";
 import { PackageCard } from "@/features/packages/package-card";
 import type { Package, PaymentMethod } from "@/features/packages/types";
@@ -40,7 +41,7 @@ export default function PackagesScreen() {
   // The ways to pay the server offers. If they cannot be loaded, no choice is shown and the
   // server's default method is used: buying never depends on this list.
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
-  const [method, setMethod] = useState("");
+  const [method, setMethod] = useState(""); // a gateway identifier; "" = the first that fits
 
   useEffect(() => {
     let alive = true;
@@ -48,7 +49,7 @@ export default function PackagesScreen() {
       .then((offered) => {
         if (!alive) return;
         setMethods(offered);
-        setMethod(offered[0]?.provider ?? "");
+        
       })
       .catch(() => undefined);
     return () => {
@@ -56,14 +57,18 @@ export default function PackagesScreen() {
     };
   }, []);
 
-  const choosing = methods.length > 1;
+  // The methods that accept the chosen package's price, and the selected one among them
+  // (the first until the student picks another).
+  const fit = chosen ? methodsForPrice(methods, chosen.price) : [];
+  const selected = fit.find((offer) => offer.gateway === method)?.gateway ?? fit[0]?.gateway ?? "";
+  const blocked = methods.length > 0 && !!chosen && fit.length === 0;
 
   async function buy(pkg: Package) {
     setChosen(null);
     setBusy(pkg.slug);
     setFailure(null);
     try {
-      const payment = await initiatePayment(pkg.id, newPaymentKey(), choosing ? method : undefined);
+      const payment = await initiatePayment(pkg.id, newPaymentKey(), selected || undefined);
       if (payment.checkout_url) await openCheckout(payment.checkout_url);
       router.push({ pathname: "/payment/[id]", params: { id: payment.payment_id } });
     } catch (error) {
@@ -111,10 +116,12 @@ export default function PackagesScreen() {
               : t("packages:confirmBody", { price: formatMoney(chosen.price, chosen.currency, language), days: days(chosen) })
           }
           confirmLabel={t("packages:pay")}
+          confirmDisabled={blocked}
           onConfirm={() => void buy(chosen)}
           onCancel={() => setChosen(null)}
         >
-          {choosing ? <MethodChoice methods={methods} selected={method} onSelect={setMethod} /> : null}
+          <MethodChoice methods={fit} selected={selected} onSelect={setMethod} />
+          {blocked ? <AppText color={colors.inkMuted}>{t("packages:noMethod")}</AppText> : null}
         </ConfirmDialog>
       ) : null}
     </SafeAreaView>

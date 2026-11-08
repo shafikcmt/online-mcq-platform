@@ -5,8 +5,9 @@ import { redirect } from "next/navigation";
 
 import { startCheckout, signOut } from "@/app/[lang]/account/actions";
 import { Chip, EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
+import { MethodPicker } from "@/components/method-picker";
 import { PayButton } from "@/components/pay-button";
-import { newIdempotencyKey } from "@/lib/account-helpers";
+import { methodsForPrice, newIdempotencyKey } from "@/lib/account-helpers";
 import { getToken, listMethods, listPackages } from "@/lib/account";
 import { date, digits, money } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
@@ -54,6 +55,10 @@ export default async function BuyPage({ params, searchParams }: { params: Promis
           <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {packages.data.results.map((pkg) => {
               const active = pkg.subscription?.active_now ? pkg.subscription : null;
+              // Only the methods that accept this package's price. If the list could not be
+              // loaded, nothing is shown and the server's default method is used.
+              const fit = methodsForPrice(choices, pkg.price);
+              const blocked = choices.length > 0 && fit.length === 0;
               return (
                 <li key={pkg.id} className="flex h-full flex-col gap-4 rounded-card border border-line bg-surface p-6 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
@@ -81,21 +86,9 @@ export default async function BuyPage({ params, searchParams }: { params: Promis
                     <input type="hidden" name="lang" value={lang} />
                     <input type="hidden" name="package_id" value={pkg.id} />
                     <input type="hidden" name="idempotency_key" value={newIdempotencyKey(randomBytes(8).toString("hex"))} />
-                    {choices.length > 1 ? (
-                      <div>
-                        <label htmlFor={`method-${pkg.id}`} className="text-sm font-medium text-ink">
-                          {t("account.buy.payWith")}
-                        </label>
-                        <select id={`method-${pkg.id}`} name="provider" defaultValue={choices[0].provider} className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2.5 text-base text-ink">
-                          {choices.map((choice) => (
-                            <option key={choice.provider} value={choice.provider}>
-                              {choice.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : null}
-                    <PayButton label={t(active ? "account.buy.extend" : "account.buy.pay")} busyLabel={t("account.buy.paying")} variant={active ? "secondary" : "primary"} />
+                    <MethodPicker id={`method-${pkg.id}`} methods={fit} legend={t("account.buy.payWith")} testBadge={t("account.buy.testBadge")} testNote={t("account.buy.testNote")} />
+                    {blocked ? <p className="text-sm text-ink-muted">{t("account.buy.noMethod")}</p> : null}
+                    <PayButton disabled={blocked} label={t(active ? "account.buy.extend" : "account.buy.pay")} busyLabel={t("account.buy.paying")} variant={active ? "secondary" : "primary"} />
                     <p className="text-xs text-ink-muted">{t("account.buy.secure")}</p>
                   </form>
                 </li>
