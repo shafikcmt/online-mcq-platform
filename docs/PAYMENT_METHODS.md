@@ -5,6 +5,13 @@ before it can take real money. The code that talks to a provider is one small cl
 one interface (`apps/payments/gateways/base.py`); adding a method changes no other module,
 API or table.
 
+> **Gateways are now managed in the Admin Panel** (Commerce → Payment gateways). This file keeps
+> the per-provider notes; the system itself is described in `PAYMENT_GATEWAY_ARCHITECTURE.md`,
+> put into service with `PAYMENT_GATEWAY_SETUP.md`, protected as in `PAYMENT_GATEWAY_SECURITY.md`,
+> tested as in `PAYMENT_GATEWAY_TESTING.md`, and judged in `PAYMENT_GATEWAY_READINESS.md`.
+> Sections 2 and 9 below describe the environment fallback and the original order of work; the
+> method chooser (item 3) is done in the website and the app.
+
 ## 1. Status
 
 | Method | Status | What it still needs |
@@ -118,7 +125,7 @@ Billing without Google's written confirmation.
 
 1. SSLCommerz sandbox end to end (needs the client's sandbox credentials).
 2. bKash sandbox checklist (§4).
-3. Method chooser in the website and the app (the API is ready).
+3. Method chooser in the website and the app (**done**, Phase 5).
 4. Nagad and Rocket when their documents and credentials exist.
 5. Bangla QR when a bank/PSP agreement exists.
 6. Live credentials on the server, one method at a time, with a small real payment first.
