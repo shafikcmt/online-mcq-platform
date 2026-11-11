@@ -15,15 +15,19 @@ Student (student JWT): ``GET /api/v1/announcements/`` — notices for students +
 import logging
 from types import SimpleNamespace
 
+from django.conf import settings
+from django.core import signing
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import generics, serializers, status
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.services import AuditContext
+from apps.core import documents
 from apps.core.admin_api import (
     AdminAPIMixin,
     query_bool,
@@ -32,9 +36,10 @@ from apps.core.admin_api import (
     query_search,
     to_drf_validation_error,
 )
+from apps.core.exceptions import ApiError
 from apps.core.net import get_client_ip
 from apps.core.public_api import PublicAPIMixin
-from apps.core.throttling import SecurityThrottle
+from apps.core.throttling import DocumentUploadThrottle, SecurityThrottle
 
 from .. import selectors, services
 from ..app_version import update_state
@@ -444,3 +449,122 @@ class PublicContactView(PublicAPIMixin, APIView):
                 data.validated_data, language=language, ip_address=get_client_ip(request)
             )
         return Response({"status": "received"}, status=status.HTTP_202_ACCEPTED)
+
+
+# --------------------------------------------------------------------------------------
+# Notice PDF
+# --------------------------------------------------------------------------------------
+class NoticePdfUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class AnnouncementPdfAdminView(AdminAPIMixin, APIView):
+    """``POST`` (multipart ``file``) attaches or replaces the notice's PDF; ``DELETE`` removes
+    it. The answer is the notice."""
+
+    parser_classes = [MultiPartParser]
+    throttle_classes = [DocumentUploadThrottle]
+    http_method_names = ["post", "delete", "options"]
+
+    @extend_schema(
+        operation_id="admin_announcements_pdf_set",
+        request=NoticePdfUploadSerializer,
+        responses=AnnouncementAdminSerializer,
+    )
+    def post(self, request, pk):
+        limit = settings.DOCUMENT_MAX_BYTES + 64 * 1024
+        if int(request.META.get("CONTENT_LENGTH") or 0) > limit:
+            raise ApiError(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                code="file_too_large",
+                message="The file is too large.",
+            )
+        data = NoticePdfUploadSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        try:
+            notice = services.set_announcement_pdf(
+                pk, data.validated_data["file"], ctx=AuditContext.from_request(request)
+            )
+        except documents.DocumentError as exc:
+            raise ApiError(
+                status_code=status.HTTP_400_BAD_REQUEST, code=exc.code, message=exc.message
+            ) from exc
+        return Response(AnnouncementAdminSerializer(notice).data)
+
+    @extend_schema(
+        operation_id="admin_announcements_pdf_remove", responses=AnnouncementAdminSerializer
+    )
+    def delete(self, request, pk):
+        notice = services.remove_announcement_pdf(pk, ctx=AuditContext.from_request(request))
+        return Response(AnnouncementAdminSerializer(notice).data)
+
+
+def _pdf_of(queryset, pk):
+    """The notice's stored PDF, or a 404 (no notice, not visible to this audience, no PDF)."""
+    notice = queryset.filter(pk=pk).first()
+    if notice is None or not notice.pdf:
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND, code="not_found", message="No PDF is available."
+        )
+    return notice
+
+
+class PublicAnnouncementPdfView(PublicAPIMixin, APIView):
+    """The PDF of a website notice (published, not expired, audience public or everyone)."""
+
+    @extend_schema(
+        operation_id="public_announcement_pdf",
+        responses={(200, "application/pdf"): OpenApiTypes.BINARY},
+    )
+    def get(self, request, pk):
+        notice = _pdf_of(selectors.public_announcements(), pk)
+        return documents.pdf_response(request, notice.pdf, notice.pdf_sha256, "notice.pdf")
+
+
+NOTICE_LINK_SALT = "cms.notice-pdf"
+NOTICE_LINK_SECONDS = 600
+
+
+class NoticeLinkSerializer(serializers.Serializer):
+    path = serializers.CharField(
+        help_text="API-relative address of the file (open it in a browser)."
+    )
+    expires_in = serializers.IntegerField()
+
+
+class StudentAnnouncementPdfLinkView(APIView):
+    """App notices (student JWT): a short-lived signed address for the notice's PDF. The app
+    hands it to the phone's browser or PDF viewer, which cannot send the student's token."""
+
+    @extend_schema(
+        operation_id="student_announcement_pdf_link",
+        tags=["announcements"],
+        responses=NoticeLinkSerializer,
+    )
+    def get(self, request, pk):
+        notice = _pdf_of(selectors.student_announcements(), pk)
+        token = signing.dumps(notice.pk, salt=NOTICE_LINK_SALT, compress=False)
+        return Response(
+            {"path": f"/public/notice-files/{token}/", "expires_in": NOTICE_LINK_SECONDS}
+        )
+
+
+class PublicNoticeFileView(PublicAPIMixin, APIView):
+    """Opens a notice PDF from a signed address (see above). The address expires after
+    ``NOTICE_LINK_SECONDS`` and the notice must still be visible to students."""
+
+    @extend_schema(
+        operation_id="public_notice_file",
+        responses={(200, "application/pdf"): OpenApiTypes.BINARY},
+    )
+    def get(self, request, token):
+        try:
+            pk = signing.loads(token, salt=NOTICE_LINK_SALT, max_age=NOTICE_LINK_SECONDS)
+        except signing.BadSignature:
+            raise ApiError(
+                status_code=status.HTTP_404_NOT_FOUND,
+                code="not_found",
+                message="This link is not valid or has expired.",
+            ) from None
+        notice = _pdf_of(selectors.student_announcements(), pk)
+        return documents.pdf_response(request, notice.pdf, notice.pdf_sha256, "notice.pdf")

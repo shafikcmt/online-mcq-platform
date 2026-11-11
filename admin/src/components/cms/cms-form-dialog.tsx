@@ -12,6 +12,7 @@ import { isValidationError, mapFieldErrors, type MappedErrors } from "@/lib/api/
 import { MAX_SORT_ORDER } from "@/lib/content-limits";
 import { fromDhakaInput, toDhakaInput } from "@/lib/exam-form";
 import { useI18n } from "@/lib/i18n/provider";
+import { NoticePdfField } from "./notice-pdf-field";
 import { AUDIENCES, CMS_LIMITS, type Announcement, type Audience, type CmsPage, type Faq } from "@/types/cms";
 
 export type CmsKind = "announcement" | "faq" | "page";
@@ -84,12 +85,15 @@ export function CmsFormDialog({
   open,
   onOpenChange,
   onSaved,
+  onPdfChanged,
 }: {
   kind: CmsKind;
   entry: Entry | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: (entry: Entry, created: boolean) => void;
+  /** The announcement's PDF was attached or removed (it saves by itself, not with the form). */
+  onPdfChanged?: () => void;
 }) {
   const { t } = useI18n();
   const formId = useId();
@@ -260,6 +264,7 @@ export function CmsFormDialog({
                 <Input type="datetime-local" value={form.expires_at} onChange={(event) => set("expires_at", event.target.value)} disabled={pending} />
               </Field>
             </div>
+            <NoticePdfField notice={entry as Announcement | null} onChanged={() => onPdfChanged?.()} />
           </>
         )}
         {kind === "faq" && (

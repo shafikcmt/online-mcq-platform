@@ -2,6 +2,7 @@ import { CalendarClock, Clock3, FileQuestion, Star } from "lucide-react";
 import Link from "next/link";
 
 import type { Exam, Notice, Package } from "@/lib/api";
+import { NoticePdfLink } from "./notice-pdf-link";
 import { scheduleState } from "@/lib/exam-filters";
 import { date, dateTime, digits, money } from "@/lib/format";
 import { translator, type Lang } from "@/lib/i18n";
@@ -115,6 +116,7 @@ export function NoticeItem({ notice, lang }: { notice: Notice; lang: Lang }) {
       </div>
       <h3 className="mt-2 font-semibold text-ink">{notice.title}</h3>
       <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-ink-muted">{notice.body}</p>
+      <NoticePdfLink notice={notice} label={t("notices.pdf")} />
     </article>
   );
 }

@@ -11,6 +11,7 @@ from django.http import Http404
 
 from apps.audit import services as audit
 from apps.audit.services import AuditContext
+from apps.core import documents
 
 from .models import (
     PAGE_SLUG_TAKEN_MESSAGE,
@@ -170,6 +171,8 @@ def delete_content(model, pk: int, *, ctx: AuditContext) -> None:
     if instance is None:
         raise Http404
     snapshot, summary = _snapshot(instance), _summary(instance)
+    if isinstance(instance, Announcement) and instance.pdf:
+        documents.delete_after_commit(instance.pdf.name)
     instance.delete()
     _record(ctx, "delete", instance, pk, summary, {"snapshot": snapshot})
 
@@ -215,3 +218,41 @@ def set_contact_status(message_id: int, status: str, *, ctx: AuditContext) -> Co
         allowed_fields=("status",),
     )
     return message
+
+
+# --------------------------------------------------------------------------------------
+# Notice PDF
+# --------------------------------------------------------------------------------------
+@transaction.atomic
+def set_announcement_pdf(pk: int, upload, *, ctx: AuditContext) -> Announcement:
+    """Attach (or replace) the notice's PDF. Raises ``documents.DocumentError``."""
+    checked = documents.validate_pdf(upload)
+    notice = Announcement.objects.select_for_update().filter(pk=pk).first()
+    if notice is None:
+        raise Http404
+    old_name = notice.pdf.name if notice.pdf else ""
+    notice.pdf.name = documents.store_pdf(checked)
+    notice.pdf_name = (getattr(upload, "name", "") or "notice.pdf")[:200]
+    notice.pdf_size = checked.size
+    notice.pdf_sha256 = checked.sha256
+    notice.save(update_fields=["pdf", "pdf_name", "pdf_size", "pdf_sha256", "updated_at"])
+    documents.delete_after_commit(old_name)
+    _record(ctx, "pdf_set", notice, pk, _summary(notice), {"changed_fields": ["pdf"]})
+    return notice
+
+
+@transaction.atomic
+def remove_announcement_pdf(pk: int, *, ctx: AuditContext) -> Announcement:
+    notice = Announcement.objects.select_for_update().filter(pk=pk).first()
+    if notice is None:
+        raise Http404
+    if not notice.pdf:
+        return notice
+    documents.delete_after_commit(notice.pdf.name)
+    notice.pdf.name = ""
+    notice.pdf_name = ""
+    notice.pdf_size = 0
+    notice.pdf_sha256 = ""
+    notice.save(update_fields=["pdf", "pdf_name", "pdf_size", "pdf_sha256", "updated_at"])
+    _record(ctx, "pdf_remove", notice, pk, _summary(notice), {"changed_fields": ["pdf"]})
+    return notice

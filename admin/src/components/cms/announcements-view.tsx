@@ -202,6 +202,7 @@ export function AnnouncementsView({ data, state: serverState }: { data: Paginate
           entry={editing === "new" ? null : editing}
           open
           onOpenChange={(open) => !open && setEditing(null)}
+          onPdfChanged={() => void reload()}
           onSaved={(_, created) => {
             setEditing(null);
             notify(t(created ? "announcements.created" : "announcements.saved"));

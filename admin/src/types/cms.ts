@@ -18,6 +18,8 @@ export type Announcement = {
   published_at: string | null;
   expires_at: string | null;
   state: AnnouncementState;
+  /** Optional attached PDF (never a file address: it is opened through the API). */
+  pdf: { available: boolean; name: string; size_bytes: number };
   created_at: string;
   updated_at: string;
 };

@@ -20,6 +20,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
+from django.http import FileResponse, HttpResponseNotModified
 
 logger = logging.getLogger(__name__)
 
@@ -99,3 +100,21 @@ def delete_after_commit(name: str) -> None:
             logger.warning("Could not delete document %s", name)
 
     transaction.on_commit(_delete)
+
+
+def pdf_response(request, field_file, sha256: str, filename: str):
+    """Serve a stored PDF: a fixed ``application/pdf`` type, ``nosniff`` and a CSP that allows
+    nothing. The SHA-256 is the ``ETag``, so repeat downloads are cheap and a replaced file is
+    never served stale. ``filename`` is ours (never the uploader's)."""
+    etag = f'"{sha256}"'
+    if request.META.get("HTTP_IF_NONE_MATCH") == etag:
+        response = HttpResponseNotModified()
+        response["ETag"] = etag
+        return response
+    response = FileResponse(field_file.open("rb"), content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    response["Content-Security-Policy"] = "default-src 'none'"
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "public, max-age=300"
+    response["ETag"] = etag
+    return response
