@@ -56,3 +56,21 @@ class DocumentUploadThrottle(SecurityThrottle):
 
     def identity(self, request, view) -> str:
         return f"user:{request.user.pk}"
+
+
+class PushSendThrottle(SecurityThrottle):
+    """``push_send``: per admin; every message reaches every student's phone."""
+
+    scope = "push_send"
+
+    def identity(self, request, view) -> str:
+        return f"user:{request.user.pk}"
+
+
+class PushDeviceThrottle(SecurityThrottle):
+    """``push_device``: per student; registering or removing a phone's push token."""
+
+    scope = "push_device"
+
+    def identity(self, request, view) -> str:
+        return f"user:{request.user.pk}"

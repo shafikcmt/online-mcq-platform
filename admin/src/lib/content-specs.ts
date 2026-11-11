@@ -135,6 +135,13 @@ export const SAMPLE_PERSON_LIST: ListSpec = {
   defaultOrdering: "name",
 };
 
+/** Push messages (apps/notifications/api/push_views.py): newest first; filter by kind and status. */
+export const PUSH_LIST: ListSpec = {
+  filters: { kind: ["manual", "exam_reminder"], status: ["pending", "sending", "sent", "failed", "disabled"] },
+  orderings: ["id", "created_at", "sent_at"],
+  defaultOrdering: "-created_at",
+};
+
 export const FAQ_LIST: ListSpec = {
   filters: { is_active: "bool" },
   orderings: ["id", "sort_order", "created_at", "updated_at"],

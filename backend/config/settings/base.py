@@ -208,6 +208,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.results.tasks.notify_visible_results_task",
         "schedule": float(env_int("RESULT_NOTIFY_INTERVAL_SECONDS", 120)),
     },
+    # Automatic exam reminders by push (a no-op while PUSH_ENABLED is off).
+    "send-exam-reminders": {
+        "task": "apps.notifications.tasks.send_exam_reminders_task",
+        "schedule": float(env_int("EXAM_REMINDER_INTERVAL_SECONDS", 60)),
+    },
     # docs/ARCHITECTURE.md §7: mark subscriptions past expires_at as expired (bookkeeping;
     # access is computed from server time and never waits for this job).
     "expire-subscriptions": {
@@ -317,7 +322,28 @@ AUTH_THROTTLE_RATES = {
     "question_import": env_str("THROTTLE_QUESTION_IMPORT", "30/hour"),  # per admin
     "document_upload": env_str("THROTTLE_DOCUMENT_UPLOAD", "30/hour"),  # per admin (PDF uploads)
     "contact_form": env_str("THROTTLE_CONTACT_FORM", "5/hour"),  # per client IP
+    "push_send": env_str("THROTTLE_PUSH_SEND", "20/hour"),  # per admin (push messages)
+    "push_device": env_str("THROTTLE_PUSH_DEVICE", "30/hour"),  # per student (token registration)
 }
+
+# --------------------------------------------------------------------------------------
+# Push notifications (Expo). Off by default: nothing is sent until the owner has an Expo project
+# with push credentials and sets PUSH_ENABLED=1. The access token (only needed if "enhanced push
+# security" is on in Expo) is a secret: environment only, never in the database, git or logs.
+# docs/PUSH_NOTIFICATIONS.md.
+# --------------------------------------------------------------------------------------
+PUSH_ENABLED = env_bool("PUSH_ENABLED", False)
+EXPO_PUSH_URL = env_str("EXPO_PUSH_URL", "https://exp.host/--/api/v2/push/send")
+EXPO_ACCESS_TOKEN = env_str("EXPO_ACCESS_TOKEN", "")
+PUSH_BATCH_SIZE = 100  # Expo accepts at most 100 messages per request
+PUSH_TIMEOUT_SECONDS = env_int("PUSH_TIMEOUT_SECONDS", 15)
+# Automatic exam reminders: minutes before an exam's start (comma separated; empty = none).
+EXAM_REMINDER_OFFSETS_MINUTES = [
+    int(value)
+    for value in env_list("EXAM_REMINDER_OFFSETS_MINUTES", "1440,60")
+    if value.strip().isdigit()
+]
+EXAM_REMINDER_INTERVAL_SECONDS = env_int("EXAM_REMINDER_INTERVAL_SECONDS", 60)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Live Model Test API",
