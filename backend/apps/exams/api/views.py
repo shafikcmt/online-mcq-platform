@@ -5,17 +5,21 @@ Views stay thin: validate input, call ``exams.services`` (one transaction with t
 audit entry), serialize. Status only changes through the action endpoints.
 """
 
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import F, Q
+from django.http import FileResponse, HttpResponseNotModified
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import generics, serializers, status
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.services import AuditContext
 from apps.catalog.models import SLUG_MAX_LENGTH
+from apps.core import documents
 from apps.core.admin_api import (
     INVALID_CHOICE_MESSAGE,
     AdminAPIMixin,
@@ -28,6 +32,7 @@ from apps.core.admin_api import (
 )
 from apps.core.exceptions import ApiError
 from apps.core.public_api import PublicAPIMixin
+from apps.core.throttling import SecurityThrottle
 
 from .. import services
 from ..exceptions import ExamStateError
@@ -39,8 +44,15 @@ from ..models import (
     ExamStatus,
     ExamSyllabusItem,
     ExamType,
+    RoutinePdf,
 )
-from ..selectors import listable_exams, open_window, with_question_totals
+from ..selectors import (
+    ROUTINE_MAX_EXAMS,
+    listable_exams,
+    open_window,
+    routine_exams,
+    with_question_totals,
+)
 from .serializers import (
     ExamAdminSerializer,
     ExamQuestionAdminListSerializer,
@@ -331,3 +343,125 @@ class PublicExamDetailView(PublicAPIMixin, generics.RetrieveAPIView):
 
     def get_queryset(self):
         return public_exams()
+
+
+# --------------------------------------------------------------------------------------
+# Routine: the schedule of exams (public) and the routine PDF (admin uploads, public reads)
+# --------------------------------------------------------------------------------------
+class DocumentUploadThrottle(SecurityThrottle):
+    """``document_upload``: per admin; every upload is read whole and checked."""
+
+    scope = "document_upload"
+
+    def identity(self, request, view) -> str:
+        return f"user:{request.user.pk}"
+
+
+def _pdf_info(row) -> dict:
+    available = row is not None and bool(row.file)
+    return {
+        "available": available,
+        "name": row.original_name if available else "",
+        "size_bytes": row.size_bytes if available else 0,
+        "updated_at": row.updated_at if available else None,
+    }
+
+
+class RoutinePdfSerializer(serializers.Serializer):
+    available = serializers.BooleanField()
+    name = serializers.CharField(allow_blank=True)
+    size_bytes = serializers.IntegerField()
+    updated_at = serializers.DateTimeField(allow_null=True)
+
+
+class RoutinePdfUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class RoutinePdfAdminView(AdminAPIMixin, APIView):
+    """``GET`` what is published; ``POST`` (multipart ``file``) publishes or replaces the PDF;
+    ``DELETE`` removes it. The schedule itself comes from the exams' start and end times."""
+
+    parser_classes = [MultiPartParser]
+    throttle_classes = [DocumentUploadThrottle]
+    http_method_names = ["get", "post", "delete", "options"]
+
+    @extend_schema(operation_id="admin_routine_pdf_get", responses=RoutinePdfSerializer)
+    def get(self, request):
+        return Response(RoutinePdfSerializer(_pdf_info(RoutinePdf.current())).data)
+
+    @extend_schema(
+        operation_id="admin_routine_pdf_set",
+        request=RoutinePdfUploadSerializer,
+        responses=RoutinePdfSerializer,
+    )
+    def post(self, request):
+        limit = settings.DOCUMENT_MAX_BYTES + 64 * 1024
+        if int(request.META.get("CONTENT_LENGTH") or 0) > limit:
+            raise ApiError(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                code="file_too_large",
+                message="The file is too large.",
+            )
+        data = RoutinePdfUploadSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        try:
+            row = services.set_routine_pdf(
+                data.validated_data["file"], ctx=AuditContext.from_request(request)
+            )
+        except documents.DocumentError as exc:
+            raise ApiError(
+                status_code=status.HTTP_400_BAD_REQUEST, code=exc.code, message=exc.message
+            ) from exc
+        return Response(RoutinePdfSerializer(_pdf_info(row)).data)
+
+    @extend_schema(operation_id="admin_routine_pdf_remove", responses=RoutinePdfSerializer)
+    def delete(self, request):
+        services.remove_routine_pdf(ctx=AuditContext.from_request(request))
+        return Response(RoutinePdfSerializer(_pdf_info(None)).data)
+
+
+class PublicRoutineSerializer(serializers.Serializer):
+    pdf = RoutinePdfSerializer()
+    exams = PublicExamSerializer(many=True)
+
+
+class PublicRoutineView(PublicAPIMixin, APIView):
+    """The exam routine: every scheduled exam that has not ended, earliest first, plus whether a
+    routine PDF is published (``GET /public/routine/pdf/``). One call, no paging."""
+
+    @extend_schema(operation_id="public_routine", responses=PublicRoutineSerializer)
+    def get(self, request):
+        exams = list(with_question_totals(routine_exams(timezone.now()))[:ROUTINE_MAX_EXAMS])
+        body = {"pdf": _pdf_info(RoutinePdf.current()), "exams": exams}
+        return Response(PublicRoutineSerializer(body, context={"request": request}).data)
+
+
+class PublicRoutinePdfView(PublicAPIMixin, APIView):
+    """The routine PDF itself, served by the API (never from a guessable file path): a fixed
+    ``application/pdf`` type, ``nosniff`` and a CSP that allows nothing. ``ETag`` makes repeat
+    downloads cheap; replacing the file changes it."""
+
+    @extend_schema(
+        operation_id="public_routine_pdf", responses={(200, "application/pdf"): OpenApiTypes.BINARY}
+    )
+    def get(self, request):
+        row = RoutinePdf.current()
+        if row is None:
+            raise ApiError(
+                status_code=status.HTTP_404_NOT_FOUND,
+                code="not_found",
+                message="No routine PDF is published.",
+            )
+        etag = f'"{row.sha256}"'
+        if request.META.get("HTTP_IF_NONE_MATCH") == etag:
+            response = HttpResponseNotModified()
+            response["ETag"] = etag
+            return response
+        response = FileResponse(row.file.open("rb"), content_type="application/pdf")
+        response["Content-Disposition"] = 'inline; filename="exam-routine.pdf"'
+        response["Content-Security-Policy"] = "default-src 'none'"
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Cache-Control"] = "public, max-age=300"
+        response["ETag"] = etag
+        return response

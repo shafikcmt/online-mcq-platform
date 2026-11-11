@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/site";
 /** Every public page in both languages (each slice adds its paths), plus each published
  * exam's page and each public merit list (the first 100 of each; regenerated with the
  * pages). */
-const PATHS = ["", "/exams", "/packages", "/leaderboard", "/notices", "/about", "/faq", "/contact"];
+const PATHS = ["", "/exams", "/routine", "/packages", "/leaderboard", "/notices", "/about", "/faq", "/contact"];
 
 export const revalidate = 3600;
 

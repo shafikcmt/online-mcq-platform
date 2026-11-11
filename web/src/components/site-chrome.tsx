@@ -16,6 +16,8 @@ export function navItems(lang: Lang) {
   return [
     { href: `/${lang}`, label: t("nav.home"), main: false },
     { href: `/${lang}/exams`, label: t("nav.exams"), main: true },
+    // Footer and menu only: the header row already holds its four main links.
+    { href: `/${lang}/routine`, label: t("nav.routine"), main: false },
     { href: `/${lang}/packages`, label: t("nav.packages"), main: true },
     { href: `/${lang}/leaderboard`, label: t("nav.leaderboard"), main: true },
     { href: `/${lang}/notices`, label: t("nav.notices"), main: true },

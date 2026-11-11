@@ -1,4 +1,4 @@
-import { SlidersHorizontal } from "lucide-react";
+import { CalendarDays, SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -46,7 +46,12 @@ export default async function ExamsPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <PageIntro title={t("exams.title")} body={t("exams.body")} />
+      <PageIntro title={t("exams.title")} body={t("exams.body")}>
+        <Link href={`/${lang}/routine`} className="mb-4 inline-flex min-h-10 items-center gap-2 rounded-control border border-brand-600 bg-surface px-4 text-sm font-semibold text-brand-700 hover:bg-brand-50">
+          <CalendarDays className="size-4" aria-hidden />
+          {t("routine.viewRoutine")}
+        </Link>
+      </PageIntro>
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <nav aria-label={t("exams.tabs.label")} className="flex gap-1 overflow-x-auto border-b border-line">
           {WHENS.map((when) => (

@@ -28,6 +28,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit import services as audit
 from apps.audit.services import AuditContext
 from apps.catalog.models import SLUG_MAX_LENGTH
+from apps.core import documents
 from apps.core.i18n import normalize_digits, normalize_text
 from apps.core.slugs import first_free_slug, slug_base
 from apps.questions.models import Question, normalize_content
@@ -56,6 +57,7 @@ from .models import (
     ExamType,
     MeritStrategy,
     ResultVisibility,
+    RoutinePdf,
 )
 
 logger = logging.getLogger(__name__)
@@ -735,3 +737,47 @@ def duplicate_exam(exam_id: int, *, ctx: AuditContext) -> Exam:
     values = _State.of(copy, len(items)).values()
     _audit(ctx, "exam.duplicate", copy.pk, {"values": {**values, "source_exam_id": source.pk}})
     return copy
+
+
+# --------------------------------------------------------------------------------------
+# Routine PDF
+# --------------------------------------------------------------------------------------
+def _routine_audit(ctx, action: str, summary: str) -> None:
+    audit.record(
+        ctx,
+        action=action,
+        entity_type="exams.routine_pdf",
+        entity_id=RoutinePdf.SINGLETON_ID,
+        summary=summary,
+    )
+
+
+@transaction.atomic
+def set_routine_pdf(upload, *, ctx: AuditContext) -> RoutinePdf:
+    """Replace the routine PDF with a checked upload. Raises ``documents.DocumentError``."""
+    checked = documents.validate_pdf(upload)
+    row, _created = RoutinePdf.objects.select_for_update().get_or_create(pk=RoutinePdf.SINGLETON_ID)
+    old_name = row.file.name if row.file else ""
+    row.file.name = documents.store_pdf(checked)
+    row.original_name = (getattr(upload, "name", "") or "routine.pdf")[:200]
+    row.size_bytes = checked.size
+    row.sha256 = checked.sha256
+    row.uploaded_by = ctx.actor
+    row.save()
+    documents.delete_after_commit(old_name)
+    _routine_audit(ctx, "routine.pdf_set", f"routine PDF set ({checked.size} bytes)")
+    return row
+
+
+@transaction.atomic
+def remove_routine_pdf(*, ctx: AuditContext) -> None:
+    row = RoutinePdf.objects.select_for_update().filter(pk=RoutinePdf.SINGLETON_ID).first()
+    if row is None or not row.file:
+        return
+    documents.delete_after_commit(row.file.name)
+    row.file.name = ""
+    row.original_name = ""
+    row.size_bytes = 0
+    row.sha256 = ""
+    row.save()
+    _routine_audit(ctx, "routine.pdf_remove", "routine PDF removed")

@@ -412,3 +412,39 @@ class ExamSyllabusItem(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"exam #{self.exam_id} · syllabus {self.sort_order}"
+
+
+class RoutinePdf(TimeStampedModel):
+    """The one routine PDF the admin publishes next to the exam schedule (a single row, id 1).
+    The schedule itself is always read live from the exams; this is the printable version."""
+
+    SINGLETON_ID = 1
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=SINGLETON_ID, editable=False)
+    file = models.FileField(_("PDF file"), upload_to="documents/", blank=True)
+    original_name = models.CharField(_("file name"), max_length=200, blank=True, default="")
+    size_bytes = models.PositiveIntegerField(_("size (bytes)"), default=0)
+    sha256 = models.CharField(_("SHA-256"), max_length=64, blank=True, default="")
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("uploaded by"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    class Meta:
+        verbose_name = _("routine PDF")
+        verbose_name_plural = _("routine PDF")
+        constraints = [
+            models.CheckConstraint(condition=models.Q(id=1), name="exams_routinepdf_singleton"),
+        ]
+
+    def __str__(self) -> str:
+        return "routine PDF"
+
+    @classmethod
+    def current(cls) -> "RoutinePdf | None":
+        row = cls.objects.filter(pk=cls.SINGLETON_ID).first()
+        return row if row is not None and row.file else None
