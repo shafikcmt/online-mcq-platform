@@ -10,9 +10,12 @@ Admin Panel shows "Push is switched off" and saves messages in the history witho
 
 ## What it does
 
-- **Registration:** after sign-in the app asks the student for permission and registers the phone's Expo push
-  token (`POST /api/v1/me/push-devices/`). Turning notifications off, or signing out, removes it. Only the token
-  is stored (no device name, no IP). A phone belongs to whoever signed in last.
+- **Registration (app):** a one-time card on Home offers "Turn on notifications" ("Not now" hides it for good) and
+  Profile → Settings has the switch "Exam reminders and notices". Turning it on asks the phone's permission and
+  registers the Expo push token (`POST /api/v1/me/push-devices/`); turning it off, or signing out, removes it. After
+  sign-in a phone that had it on registers again (the token can change); the app never asks without a tap. If the
+  permission is blocked the switch says so and opens the phone's settings. Both are hidden until the Expo project ID
+  is in `app.json`. Only the token is stored (no device name, no IP); a phone belongs to whoever signed in last.
 - **Admin message:** Admin Panel → Site → **Push notifications** → write a title and text (Bangla, English or
   both; each phone gets its owner's language, falling back to the other), optionally choose an exam to open when
   tapped, confirm. It goes to every registered phone of an active student, in batches of 100, and cannot be recalled.
@@ -29,8 +32,9 @@ Admin Panel shows "Push is switched off" and saves messages in the history witho
 1. Create (or open) the **Expo project** for the app and note its **project ID** (a UUID). Put it in
    `mobile/app.json` under `expo.extra.eas.projectId` (the ID is not a secret) — `eas init` does this.
 2. **Android push credentials (FCM):** in the Firebase console create a project, register the Android app
-   `com.livemodeltest.app`, download `google-services.json` (keep it out of git), and upload the FCM v1 service
-   account key to Expo (`eas credentials`). Expo's guide: "Push notifications setup".
+   `com.livemodeltest.app` and download `google-services.json` (keep it out of git; for EAS builds add it as a file
+   secret and point `android.googleServicesFile` in `app.json` at it), then upload the FCM v1 service account key to
+   Expo (`eas credentials`). Expo's guide: "Push notifications setup".
 3. Build a new app with EAS (the notification module is part of the build; see `APP_SIZE.md`).
 4. On the server, in `.env.prod`: `PUSH_ENABLED=1` (and `EXPO_ACCESS_TOKEN` only if you turned on "Enhanced push
    security" in the Expo dashboard). Restart the backend, the worker and **celery beat** (the reminder job).
@@ -47,6 +51,9 @@ Admin Panel shows "Push is switched off" and saves messages in the history witho
 - Endpoints: `POST/DELETE /me/push-devices/` (throttle `push_device`), admin `GET /admin/push/` and
   `GET/POST /admin/push/messages/` (throttle `push_send`, 20/hour). Tasks: `send_push_message_task`,
   `send_exam_reminders_task` (beat `send-exam-reminders`).
-- Tests: `backend/tests/test_push.py` (50), admin `push-view.test.tsx`, app `push.test.tsx`.
+- App: `features/push/` (`push.ts` registration and routing, `use-push-setup.ts` tap handling and re-registration,
+  `notifications-row.tsx`, `push-prompt.tsx`). The `expo-notifications` plugin is in `app.json` and the library adds
+  about 0.2 MB of JavaScript (measured with `expo export`); native size is not measured.
+- Tests: `backend/tests/test_push.py` (50), admin `push-view.test.tsx` (8), app `push.test.tsx` (17).
 - Not built: delivery receipts (Expo's second step; tickets are recorded), per-student or per-category targeting,
   scheduled (future) admin messages, notification preferences per type, iOS (the app is Android only today).

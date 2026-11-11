@@ -25,3 +25,24 @@ jest.mock("expo-splash-screen", () => ({ preventAutoHideAsync: jest.fn(async () 
 jest.mock("expo-keep-awake", () => ({ useKeepAwake: jest.fn() }));
 
 jest.mock("expo-web-browser", () => ({ openAuthSessionAsync: jest.fn(async () => ({ type: "dismiss" })) }));
+
+// Push notifications: no phone, no Expo. Tests set what the phone answers through __state.
+const mockPush = {
+  permission: { granted: false, canAskAgain: true },
+  token: "ExponentPushToken[abcdefghijklmnopqrst]",
+  lastResponse: null as unknown,
+};
+jest.mock("expo-notifications", () => ({
+  __state: mockPush,
+  AndroidImportance: { DEFAULT: 3 },
+  DEFAULT_ACTION_IDENTIFIER: "expo.modules.notifications.actions.DEFAULT",
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn(async () => null),
+  getPermissionsAsync: jest.fn(async () => ({ ...mockPush.permission })),
+  requestPermissionsAsync: jest.fn(async () => {
+    mockPush.permission = { granted: true, canAskAgain: true };
+    return { ...mockPush.permission };
+  }),
+  getExpoPushTokenAsync: jest.fn(async () => ({ type: "expo", data: mockPush.token })),
+  useLastNotificationResponse: jest.fn(() => mockPush.lastResponse),
+}));

@@ -1,10 +1,12 @@
 import { Stack } from "expo-router";
 
+import { usePushSetup } from "@/features/push/use-push-setup";
 import { colors } from "@/theme";
 
 export const unstable_settings = { anchor: "(tabs)" };
 
 export default function AppLayout() {
+  usePushSetup();
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
       {/* No swipe-back out of a running exam: leaving asks first (the timer keeps running). */}

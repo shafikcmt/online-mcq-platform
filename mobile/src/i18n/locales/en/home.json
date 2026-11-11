@@ -74,5 +74,11 @@
     "routine": "Exam routine",
     "materials": "Study materials",
     "archive": "Past exams"
+  },
+  "push": {
+    "title": "Never miss an exam",
+    "body": "Turn on notifications to get a reminder before an exam starts, and important notices.",
+    "turnOn": "Turn on notifications",
+    "later": "Not now"
   }
 }

@@ -4,6 +4,7 @@ import { api, refreshTokens, setSessionExpiredHandler } from "@/api/client";
 import { isApiError } from "@/api/errors";
 import { isLanguage } from "@/i18n";
 import { useLanguage } from "@/i18n/provider";
+import { disablePush } from "@/features/push/push";
 
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./token-store";
 import type { AuthResponse, ProfileUpdate, RegisterInput, User } from "./types";
@@ -123,7 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
-      if (!getAccessToken()) await refreshTokens(); // so the logout call is authenticated
+      if (!getAccessToken()) await refreshTokens(); // so the calls below are authenticated
+      await disablePush(); // this phone stops getting this student's notifications
       const refresh = await getRefreshToken();
       if (refresh) await api("/auth/logout/", { method: "POST", body: { refresh } });
     } catch {
