@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Plus } from "lucide-react";
+import { ImageIcon, Plus, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -140,12 +140,20 @@ export function QuestionsView({
         title={t("questions.title")}
         subtitle={t("questions.subtitle")}
         actions={
-          <Button asChild ref={createRef}>
-            <Link href={newHref}>
-              <Plus aria-hidden />
-              {t("questions.new")}
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="secondary">
+              <Link href="/questions/import">
+                <Upload aria-hidden />
+                {t("qi.importLink")}
+              </Link>
+            </Button>
+            <Button asChild ref={createRef}>
+              <Link href={newHref}>
+                <Plus aria-hidden />
+                {t("questions.new")}
+              </Link>
+            </Button>
+          </>
         }
       />
       {lookupTruncated && <Alert tone="warning">{t("subjects.lookupTruncated", { n: formatNumber(subjects.length, locale) })}</Alert>}

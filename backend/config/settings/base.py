@@ -312,6 +312,7 @@ AUTH_THROTTLE_RATES = {
     # The list of payment methods reads the gateways and checks their credentials: bounded per
     # student (a real student opens the buy screen a few times a minute at most).
     "payment_methods": env_str("THROTTLE_PAYMENT_METHODS", "60/minute"),
+    "question_import": env_str("THROTTLE_QUESTION_IMPORT", "30/hour"),  # per admin
     "contact_form": env_str("THROTTLE_CONTACT_FORM", "5/hour"),  # per client IP
 }
 
@@ -363,6 +364,9 @@ MEDIA_URL = "/media/"
 QUESTION_MIN_OPTIONS = env_int("QUESTION_MIN_OPTIONS", 2)  # docs/DATABASE_DESIGN.md §4.4
 QUESTION_MAX_OPTIONS = env_int("QUESTION_MAX_OPTIONS", 10)
 QUESTION_IMAGE_MAX_BYTES = env_int("QUESTION_IMAGE_MAX_BYTES", 2 * 1024 * 1024)  # 2 MB
+# Bulk import (CSV / Excel): the upload and the number of question rows it may carry.
+QUESTION_IMPORT_MAX_BYTES = env_int("QUESTION_IMPORT_MAX_BYTES", 5 * 1024 * 1024)  # 5 MB
+QUESTION_IMPORT_MAX_ROWS = env_int("QUESTION_IMPORT_MAX_ROWS", 2000)
 QUESTION_IMAGE_MAX_PIXELS = env_int("QUESTION_IMAGE_MAX_PIXELS", 16_000_000)  # e.g. 4000×4000
 
 # Exam builder (Milestone 3C): upper bound for one exam's question list.

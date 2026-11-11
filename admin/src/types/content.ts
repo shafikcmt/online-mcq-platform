@@ -44,6 +44,9 @@ export type Question = {
   text_en: string;
   explanation_bn: string;
   explanation_en: string;
+  /** Where the question sits in the syllabus (free text; may be empty). */
+  chapter: string;
+  topic: string;
   difficulty: Difficulty | "";
   is_active: boolean;
   available_languages: ContentLanguage;

@@ -14,6 +14,8 @@ export type QuestionDraft = {
   text_en: string;
   explanation_bn: string;
   explanation_en: string;
+  chapter: string;
+  topic: string;
   difficulty: Difficulty | "";
   is_active: boolean;
   options: OptionDraft[];
@@ -42,6 +44,8 @@ export function newDraft(category = ""): QuestionDraft {
     text_en: "",
     explanation_bn: "",
     explanation_en: "",
+    chapter: "",
+    topic: "",
     difficulty: "",
     is_active: true,
     options: Array.from({ length: STARTING_OPTIONS }, emptyOption),
@@ -56,6 +60,8 @@ export function draftFromQuestion(question: Question): QuestionDraft {
     text_en: question.text_en,
     explanation_bn: question.explanation_bn,
     explanation_en: question.explanation_en,
+    chapter: question.chapter ?? "",
+    topic: question.topic ?? "",
     difficulty: question.difficulty,
     is_active: question.is_active,
     options: [...question.options]
@@ -71,6 +77,8 @@ export function toPayload(draft: QuestionDraft) {
     text_en: draft.text_en,
     explanation_bn: draft.explanation_bn,
     explanation_en: draft.explanation_en,
+    chapter: draft.chapter,
+    topic: draft.topic,
     difficulty: draft.difficulty,
     is_active: draft.is_active,
     options: draft.options.map((option, index) => ({
@@ -100,7 +108,7 @@ export function moveOption(options: OptionDraft[], index: number, delta: -1 | 1)
 }
 
 /** Field keys the editor can show errors for (`options.N.*` are per-option fields). */
-export const QUESTION_FIELDS = new Set(["subject", "text_bn", "text_en", "explanation_bn", "explanation_en", "difficulty", "is_active", "options"]);
+export const QUESTION_FIELDS = new Set(["subject", "text_bn", "text_en", "explanation_bn", "explanation_en", "chapter", "topic", "difficulty", "is_active", "options"]);
 export function isQuestionField(key: string): boolean {
   return QUESTION_FIELDS.has(key) || /^options\.\d+\.(text_bn|text_en|is_correct)$/.test(key);
 }
