@@ -1,5 +1,7 @@
 """Read queries other modules may use (docs/MODULES.md rule 2)."""
 
+from datetime import timedelta
+
 from django.db.models import Count, F, Q, Sum
 from django.db.models.functions import Coalesce
 
@@ -46,6 +48,22 @@ def listable_exams():
         Exam.objects.filter(status=ExamStatus.PUBLISHED, category__is_active=True)
         .filter(Q(subject__isnull=True) | Q(subject__is_active=True))
         .select_related("category", "subject")
+    )
+
+
+ROUTINE_MAX_EXAMS = 300
+ROUTINE_RECENT = timedelta(days=1)
+
+
+def routine_exams(now):
+    """The exam routine: published, scheduled exams that have not ended (and, with no end time,
+    started less than a day ago), earliest first. Exams with no start time are "any time" and
+    are not part of a routine."""
+    return (
+        listable_exams()
+        .filter(start_at__isnull=False)
+        .filter(Q(end_at__gt=now) | Q(end_at__isnull=True, start_at__gte=now - ROUTINE_RECENT))
+        .order_by("start_at", "id")
     )
 
 

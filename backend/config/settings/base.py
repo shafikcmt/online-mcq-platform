@@ -313,6 +313,7 @@ AUTH_THROTTLE_RATES = {
     # student (a real student opens the buy screen a few times a minute at most).
     "payment_methods": env_str("THROTTLE_PAYMENT_METHODS", "60/minute"),
     "question_import": env_str("THROTTLE_QUESTION_IMPORT", "30/hour"),  # per admin
+    "document_upload": env_str("THROTTLE_DOCUMENT_UPLOAD", "30/hour"),  # per admin (PDF uploads)
     "contact_form": env_str("THROTTLE_CONTACT_FORM", "5/hour"),  # per client IP
 }
 
@@ -367,6 +368,8 @@ QUESTION_IMAGE_MAX_BYTES = env_int("QUESTION_IMAGE_MAX_BYTES", 2 * 1024 * 1024) 
 # Bulk import (CSV / Excel): the upload and the number of question rows it may carry.
 QUESTION_IMPORT_MAX_BYTES = env_int("QUESTION_IMPORT_MAX_BYTES", 5 * 1024 * 1024)  # 5 MB
 QUESTION_IMPORT_MAX_ROWS = env_int("QUESTION_IMPORT_MAX_ROWS", 2000)
+# PDF documents (exam routine, notice PDFs): the largest accepted upload.
+DOCUMENT_MAX_BYTES = env_int("DOCUMENT_MAX_BYTES", 10 * 1024 * 1024)  # 10 MB
 QUESTION_IMAGE_MAX_PIXELS = env_int("QUESTION_IMAGE_MAX_PIXELS", 16_000_000)  # e.g. 4000×4000
 
 # Exam builder (Milestone 3C): upper bound for one exam's question list.

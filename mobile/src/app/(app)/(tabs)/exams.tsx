@@ -1,5 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
-import { CloudOff, X } from "lucide-react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { CalendarDays, CloudOff, X } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,7 +16,7 @@ import { useExamPages } from "@/features/exams/use-exam-pages";
 import { EmptyNote } from "@/features/dashboard/section";
 import { localizeDigits } from "@/lib/text";
 import { useServerNow } from "@/lib/use-server-now";
-import { colors, radius, space } from "@/theme";
+import { colors, radius, space, touchTarget } from "@/theme";
 
 const FILTERS: ExamWhen[] = ["open", "upcoming", "ended"];
 const isWhen = (value: unknown): value is ExamWhen => FILTERS.includes(value as ExamWhen);
@@ -48,11 +48,16 @@ export default function ExamsScreen() {
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.titleBlock}>
-        <AppText variant="h3" weight="bold" role="heading">
-          {t("exams:title")}
-        </AppText>
-        <AppText color={colors.inkMuted}>{t("exams:subtitle")}</AppText>
+      <View style={styles.titleRow}>
+        <View style={styles.titleBlock}>
+          <AppText variant="h3" weight="bold" role="heading">
+            {t("exams:title")}
+          </AppText>
+          <AppText color={colors.inkMuted}>{t("exams:subtitle")}</AppText>
+        </View>
+        <Pressable accessibilityRole="link" accessibilityLabel={t("routine:link")} onPress={() => router.push("/routine")} hitSlop={8} style={styles.routine}>
+          <CalendarDays size={22} color={colors.brand700} />
+        </Pressable>
       </View>
       <Segmented
         label={t("exams:filters.label")}
@@ -136,7 +141,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingHorizontal: space.lg, paddingVertical: space.xxl, width: "100%", maxWidth: 560, alignSelf: "center" },
   header: { gap: space.lg, marginBottom: space.lg },
-  titleBlock: { gap: space.xs },
+  titleRow: { flexDirection: "row", alignItems: "flex-start", gap: space.md },
+  titleBlock: { flex: 1, gap: space.xs },
+  routine: { width: touchTarget, height: touchTarget, alignItems: "center", justifyContent: "center" },
   gap: { height: space.md },
   skeleton: { gap: space.md },
   block: { borderRadius: radius.card, backgroundColor: colors.line },

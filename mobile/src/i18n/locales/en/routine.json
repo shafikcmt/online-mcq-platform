@@ -1,0 +1,12 @@
+{
+  "title": "Exam routine",
+  "subtitle": "Every upcoming and live exam by date and time (Bangladesh time).",
+  "download": "Download routine PDF",
+  "live": "Live now",
+  "upcoming": "Upcoming",
+  "empty": "No exams are scheduled right now. Check back soon.",
+  "details": "{{minutes}} min · {{questions}} questions · {{marks}} marks",
+  "open": "Open {{title}}",
+  "link": "Routine",
+  "stale": "Showing the last loaded routine. Pull down to refresh."
+}

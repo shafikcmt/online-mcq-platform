@@ -12,6 +12,8 @@ import { ApiError, errorFromResponse } from "./errors";
  *   tokens are cleared and the session-expired listener runs (the app shows sign-in);
  * - errors become `ApiError` (`network_error` when there is no answer). */
 const BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8000/api/v1").replace(/\/+$/, "");
+/** The API address, for links the app opens outside itself (for example the routine PDF). */
+export const API_BASE_URL = BASE_URL;
 const TIMEOUT_MS = 20_000;
 
 let language = "bn";

@@ -13,9 +13,13 @@ from .views import (
     ExamUnpublishView,
     PublicExamDetailView,
     PublicExamListView,
+    PublicRoutinePdfView,
+    PublicRoutineView,
+    RoutinePdfAdminView,
 )
 
 admin_urlpatterns = [
+    path("routine/pdf/", RoutinePdfAdminView.as_view(), name="routine-pdf"),
     path("exams/", ExamListCreateView.as_view(), name="exam-list"),
     path("exams/<int:pk>/", ExamDetailView.as_view(), name="exam-detail"),
     path("exams/<int:pk>/questions/", ExamQuestionsView.as_view(), name="exam-questions"),
@@ -33,6 +37,8 @@ admin_urlpatterns = [
 ]
 
 public_urlpatterns = [
+    path("routine/", PublicRoutineView.as_view(), name="routine"),
+    path("routine/pdf/", PublicRoutinePdfView.as_view(), name="routine-pdf"),
     path("exams/", PublicExamListView.as_view(), name="exam-list"),
     path("exams/<slug:slug>/", PublicExamDetailView.as_view(), name="exam-detail"),
 ]
