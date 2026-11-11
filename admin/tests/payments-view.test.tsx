@@ -30,6 +30,10 @@ function payment(overrides: Partial<AdminPayment> = {}): AdminPayment {
     package: { id: 5, slug: "gold", name_bn: "গোল্ড", name_en: "Gold" },
     subscription_id: 7,
     provider: "sslcommerz",
+    gateway: null,
+    mode: "",
+    channel: "",
+    is_test: false,
     amount: "500.00",
     currency: "BDT",
     status: "success",
@@ -138,6 +142,46 @@ describe("PaymentsView", () => {
     expect(lastQuery().get("package")).toBe("6");
     fireEvent.click(within(bodyRows()[0]).getByRole("button", { name: "All payments of Ayesha Siddika" }));
     expect(lastQuery().get("user")).toBe("40");
+  });
+
+  it("rows name the merchant account, mode and channel, and mark a test payment", () => {
+    const bkash = { id: 9, slug: "bkash-main", name_en: "bKash main", name_bn: "বিকাশ মূল" };
+    view(
+      "",
+      page([
+        payment({ gateway: bkash, mode: "live", channel: "web" }),
+        payment({
+          payment_id: "cccccccc-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          merchant_reference: "MCQTEST0000000000000000003",
+          gateway: { id: 10, slug: "bkash-test", name_en: "bKash test", name_bn: "" },
+          mode: "sandbox",
+          channel: "app",
+          is_test: true,
+        }),
+      ]),
+    );
+    // The list is drawn as a table and as phone cards, so each fact appears at least once.
+    for (const name of ["Show payments through bKash main", "Show payments through bKash test"]) {
+      expect(screen.getAllByRole("button", { name }).length).toBeGreaterThan(0);
+    }
+    for (const text of ["Live", "Sandbox", "Website", "Mobile app"]) {
+      expect(screen.getAllByText(text).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("clicking a gateway filters by it and shows its name in a chip", () => {
+    const bkash = { id: 9, slug: "bkash-main", name_en: "bKash main", name_bn: "" };
+    view("gateway=9", page([payment({ gateway: bkash, mode: "live", channel: "web" })]));
+    expect(screen.getByText("bKash main", { selector: "span, p, div" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear the gateway filter" })).toBeInTheDocument();
+  });
+
+  it("mode and channel filters go to the URL", () => {
+    view();
+    fireEvent.change(screen.getAllByLabelText("Mode")[0], { target: { value: "sandbox" } });
+    expect(lastQuery().get("mode")).toBe("sandbox");
+    fireEvent.change(screen.getAllByLabelText("Paid from")[0], { target: { value: "app" } });
+    expect(lastQuery().get("channel")).toBe("app");
   });
 
   it("sorted headers expose aria-sort", () => {

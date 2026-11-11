@@ -39,6 +39,10 @@ LIST_FIELDS = {
     "currency",
     "status",
     "failure_reason",
+    "gateway",
+    "mode",
+    "channel",
+    "is_test",
     "created_at",
     "verified_at",
 }

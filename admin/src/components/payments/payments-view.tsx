@@ -11,6 +11,7 @@ import type { ServerStudent } from "@/components/results/results-view";
 import { PackagePicker } from "@/components/subscriptions/package-picker";
 import type { ServerPackage } from "@/components/subscriptions/subscriptions-view";
 import { MaskedValue } from "@/components/users/user-cells";
+import { ModeBadge } from "@/components/gateways/gateway-parts";
 import { DateTimeText } from "@/components/ui/date-time";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -72,6 +73,11 @@ export function PaymentsView({
   const userId = state.filters.user ? Number(state.filters.user) : null;
   const packageId = state.filters.package ? Number(state.filters.package) : null;
   const subscriptionId = state.filters.subscription ? Number(state.filters.subscription) : null;
+  const gatewayId = state.filters.gateway ? Number(state.filters.gateway) : null;
+  // The gateway chip's name comes from a row of the list itself (every row carries its gateway).
+  const gatewayRow = gatewayId === null ? undefined : rows.find((row) => row.gateway?.id === gatewayId)?.gateway;
+  const gatewayLabel = (gateway: NonNullable<AdminPayment["gateway"]>) =>
+    (locale === "bn" && gateway.name_bn) || gateway.name_en || gateway.slug;
   // Chip names come from the server page's reads of the URL's ids only (never stale).
   const studentName = userId !== null && serverStudent?.id === userId ? (serverStudent.user?.full_name ?? null) : null;
   const packageContext = packageId !== null && serverPackage?.id === packageId ? serverPackage.pkg : null;
@@ -116,6 +122,20 @@ export function PaymentsView({
         <span className="block">
           <span className="block whitespace-nowrap tabular-nums">{formatMoney(row.amount, row.currency, locale)}</span>
           <span className="block text-xs text-ink-subtle">{codeLabel(t, "payProvider", row.provider)}</span>
+          {row.gateway ? (
+            <button
+              type="button"
+              onClick={() => update({ filters: { gateway: String(row.gateway!.id) } })}
+              className="block rounded-control text-left text-xs break-words text-ink-muted hover:text-brand-700 hover:underline"
+              aria-label={t("payments.gatewayPayments", { name: gatewayLabel(row.gateway) })}
+            >
+              {gatewayLabel(row.gateway)}
+            </button>
+          ) : null}
+          <span className="mt-0.5 flex flex-wrap items-center gap-1">
+            {row.mode ? <ModeBadge mode={row.mode} /> : null}
+            {row.channel ? <span className="text-xs text-ink-subtle">{t(`payments.channel.${row.channel}`)}</span> : null}
+          </span>
         </span>
       ),
     },
@@ -179,6 +199,14 @@ export function PaymentsView({
             }
           />
         )}
+        {gatewayId !== null && (
+          <FilterChip
+            label={gatewayRow ? gatewayLabel(gatewayRow) : t("payments.gatewayUnknown", { id: gatewayId })}
+            prefix={t("payments.gatewayFilter")}
+            clearLabel={t("payments.clearGateway")}
+            onClear={() => update({ filters: { gateway: "" } })}
+          />
+        )}
         {subscriptionId !== null && (
           <FilterChip
             label={
@@ -209,7 +237,7 @@ export function PaymentsView({
             />
           }
           activeCount={activeFilterCount(state)}
-          onClear={() => update({ search: "", filters: { user: "", package: "", subscription: "", status: "", provider: "" } })}
+          onClear={() => update({ search: "", filters: { user: "", package: "", subscription: "", gateway: "", status: "", provider: "", mode: "", channel: "" } })}
           filters={(prefix) => (
             <>
               <FilterSelect
@@ -233,6 +261,30 @@ export function PaymentsView({
                   ...PAYMENT_PROVIDERS.map((provider) => ({ value: provider, label: t(`payProvider.${provider}`) })),
                 ]}
                 className="md:w-48"
+              />
+              <FilterSelect
+                id={`${prefix}-mode`}
+                label={t("payments.modeFilter")}
+                value={state.filters.mode ?? ""}
+                onChange={(value) => update({ filters: { mode: value } })}
+                options={[
+                  { value: "", label: t("payments.allModes") },
+                  { value: "live", label: t("gw.mode.live") },
+                  { value: "sandbox", label: t("gw.mode.sandbox") },
+                ]}
+                className="md:w-40"
+              />
+              <FilterSelect
+                id={`${prefix}-channel`}
+                label={t("payments.channelFilter")}
+                value={state.filters.channel ?? ""}
+                onChange={(value) => update({ filters: { channel: value } })}
+                options={[
+                  { value: "", label: t("payments.allChannels") },
+                  { value: "web", label: t("payments.channel.web") },
+                  { value: "app", label: t("payments.channel.app") },
+                ]}
+                className="md:w-40"
               />
               <FilterSelect
                 id={`${prefix}-ordering`}

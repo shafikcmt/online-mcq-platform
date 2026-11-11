@@ -16,6 +16,14 @@ export type AdminPayment = {
   /** The subscription this payment created or extended (successful payments only). */
   subscription_id: number | null;
   provider: PaymentProvider;
+  /** The merchant account (gateway) used; null for payments made before gateways existed. */
+  gateway: { id: number; slug: string; name_en: string; name_bn: string } | null;
+  /** "sandbox" | "live", or "" for older payments. */
+  mode: "sandbox" | "live" | "";
+  /** Where the student paid from: "web" | "app", or "". */
+  channel: "web" | "app" | "";
+  /** A sandbox payment by a designated tester (not real money). */
+  is_test: boolean;
   /** Decimal string, the price snapshot taken when the payment started. */
   amount: string;
   currency: string;

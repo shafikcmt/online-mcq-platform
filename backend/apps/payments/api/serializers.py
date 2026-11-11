@@ -145,6 +145,15 @@ class AdminPaymentEventSerializer(serializers.Serializer):
         return event_summary(event.payload)
 
 
+class _AdminGatewayRefSerializer(serializers.Serializer):
+    """Which merchant account a payment went through (never a credential)."""
+
+    id = serializers.IntegerField()
+    slug = serializers.CharField()
+    name_en = serializers.CharField()
+    name_bn = serializers.CharField(allow_blank=True)
+
+
 class AdminPaymentSerializer(serializers.Serializer):
     payment_id = serializers.UUIDField(source="public_id")
     merchant_reference = serializers.CharField()
@@ -152,12 +161,19 @@ class AdminPaymentSerializer(serializers.Serializer):
     package = _AdminPackageRefSerializer()
     subscription_id = serializers.IntegerField(allow_null=True)
     provider = serializers.ChoiceField(choices=PaymentProvider.choices)
+    gateway = _AdminGatewayRefSerializer(allow_null=True)  # null: before gateways existed
+    mode = serializers.CharField(allow_blank=True)  # "sandbox" | "live" | "" (older payments)
+    channel = serializers.CharField(allow_blank=True)  # "web" | "app" | ""
+    is_test = serializers.SerializerMethodField()
     amount = serializers.DecimalField(**M)
     currency = serializers.CharField()
     status = serializers.ChoiceField(choices=PaymentStatus.choices)
     failure_reason = serializers.CharField()
     created_at = serializers.DateTimeField()
     verified_at = serializers.DateTimeField(allow_null=True)
+
+    def get_is_test(self, payment) -> bool:
+        return payment.mode == "sandbox"
 
 
 class AdminPaymentDetailSerializer(AdminPaymentSerializer):

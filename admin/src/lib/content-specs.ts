@@ -98,7 +98,16 @@ export const SUBSCRIPTION_LIST: ListSpec = {
 /** Read-only payments (7H): exact reference/transaction-ID search; the UTC date filters
  * the API also accepts are not used by the panel yet. */
 export const PAYMENT_LIST: ListSpec = {
-  filters: { user: "id", package: "id", subscription: "id", status: PAYMENT_STATUSES, provider: PAYMENT_PROVIDERS },
+  filters: {
+    user: "id",
+    package: "id",
+    subscription: "id",
+    gateway: "id",
+    status: PAYMENT_STATUSES,
+    provider: PAYMENT_PROVIDERS,
+    mode: ["sandbox", "live"],
+    channel: ["web", "app"],
+  },
   orderings: ["created_at", "amount", "verified_at"],
   defaultOrdering: "-created_at",
 };
