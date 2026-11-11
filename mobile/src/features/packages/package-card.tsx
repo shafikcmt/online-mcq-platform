@@ -19,7 +19,7 @@ export function PackageCard({ pkg, busy, onBuy }: { pkg: Package; busy: boolean;
   const language = i18n.language;
   const days = t("packages:validity", { count: pkg.validity_days, n: localizeDigits(pkg.validity_days, language) });
   const sub = pkg.subscription;
-  const { scope, exam_count: examCount, categories } = pkg.access;
+  const { scope, exam_count: examCount, categories } = pkg.access ?? { scope: "selected", exam_count: 0, categories: [] };
   const coverage =
     scope === "all"
       ? t("packages:coverAll", { n: localizeDigits(examCount, language) })

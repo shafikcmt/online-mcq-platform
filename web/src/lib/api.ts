@@ -81,7 +81,8 @@ export type Package = {
   validity_days: number;
   is_featured: boolean;
   /** What the package unlocks: every paid exam, or the listed categories (paid exams open now). */
-  access: PackageAccess;
+  /** Absent from an API that has not been updated yet: treated as "unknown", never an error. */
+  access?: PackageAccess;
 };
 
 export type PackageAccess = {
