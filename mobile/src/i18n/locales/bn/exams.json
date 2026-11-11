@@ -31,6 +31,10 @@
     "attemptsUnlimited": "{{used}}টি (সীমা নেই)",
     "language": "প্রশ্নের ভাষা",
     "instructions": "নির্দেশনা",
+    "syllabus": "সিলেবাস",
+    "syllabusSubject": "বিষয়",
+    "syllabusChapter": "অধ্যায়",
+    "syllabusTopic": "টপিক",
     "notFound": "এই পরীক্ষাটি পাওয়া যাচ্ছে না। হয়তো সরিয়ে নেওয়া বা বন্ধ করা হয়েছে।"
   },
   "contentLanguage": {

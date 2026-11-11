@@ -288,7 +288,7 @@ test("a paid exam without a package offers the packages", async () => {
       "GET /exams/bio/": ok({
         slug: "bio", title: "Biology final", description: "", instructions: "", exam_type: "regular", access_type: "paid", content_language: "en",
         category: { slug: "hsc", name: "HSC" }, subject: null, duration_minutes: 30, total_questions: 10, total_marks: "10.00", negative_marks: "0.00",
-        pass_marks: null, start_at: null, end_at: null, is_featured: false, has_access: false, can_start: false, can_resume: false, attempt_state: null,
+        pass_marks: null, start_at: null, end_at: null, is_featured: false, syllabus: [], has_access: false, can_start: false, can_resume: false, attempt_state: null,
         locked_reason: "needs_subscription", attempts_used: 0, attempts_allowed: 1, seconds_if_started_now: null, server_time: new Date().toISOString(),
       }),
       "GET /packages/": page([pkg()]),

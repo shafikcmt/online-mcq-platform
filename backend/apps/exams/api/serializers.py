@@ -18,6 +18,8 @@ from apps.core.public_api import LocalizedSerializer
 from ..models import (
     MARKS_DECIMALS,
     MARKS_DIGITS,
+    SYLLABUS_LABEL_MAX_LENGTH,
+    SYLLABUS_MAX_ITEMS,
     TEXT_MAX_LENGTH,
     TITLE_MAX_LENGTH,
     Exam,
@@ -183,9 +185,52 @@ class ExamQuestionAdminListSerializer(serializers.Serializer):
 # --------------------------------------------------------------------------------------
 # Public (no login) — explicit fields, request language, no answer data
 # --------------------------------------------------------------------------------------
+class SyllabusItemSerializer(serializers.Serializer):
+    """One syllabus line (admin and public: it holds no answer data)."""
+
+    subject = serializers.CharField(
+        max_length=SYLLABUS_LABEL_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+        trim_whitespace=False,
+    )
+    chapter = serializers.CharField(
+        max_length=SYLLABUS_LABEL_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+        trim_whitespace=False,
+    )
+    topic = serializers.CharField(
+        max_length=SYLLABUS_LABEL_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+        trim_whitespace=False,
+    )
+
+
+class SyllabusListSerializer(serializers.Serializer):
+    """``PUT``: the COMPLETE syllabus, in order."""
+
+    syllabus = SyllabusItemSerializer(many=True, max_length=SYLLABUS_MAX_ITEMS + 1)
+
+
 class PublicRefSerializer(serializers.Serializer):
     slug = serializers.CharField()
     name = serializers.CharField()
+
+
+class SyllabusMixin(serializers.Serializer):
+    """Adds the exam's syllabus. Only the DETAIL serializers use it: lists (and the student
+    dashboard) stay light, and listing exams costs no extra query."""
+
+    syllabus = serializers.SerializerMethodField()
+
+    @extend_schema_field(SyllabusItemSerializer(many=True))
+    def get_syllabus(self, obj) -> list:
+        return [
+            {"subject": item.subject, "chapter": item.chapter, "topic": item.topic}
+            for item in obj.syllabus_items.all()
+        ]
 
 
 class PublicExamSerializer(LocalizedSerializer):
@@ -226,3 +271,7 @@ class PublicExamSerializer(LocalizedSerializer):
     @extend_schema_field(PublicRefSerializer(allow_null=True))
     def get_subject(self, obj):
         return self._ref(obj.subject)
+
+
+class PublicExamDetailSerializer(SyllabusMixin, PublicExamSerializer):
+    """The public exam page: the exam fields plus its syllabus."""

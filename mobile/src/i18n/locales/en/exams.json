@@ -31,6 +31,10 @@
     "attemptsUnlimited": "{{used}} (no limit)",
     "language": "Question language",
     "instructions": "Instructions",
+    "syllabus": "Syllabus",
+    "syllabusSubject": "Subject",
+    "syllabusChapter": "Chapter",
+    "syllabusTopic": "Topic",
     "notFound": "This exam is not available. It may have been removed or closed."
   },
   "contentLanguage": {

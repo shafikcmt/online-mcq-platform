@@ -8,7 +8,7 @@ export const generateMetadata = () => titleMetadata("exam.editTitle");
 
 export default async function EditExamPage({ params }: { params: Params }) {
   const { id } = await params;
-  const [{ exam, questions }, lookups] = await Promise.all([readExam(id), examLookups()]);
+  const [{ exam, questions, syllabus }, lookups] = await Promise.all([readExam(id), examLookups()]);
   // `key`: another exam (e.g. after Duplicate) starts a fresh editor.
-  return <ExamEditor key={exam.id} exam={exam} questions={questions} {...lookups} />;
+  return <ExamEditor key={exam.id} exam={exam} questions={questions} syllabus={syllabus} {...lookups} />;
 }

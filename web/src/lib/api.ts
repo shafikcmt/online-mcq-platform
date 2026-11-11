@@ -65,7 +65,11 @@ export type Exam = {
   start_at: string | null;
   end_at: string | null;
   is_featured: boolean;
+  /** The syllabus lines; only the exam's own page (not the list) carries them. */
+  syllabus?: SyllabusLine[];
 };
+
+export type SyllabusLine = { subject: string; chapter: string; topic: string };
 
 export type Package = {
   slug: string;

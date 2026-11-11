@@ -159,6 +159,29 @@ function Details({ exam, now }: { exam: StudentExamDetail; now: number }) {
           </View>
         ))}
       </Card>
+      {exam.syllabus?.length ? (
+        <Card style={styles.instructions} accessibilityLabel={t("exams:detail.syllabus")}>
+          <AppText weight="bold" role="heading">
+            {t("exams:detail.syllabus")}
+          </AppText>
+          {exam.syllabus.map((line, index) => (
+            <View key={index} style={[styles.syllabusLine, index > 0 && styles.factLine]}>
+              <AppText variant="small" color={colors.inkSubtle} style={styles.syllabusNumber}>
+                {localizeDigits(index + 1, i18n.language)}
+              </AppText>
+              <View style={styles.syllabusText}>
+                {(["subject", "chapter", "topic"] as const).map((part) =>
+                  line[part] ? (
+                    <AppText key={part} variant={part === "topic" ? "body" : "small"} weight={part === "subject" ? "semibold" : "regular"} color={part === "topic" ? colors.ink : colors.inkMuted}>
+                      {line[part]}
+                    </AppText>
+                  ) : null,
+                )}
+              </View>
+            </View>
+          ))}
+        </Card>
+      ) : null}
       {exam.instructions ? (
         <Card style={styles.instructions}>
           <AppText weight="bold" role="heading">
@@ -200,6 +223,9 @@ const styles = StyleSheet.create({
   factLabel: { flex: 1 },
   factValue: { flexShrink: 1, textAlign: "right" },
   instructions: { gap: space.sm },
+  syllabusLine: { flexDirection: "row", gap: space.md, paddingVertical: space.sm },
+  syllabusNumber: { minWidth: 22 },
+  syllabusText: { flex: 1, gap: 2 },
   skeleton: { gap: space.md },
   block: { borderRadius: radius.card, backgroundColor: colors.line },
   failed: { alignItems: "center", gap: space.md, marginTop: space.huge },

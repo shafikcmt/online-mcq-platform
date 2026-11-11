@@ -33,10 +33,12 @@ import { useUnsavedGuard } from "@/lib/use-unsaved-guard";
 import { cn } from "@/lib/utils";
 import type { Category, Subject } from "@/types/content";
 import type { Exam, ExamQuestionRow } from "@/types/exams";
+import type { SyllabusLineData } from "@/types/syllabus";
 
 import { AssignedQuestions } from "./assigned-questions";
 import { ExamStatusBadge, examTitle } from "./exam-cells";
 import { ExamResults } from "./exam-results";
+import { ExamSyllabus } from "./exam-syllabus";
 import { ExamSettings, SectionAnchor, sectionElementId, type SectionId } from "./exam-settings";
 import { QuestionPicker, initialPickerQuery, type PickerQuery } from "./question-picker";
 
@@ -92,6 +94,7 @@ type Confirm = "unpublish" | "archive" | "duplicate" | "delete";
 export function ExamEditor({
   exam: initialExam,
   questions,
+  syllabus = [],
   categories,
   subjects,
   lookupTruncated,
@@ -99,6 +102,7 @@ export function ExamEditor({
 }: {
   exam: Exam | null;
   questions: ExamQuestionRow[];
+  syllabus?: SyllabusLineData[];
   categories: Category[];
   subjects: Subject[];
   lookupTruncated: boolean;
@@ -518,6 +522,8 @@ export function ExamEditor({
           )}
         </FormSection>
       </SectionAnchor>
+
+      {exam && <ExamSyllabus examId={exam.id} initial={syllabus} />}
 
       {exam && exam.status !== "draft" && (
         <ExamResults
