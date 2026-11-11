@@ -199,7 +199,11 @@
   "package": {
     "days": "{{n}} {{n|day|days}}",
     "popular": "Popular",
-    "per": "/ {{days}}"
+    "per": "/ {{days}}",
+    "coverAll": "All paid exams ({{n}} open now)",
+    "coverSome": "{{n}} {{n|exam|exams}} · {{names}}",
+    "groupMixed": "Several categories and all exams",
+    "groupLabel": "Package categories"
   },
   "pinned": "Pinned",
   "footer": {

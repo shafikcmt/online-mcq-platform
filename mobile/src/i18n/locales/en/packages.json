@@ -47,5 +47,11 @@
     }
   },
   "historyEmpty": "You have not made any payments yet.",
-  "seePackages": "See packages"
+  "seePackages": "See packages",
+  "coverAll": "All paid exams ({{n}} open now)",
+  "coverSome_one": "{{n}} exam · {{names}}",
+  "coverSome_other": "{{n}} exams · {{names}}",
+  "categories": "Category",
+  "allCategories": "All",
+  "noneInCategory": "No packages cover this category."
 }

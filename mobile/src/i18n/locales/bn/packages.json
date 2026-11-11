@@ -47,5 +47,11 @@
     }
   },
   "historyEmpty": "আপনি এখনো কোনো পেমেন্ট করেননি।",
-  "seePackages": "প্যাকেজ দেখুন"
+  "seePackages": "প্যাকেজ দেখুন",
+  "coverAll": "সব পেইড পরীক্ষা (এখন খোলা {{n}}টি)",
+  "coverSome_one": "{{n}}টি পরীক্ষা · {{names}}",
+  "coverSome_other": "{{n}}টি পরীক্ষা · {{names}}",
+  "categories": "ক্যাটেগরি",
+  "allCategories": "সব",
+  "noneInCategory": "এই ক্যাটেগরির জন্য কোনো প্যাকেজ নেই।"
 }

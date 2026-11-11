@@ -20,6 +20,7 @@ function pkg(overrides: Partial<Package> = {}): Package {
     currency: "BDT",
     validity_days: 30,
     is_featured: true,
+    access: { scope: "all", exam_count: 6, categories: [] },
     subscription: null,
     ...overrides,
   };
@@ -303,4 +304,42 @@ test("Bangla prices", async () => {
   await signedIn({ "GET /packages/": page([pkg()]) }, "/packages", "bn");
   expect(await screen.findByText("৳৫০০")).toBeOnTheScreen();
   expect(screen.getByText("/ ৩০ দিন")).toBeOnTheScreen();
+});
+
+describe("category coverage", () => {
+  const medical = { slug: "medical", name: "Medical", exam_count: 5 };
+  const engineering = { slug: "engineering", name: "Engineering", exam_count: 3 };
+  const list = [
+    pkg({ id: 1, slug: "med", name: "Medical pack", is_featured: false, access: { scope: "selected", exam_count: 5, categories: [medical] } }),
+    pkg({ id: 2, slug: "eng", name: "Engineering pack", is_featured: false, access: { scope: "selected", exam_count: 3, categories: [engineering] } }),
+    pkg({ id: 3, slug: "all", name: "Everything pack", is_featured: false, access: { scope: "all", exam_count: 8, categories: [medical, engineering] } }),
+  ];
+  const open = async () => {
+    await resetDevice({ language: "en", refresh: "R0" });
+    mockBackend({
+      "POST /auth/token/refresh/": { status: 200, body: { access: "A1", refresh: "R1" } },
+      "GET /me/": { status: 200, body: STUDENT },
+      "GET /packages/": { status: 200, body: { count: 3, next: null, previous: null, results: list } },
+      "GET /payments/methods/": { status: 200, body: { results: [] } },
+    });
+    await renderApp("/packages");
+    await screen.findByText("Medical pack");
+  };
+
+  test("each card says what it covers and how many exams", async () => {
+    await open();
+    expect(screen.getByText("5 exams · Medical")).toBeOnTheScreen();
+    expect(screen.getByText("3 exams · Engineering")).toBeOnTheScreen();
+    expect(screen.getByText("All paid exams (8 open now)")).toBeOnTheScreen();
+  });
+
+  test("a category chip keeps the packages that cover it, plus all-exam packages", async () => {
+    await open();
+    await fireEvent.press(screen.getByRole("radio", { name: "Engineering" }));
+    expect(screen.queryByText("Medical pack")).toBeNull();
+    expect(screen.getByText("Engineering pack")).toBeOnTheScreen();
+    expect(screen.getByText("Everything pack")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("radio", { name: "All" }));
+    expect(screen.getByText("Medical pack")).toBeOnTheScreen();
+  });
 });

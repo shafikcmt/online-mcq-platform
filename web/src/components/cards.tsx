@@ -2,6 +2,7 @@ import { CalendarClock, Clock3, FileQuestion, Star } from "lucide-react";
 import Link from "next/link";
 
 import type { Exam, Notice, Package } from "@/lib/api";
+import { coverageLine } from "@/lib/packages";
 import { NoticePdfLink } from "./notice-pdf-link";
 import { scheduleState } from "@/lib/exam-filters";
 import { date, dateTime, digits, money } from "@/lib/format";
@@ -74,6 +75,7 @@ export function ExamCard({ exam, lang, headingLevel = 3 }: { exam: Exam; lang: L
 export function PackageCard({ pkg, lang }: { pkg: Package; lang: Lang }) {
   const t = translator(lang);
   const days = t("package.days", { n: digits(pkg.validity_days, lang) });
+  const coverage = coverageLine(pkg, t, (n) => digits(n, lang));
   return (
     <article className={cn("flex h-full flex-col gap-4 rounded-card border bg-surface p-6 shadow-sm", pkg.is_featured ? "border-2 border-brand-600" : "border-line")}>
       <div className="flex items-start justify-between gap-3">
@@ -89,6 +91,7 @@ export function PackageCard({ pkg, lang }: { pkg: Package; lang: Lang }) {
         <span className="text-3xl font-bold text-brand-800">{money(pkg.price, pkg.currency, lang)}</span>
         <span className="text-ink-muted">{t("package.per", { days })}</span>
       </p>
+      {coverage ? <p className="rounded-control bg-brand-50 px-3 py-2 text-sm font-medium text-brand-800">{coverage}</p> : null}
       {pkg.description ? <p className="text-sm text-ink-muted">{pkg.description}</p> : null}
       {pkg.features.length ? (
         <ul className="flex flex-col gap-1.5 text-sm">

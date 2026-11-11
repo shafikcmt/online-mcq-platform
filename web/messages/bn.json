@@ -199,7 +199,11 @@
   "package": {
     "days": "{{n}} দিন",
     "popular": "জনপ্রিয়",
-    "per": "/ {{days}}"
+    "per": "/ {{days}}",
+    "coverAll": "সব পেইড পরীক্ষা (এখন খোলা {{n}}টি)",
+    "coverSome": "{{n}}টি পরীক্ষা · {{names}}",
+    "groupMixed": "একাধিক ক্যাটেগরি ও সব পরীক্ষা",
+    "groupLabel": "প্যাকেজের ক্যাটেগরি"
   },
   "pinned": "পিন করা",
   "footer": {
