@@ -9,6 +9,7 @@ import { questionImportBn, questionImportEn } from "./question-import-messages";
 import { materialsBn, materialsEn } from "./materials-messages";
 import { noticePdfBn, noticePdfEn } from "./notice-pdf-messages";
 import { sampleBn, sampleEn } from "./sample-messages";
+import { pushBn, pushEn } from "./push-messages";
 import { routineBn, routineEn } from "./routine-messages";
 import { syllabusBn, syllabusEn } from "./syllabus-messages";
 import { smsBn, smsEn } from "./sms-messages";
@@ -119,7 +120,7 @@ const coreEn = {
   "status.cancelled": "Cancelled",
 };
 
-export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn, ...packageEn, ...paymentEn, ...cmsEn, ...auditEn, ...smsEn, ...gatewayEn, ...questionImportEn, ...syllabusEn, ...routineEn, ...noticePdfEn, ...materialsEn, ...sampleEn };
+export const en = { ...coreEn, ...contentEn, ...examEn, ...resultEn, ...userEn, ...attemptEn, ...packageEn, ...paymentEn, ...cmsEn, ...auditEn, ...smsEn, ...gatewayEn, ...questionImportEn, ...syllabusEn, ...routineEn, ...noticePdfEn, ...materialsEn, ...sampleEn, ...pushEn };
 
 export type MessageKey = keyof typeof en;
 export type Messages = Record<MessageKey, string>;
@@ -224,7 +225,7 @@ const coreBn: Record<keyof typeof coreEn, string> = {
   "status.cancelled": "বাতিল",
 };
 
-export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn, ...packageBn, ...paymentBn, ...cmsBn, ...auditBn, ...smsBn, ...gatewayBn, ...questionImportBn, ...syllabusBn, ...routineBn, ...noticePdfBn, ...materialsBn, ...sampleBn };
+export const bn: Messages = { ...coreBn, ...contentBn, ...examBn, ...resultBn, ...userBn, ...attemptBn, ...packageBn, ...paymentBn, ...cmsBn, ...auditBn, ...smsBn, ...gatewayBn, ...questionImportBn, ...syllabusBn, ...routineBn, ...noticePdfBn, ...materialsBn, ...sampleBn, ...pushBn };
 
 export const LOCALES = ["en", "bn"] as const;
 export type Locale = (typeof LOCALES)[number];

@@ -100,3 +100,128 @@ class NotificationRollout(models.Model):
 
     def __str__(self) -> str:
         return f"{self.type} from {self.starts_at.isoformat()}"
+
+
+# --------------------------------------------------------------------------------------
+# Push notifications (Expo). Off until the owner turns it on (PUSH_ENABLED) and has an Expo
+# project with push credentials; nothing here is needed for the in-app notifications above.
+# --------------------------------------------------------------------------------------
+PUSH_TOKEN_MAX_LENGTH = 200
+PUSH_TITLE_MAX_LENGTH = 100
+PUSH_BODY_MAX_LENGTH = 300
+
+
+class PushDevice(models.Model):
+    """One phone that agreed to push notifications: its Expo push token and whose it is.
+
+    The token is the only thing stored (no device name, no IP). The app registers it after
+    sign-in and removes it on sign-out or when the student turns notifications off; Expo's
+    ``DeviceNotRegistered`` answer deactivates it. A token belongs to one user at a time (signing
+    in on the same phone as someone else moves it).
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        on_delete=models.CASCADE,
+        related_name="push_devices",
+    )
+    token = models.CharField(_("Expo push token"), max_length=PUSH_TOKEN_MAX_LENGTH, unique=True)
+    is_active = models.BooleanField(_("active"), default=True)
+    last_error = models.CharField(_("last error"), max_length=60, blank=True, default="")
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("push device")
+        verbose_name_plural = _("push devices")
+        ordering = ("id",)
+        indexes = [models.Index(fields=["is_active", "user"], name="push_device_active_idx")]
+
+    def __str__(self) -> str:
+        return f"device of user #{self.user_id}"
+
+
+class PushKind(models.TextChoices):
+    MANUAL = "manual", _("Sent by an admin")
+    EXAM_REMINDER = "exam_reminder", _("Exam reminder")
+
+
+class PushStatus(models.TextChoices):
+    PENDING = "pending", _("Waiting to be sent")
+    SENDING = "sending", _("Sending")
+    SENT = "sent", _("Sent")
+    FAILED = "failed", _("Failed")
+    DISABLED = "disabled", _("Not sent: push is switched off on the server")
+
+
+class PushMessage(models.Model):
+    """One push message to all active devices: the text in both languages (each device gets its
+    owner's language, falling back to the other) and an optional exam to open when it is tapped.
+    Admin messages and automatic exam reminders share this record, which is also the history and the
+    guard against sending the same reminder twice."""
+
+    kind = models.CharField(_("type"), max_length=20, choices=PushKind.choices)
+    title_bn = models.CharField(_("title (Bangla)"), max_length=PUSH_TITLE_MAX_LENGTH, blank=True)
+    title_en = models.CharField(_("title (English)"), max_length=PUSH_TITLE_MAX_LENGTH, blank=True)
+    body_bn = models.CharField(_("text (Bangla)"), max_length=PUSH_BODY_MAX_LENGTH, blank=True)
+    body_en = models.CharField(_("text (English)"), max_length=PUSH_BODY_MAX_LENGTH, blank=True)
+    exam = models.ForeignKey(
+        "exams.Exam",
+        verbose_name=_("exam"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    # For a reminder: how many minutes before the start it is for (null for manual messages).
+    reminder_offset = models.PositiveIntegerField(
+        _("reminder offset (minutes)"), null=True, blank=True
+    )
+    status = models.CharField(
+        _("status"), max_length=10, choices=PushStatus.choices, default=PushStatus.PENDING
+    )
+    device_count = models.PositiveIntegerField(_("devices"), default=0)
+    sent_count = models.PositiveIntegerField(_("accepted by Expo"), default=0)
+    failed_count = models.PositiveIntegerField(_("failed"), default=0)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    sent_at = models.DateTimeField(_("sent at"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("push message")
+        verbose_name_plural = _("push messages")
+        ordering = ("-created_at", "-id")
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(kind__in=PushKind.values), name="push_message_kind_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(status__in=PushStatus.values), name="push_message_status_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(title_bn__gt="") | models.Q(title_en__gt=""),
+                name="push_message_title_required",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(body_bn__gt="") | models.Q(body_en__gt=""),
+                name="push_message_body_required",
+            ),
+            # One reminder per exam and offset, whatever happens (the scheduler may run twice).
+            models.UniqueConstraint(
+                fields=["exam", "kind", "reminder_offset"],
+                condition=models.Q(kind="exam_reminder"),
+                name="push_reminder_once",
+            ),
+        ]
+        indexes = [models.Index(fields=["status", "created_at"], name="push_message_status_idx")]
+
+    def __str__(self) -> str:
+        return self.title_en or self.title_bn or f"push #{self.pk}"

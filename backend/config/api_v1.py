@@ -23,6 +23,7 @@ from apps.exams.api.urls import admin_urlpatterns as exam_admin_urlpatterns
 from apps.exams.api.urls import public_urlpatterns as exam_public_urlpatterns
 from apps.materials.api.urls import admin_urlpatterns as material_admin_urlpatterns
 from apps.materials.api.urls import public_urlpatterns as material_public_urlpatterns
+from apps.notifications.api.urls import admin_urlpatterns as notification_admin_urlpatterns
 from apps.notifications.api.urls import me_urlpatterns as notification_me_urlpatterns
 from apps.payments.api.urls import admin_urlpatterns as payment_admin_urlpatterns
 from apps.payments.api.urls import student_urlpatterns as payment_student_urlpatterns
@@ -53,6 +54,7 @@ admin_urlpatterns = [
     *payment_admin_urlpatterns,
     *cms_admin_urlpatterns,
     *material_admin_urlpatterns,
+    *notification_admin_urlpatterns,
     *simulation_admin_urlpatterns,
     *audit_admin_urlpatterns,
     *dashboard_admin_urlpatterns,

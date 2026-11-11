@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Video,
   UserRoundCheck,
+  BellRing,
   type LucideIcon,
 } from "lucide-react";
 
@@ -73,6 +74,7 @@ export const NAV: NavGroup[] = [
     key: "nav.site",
     items: [
       { key: "nav.announcements", href: "/announcements", icon: Megaphone, ready: true },
+      { key: "nav.push", href: "/push", icon: BellRing, ready: true },
       { key: "nav.faq", href: "/faqs", icon: HelpCircle, ready: true },
       { key: "nav.pages", href: "/pages", icon: FileText, ready: true },
       { key: "nav.contact", href: "/contact-messages", icon: Mail, ready: true },
