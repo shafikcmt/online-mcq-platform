@@ -41,7 +41,10 @@ export type StudentExam = {
   seconds_if_started_now: number | null;
 };
 
-export type StudentExamDetail = StudentExam & { server_time: string };
+export type SyllabusLine = { subject: string; chapter: string; topic: string };
+
+/** `GET /exams/{slug}/` (the exam's own screen): also the syllabus lines the admin wrote. */
+export type StudentExamDetail = StudentExam & { server_time: string; syllabus: SyllabusLine[] };
 
 export type ExamPage = { count: number; next: string | null; previous: string | null; results: StudentExam[]; server_time: string };
 

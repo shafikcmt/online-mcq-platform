@@ -30,7 +30,7 @@ from apps.audit.services import AuditContext
 from apps.catalog.models import SLUG_MAX_LENGTH
 from apps.core.i18n import normalize_digits, normalize_text
 from apps.core.slugs import first_free_slug, slug_base
-from apps.questions.models import Question
+from apps.questions.models import Question, normalize_content
 
 from .exceptions import (
     ALREADY_PUBLISHED_MESSAGE,
@@ -46,10 +46,13 @@ from .locks import has_history
 from .models import (
     EDITABLE_STATUSES,
     EXAM_SLUG_TAKEN_MESSAGE,
+    SYLLABUS_LABEL_MAX_LENGTH,
+    SYLLABUS_MAX_ITEMS,
     ContentLanguage,
     Exam,
     ExamQuestion,
     ExamStatus,
+    ExamSyllabusItem,
     ExamType,
     MeritStrategy,
     ResultVisibility,
@@ -438,6 +441,69 @@ def set_exam_questions(exam_id: int, items: list[dict], *, ctx: AuditContext) ->
             "changed_fields": ["questions"],
             "changes": {"question_count": {"from": len(current), "to": len(built)}},
         },
+    )
+    return exam
+
+
+# --------------------------------------------------------------------------------------
+# Syllabus
+# --------------------------------------------------------------------------------------
+SYLLABUS_FIELDS = ("subject", "chapter", "topic")
+SYLLABUS_TOO_MANY_MESSAGE = _("A syllabus can have at most %(max)s lines.")
+SYLLABUS_EMPTY_LINE_MESSAGE = _("Line %(number)s is empty: fill the subject, chapter or topic.")
+SYLLABUS_TOO_LONG_MESSAGE = _(
+    "Line %(number)s: %(field)s is too long (maximum %(max)s characters)."
+)
+
+
+def _syllabus_key(items) -> list[tuple]:
+    return [tuple(getattr(item, name) for name in SYLLABUS_FIELDS) for item in items]
+
+
+def build_syllabus(exam: Exam, items: list[dict]) -> list[ExamSyllabusItem]:
+    """Validate the complete syllabus and return unsaved lines in the order given."""
+    if len(items) > SYLLABUS_MAX_ITEMS:
+        raise _error("syllabus", SYLLABUS_TOO_MANY_MESSAGE, "too_many", max=SYLLABUS_MAX_ITEMS)
+    built = []
+    for index, item in enumerate(items):
+        number = index + 1
+        values = {}
+        for name in SYLLABUS_FIELDS:
+            raw = item.get(name, "")
+            text = " ".join(normalize_content(raw if isinstance(raw, str) else "").split())
+            if len(text) > SYLLABUS_LABEL_MAX_LENGTH:
+                raise _error(
+                    "syllabus",
+                    SYLLABUS_TOO_LONG_MESSAGE,
+                    "too_long",
+                    number=number,
+                    field=name,
+                    max=SYLLABUS_LABEL_MAX_LENGTH,
+                )
+            values[name] = text
+        if not any(values.values()):
+            raise _error("syllabus", SYLLABUS_EMPTY_LINE_MESSAGE, "empty_line", number=number)
+        built.append(ExamSyllabusItem(exam=exam, sort_order=index, **values))
+    return built
+
+
+@transaction.atomic
+def set_syllabus(exam_id: int, items: list[dict], *, ctx: AuditContext) -> Exam:
+    """Replace the exam's complete syllabus. Allowed on a published exam too: a syllabus never
+    changes what is asked or how it is scored."""
+    exam = _lock_exam(exam_id)
+    current = list(exam.syllabus_items.all())
+    built = build_syllabus(exam, items)
+    if _syllabus_key(built) == _syllabus_key(current):
+        return exam
+    exam.syllabus_items.all().delete()
+    ExamSyllabusItem.objects.bulk_create(built)
+    exam.save(update_fields=["updated_at"])
+    _audit(
+        ctx,
+        "exam.syllabus_update",
+        exam.pk,
+        {"changed_fields": ["syllabus"]},
     )
     return exam
 

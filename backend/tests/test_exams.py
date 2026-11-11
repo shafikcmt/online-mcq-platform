@@ -871,6 +871,7 @@ class TestDuplicate:
 class TestPublic:
     PUBLIC_FIELDS = {
         "slug",
+        "syllabus",
         "title",
         "description",
         "instructions",

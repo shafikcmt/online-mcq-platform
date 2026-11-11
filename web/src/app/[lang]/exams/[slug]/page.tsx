@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { AppButton } from "@/components/app-button";
 import { Chip, PageIntro, UnavailableNote } from "@/components/cards";
+import { SyllabusTable } from "@/components/syllabus-table";
 import { getSettings, publicFetch, publicGet, type Exam, type LeaderboardRow } from "@/lib/api";
 import { pageHref, scheduleState } from "@/lib/exam-filters";
 import { dateTime, decimal, digits } from "@/lib/format";
@@ -158,6 +159,19 @@ export default async function ExamPage({ params }: Props) {
               )}
             </div>
           </section>
+
+          {exam.syllabus?.length ? (
+            <section aria-labelledby="syllabus">
+              <h2 id="syllabus" className="text-lg font-semibold text-ink">
+                {t("examDetail.syllabus")}
+              </h2>
+              <SyllabusTable
+                lines={exam.syllabus}
+                labels={{ subject: t("examDetail.syllabusSubject"), chapter: t("examDetail.syllabusChapter"), topic: t("examDetail.syllabusTopic") }}
+                lang={lang}
+              />
+            </section>
+          ) : null}
 
           {exam.instructions ? (
             <section aria-labelledby="instructions">

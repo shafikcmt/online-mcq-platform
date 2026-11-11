@@ -161,6 +161,30 @@ describe("Exam details", () => {
     expect(await screen.findByText(message)).toBeOnTheScreen();
   });
 
+  test("shows the syllabus lines in order, with subject, chapter and topic", async () => {
+    await signedIn(
+      {
+        "GET /exams/physics/": detail({
+          syllabus: [
+            { subject: "Physics", chapter: "Motion", topic: "Speed" },
+            { subject: "", chapter: "", topic: "Reflection" },
+          ],
+        }),
+      },
+      "/exam/physics",
+    );
+    expect(await screen.findByRole("heading", { name: "Syllabus" })).toBeOnTheScreen();
+    expect(screen.getByText("Motion")).toBeOnTheScreen();
+    expect(screen.getByText("Speed")).toBeOnTheScreen();
+    expect(screen.getByText("Reflection")).toBeOnTheScreen();
+  });
+
+  test("no syllabus: the section is not shown", async () => {
+    await signedIn({ "GET /exams/physics/": detail({ syllabus: [] }) }, "/exam/physics");
+    await screen.findByText("Physics model test");
+    expect(screen.queryByRole("heading", { name: "Syllabus" })).not.toBeOnTheScreen();
+  });
+
   test("not opened yet: says when, from the server's clock", async () => {
     await signedIn(
       { "GET /exams/physics/": detail({ locked_reason: "exam_not_started", can_start: false, seconds_if_started_now: null, start_at: new Date(Date.now() + 3 * HOUR).toISOString() }) },

@@ -252,6 +252,10 @@
       "en": "English",
       "both": "Bangla and English"
     },
+    "syllabus": "Syllabus",
+    "syllabusSubject": "Subject",
+    "syllabusChapter": "Chapter",
+    "syllabusTopic": "Topic",
     "schedule": "Schedule",
     "starts": "Starts",
     "ends": "Ends",

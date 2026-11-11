@@ -24,6 +24,9 @@ from apps.core.i18n import clean_multiline, clean_single_line, has_meaningful_te
 from apps.core.models import TimeStampedModel
 from apps.questions.models import Question
 
+SYLLABUS_LABEL_MAX_LENGTH = 150
+SYLLABUS_MAX_ITEMS = 200
+
 TITLE_MAX_LENGTH = 200
 TEXT_MAX_LENGTH = 5000
 MARKS_DIGITS, MARKS_DECIMALS = 7, 2
@@ -209,6 +212,7 @@ class Exam(TimeStampedModel):
         "results_published",
     )
     AUDIT_PRESENCE_FIELDS = (
+        "syllabus",
         "title_bn",
         "title_en",
         "slug",
@@ -371,3 +375,40 @@ class ExamQuestion(TimeStampedModel):
     @property
     def effective_marks(self):
         return self.marks if self.marks is not None else self.exam.default_marks
+
+
+class ExamSyllabusItem(TimeStampedModel):
+    """One line of an exam's syllabus: a subject, a chapter and/or a topic (free text, in the
+    language the admin writes it). The admin edits the complete list; it never affects scoring,
+    so it stays editable on a published exam."""
+
+    exam = models.ForeignKey(
+        Exam, verbose_name=_("exam"), on_delete=models.CASCADE, related_name="syllabus_items"
+    )
+    sort_order = models.PositiveIntegerField(_("sort order"))
+    subject = models.CharField(
+        _("subject"), max_length=SYLLABUS_LABEL_MAX_LENGTH, blank=True, default=""
+    )
+    chapter = models.CharField(
+        _("chapter"), max_length=SYLLABUS_LABEL_MAX_LENGTH, blank=True, default=""
+    )
+    topic = models.CharField(
+        _("topic"), max_length=SYLLABUS_LABEL_MAX_LENGTH, blank=True, default=""
+    )
+
+    class Meta:
+        verbose_name = _("syllabus item")
+        verbose_name_plural = _("syllabus items")
+        ordering = ("sort_order", "id")
+        constraints = [
+            models.UniqueConstraint(fields=["exam", "sort_order"], name="exams_syllabus_order"),
+            models.CheckConstraint(
+                condition=models.Q(subject__gt="")
+                | models.Q(chapter__gt="")
+                | models.Q(topic__gt=""),
+                name="exams_syllabus_not_empty",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"exam #{self.exam_id} · syllabus {self.sort_order}"

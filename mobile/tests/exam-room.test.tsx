@@ -60,6 +60,7 @@ function detail(overrides: Partial<StudentExamDetail> = {}): StudentExamDetail {
     start_at: null,
     end_at: null,
     is_featured: false,
+    syllabus: [],
     has_access: true,
     can_start: true,
     can_resume: false,

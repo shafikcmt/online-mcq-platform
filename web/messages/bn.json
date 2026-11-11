@@ -252,6 +252,10 @@
       "en": "ইংরেজি",
       "both": "বাংলা ও ইংরেজি"
     },
+    "syllabus": "সিলেবাস",
+    "syllabusSubject": "বিষয়",
+    "syllabusChapter": "অধ্যায়",
+    "syllabusTopic": "টপিক",
     "schedule": "সময়সূচি",
     "starts": "শুরু",
     "ends": "শেষ",

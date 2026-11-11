@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from apps.exams.api.serializers import AwareDateTimeField, PublicExamSerializer
+from apps.exams.api.serializers import AwareDateTimeField, PublicExamSerializer, SyllabusMixin
 from apps.results.api.serializers import ResultSummarySerializer
 
 from ..models import AttemptLanguage, AttemptStatus, SubmitSource
@@ -198,5 +198,5 @@ class StudentExamSerializer(PublicExamSerializer):
     )
 
 
-class StudentExamDetailSerializer(StudentExamSerializer):
+class StudentExamDetailSerializer(SyllabusMixin, StudentExamSerializer):
     server_time = serializers.DateTimeField(source="student.server_time")

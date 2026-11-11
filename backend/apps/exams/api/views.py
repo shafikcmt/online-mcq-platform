@@ -31,14 +31,24 @@ from apps.core.public_api import PublicAPIMixin
 
 from .. import services
 from ..exceptions import ExamStateError
-from ..models import AccessType, ContentLanguage, Exam, ExamQuestion, ExamStatus, ExamType
+from ..models import (
+    AccessType,
+    ContentLanguage,
+    Exam,
+    ExamQuestion,
+    ExamStatus,
+    ExamSyllabusItem,
+    ExamType,
+)
 from ..selectors import listable_exams, open_window, with_question_totals
 from .serializers import (
     ExamAdminSerializer,
     ExamQuestionAdminListSerializer,
     ExamQuestionAdminSerializer,
     ExamQuestionListSerializer,
+    PublicExamDetailSerializer,
     PublicExamSerializer,
+    SyllabusListSerializer,
 )
 
 ORDERING_FIELDS = ("id", "created_at", "updated_at", "start_at")
@@ -183,6 +193,38 @@ class ExamQuestionsView(AdminAPIMixin, APIView):
         return Response(self._items(pk))
 
 
+class ExamSyllabusView(AdminAPIMixin, APIView):
+    """``GET`` the exam's syllabus; ``PUT`` replaces it with the COMPLETE list sent (in order),
+    atomically. Allowed on a published exam: a syllabus never changes the questions or scoring."""
+
+    http_method_names = ["get", "put", "options"]
+
+    def _items(self, exam_id):
+        rows = ExamSyllabusItem.objects.filter(exam_id=exam_id).order_by("sort_order", "id")
+        return {
+            "syllabus": [
+                {"subject": row.subject, "chapter": row.chapter, "topic": row.topic} for row in rows
+            ]
+        }
+
+    @extend_schema(operation_id="admin_exams_syllabus_get", responses=SyllabusListSerializer)
+    def get(self, request, pk):
+        generics.get_object_or_404(Exam.objects.all(), pk=pk)
+        return Response(self._items(pk))
+
+    @extend_schema(
+        operation_id="admin_exams_syllabus_set",
+        request=SyllabusListSerializer,
+        responses=SyllabusListSerializer,
+    )
+    def put(self, request, pk):
+        generics.get_object_or_404(Exam.objects.all(), pk=pk)
+        serializer = SyllabusListSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        _write(request, services.set_syllabus, pk, serializer.validated_data["syllabus"])
+        return Response(self._items(pk))
+
+
 class _ExamActionView(AdminAPIMixin, APIView):
     http_method_names = ["post", "options"]
     service = None  # (not ``action``: DRF/drf-spectacular use that name)
@@ -284,7 +326,7 @@ class PublicExamListView(PublicAPIMixin, generics.ListAPIView):
 
 
 class PublicExamDetailView(PublicAPIMixin, generics.RetrieveAPIView):
-    serializer_class = PublicExamSerializer
+    serializer_class = PublicExamDetailSerializer
     lookup_field = "slug"
 
     def get_queryset(self):
