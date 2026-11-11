@@ -2,6 +2,7 @@ import * as Linking from "expo-linking";
 import { FileText, Play } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
@@ -25,13 +26,14 @@ const keyOf = (item: Material) => String(item.id);
  * in the YouTube app or browser; a PDF opens in the phone's viewer. */
 export default function MaterialsScreen() {
   const { t } = useTranslation();
+  const { exam = "" } = useLocalSearchParams<{ exam?: string }>(); // an exam slug: only its materials
   const [kind, setKind] = useState<MaterialKind>("all");
-  const load = useCallback((page: number) => fetchMaterials(kind, page), [kind]);
-  const list = usePages<Material, Page<Material>>(load, kind, keyOf);
+  const load = useCallback((page: number) => fetchMaterials(kind, page, exam), [kind, exam]);
+  const list = usePages<Material, Page<Material>>(load, `${kind}|${exam}`, keyOf);
 
   const header = (
     <>
-      <PageHeader title={t("materials:title")} subtitle={t("materials:subtitle")} />
+      <PageHeader title={t("materials:title")} subtitle={exam ? t("materials:forExam") : t("materials:subtitle")} />
       <Segmented label={t("materials:filter")} value={kind} onChange={setKind} options={KINDS.map((value) => ({ value, label: t(`materials:kinds.${value}`) }))} />
     </>
   );

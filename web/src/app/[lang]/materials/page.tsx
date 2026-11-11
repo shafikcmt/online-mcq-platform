@@ -22,7 +22,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     title: t("meta.materialsTitle"),
     description: t("meta.materialsDescription"),
     alternates: alternates(lang, "/materials"),
-    robots: filters.kind || filters.category || filters.page > 1 ? { index: false, follow: true } : undefined,
+    robots: filters.kind || filters.category || filters.exam || filters.page > 1 ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -44,31 +44,39 @@ export default async function MaterialsPage({ params, searchParams }: Props) {
     publicGet<Page<Category>>("categories/?page_size=100", lang as Lang),
   ]);
   const list = fetched.state === "ok" ? fetched.data : fetched.state === "missing" ? { count: 0, next: null, previous: null, results: [] } : null;
-  const filtered = Boolean(filters.kind || filters.category);
+  const filtered = Boolean(filters.kind || filters.category || filters.exam);
 
   return (
     <>
       <PageIntro title={t("materials.title")} body={t("materials.body")} />
       <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        {filters.exam ? (
+          <p className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-control bg-brand-50 px-4 py-3 text-sm text-brand-900">
+            {t("materials.forExam")}
+            <Link href={materialsHref(lang, { kind: filters.kind, category: filters.category })} className="font-semibold text-brand-700 hover:underline">
+              {t("materials.showAll")}
+            </Link>
+          </p>
+        ) : null}
         <nav aria-label={t("materials.types")} className="flex flex-wrap gap-2">
-          <Link href={materialsHref(lang, { category: filters.category })} className={chip(!filters.kind)} aria-current={!filters.kind ? "page" : undefined}>
+          <Link href={materialsHref(lang, { category: filters.category, exam: filters.exam })} className={chip(!filters.kind)} aria-current={!filters.kind ? "page" : undefined}>
             {t("materials.allTypes")}
           </Link>
           {KINDS.map((kind) => (
-            <Link key={kind} href={materialsHref(lang, { kind, category: filters.category })} className={chip(filters.kind === kind)} aria-current={filters.kind === kind ? "page" : undefined}>
+            <Link key={kind} href={materialsHref(lang, { kind, category: filters.category, exam: filters.exam })} className={chip(filters.kind === kind)} aria-current={filters.kind === kind ? "page" : undefined}>
               {t(`materials.${kind}`)}
             </Link>
           ))}
         </nav>
         {categories && categories.results.length > 0 ? (
           <nav aria-label={t("materials.categories")} className="mt-3 flex flex-wrap gap-2">
-            <Link href={materialsHref(lang, { kind: filters.kind })} className={chip(!filters.category)} aria-current={!filters.category ? "page" : undefined}>
+            <Link href={materialsHref(lang, { kind: filters.kind, exam: filters.exam })} className={chip(!filters.category)} aria-current={!filters.category ? "page" : undefined}>
               {t("materials.all")}
             </Link>
             {categories.results.map((category) => (
               <Link
                 key={category.slug}
-                href={materialsHref(lang, { kind: filters.kind, category: category.slug })}
+                href={materialsHref(lang, { kind: filters.kind, category: category.slug, exam: filters.exam })}
                 className={chip(filters.category === category.slug)}
                 aria-current={filters.category === category.slug ? "page" : undefined}
               >

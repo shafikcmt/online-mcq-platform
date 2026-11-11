@@ -20,7 +20,7 @@ export type MaterialPage = Page<Material>;
 export const PAGE_SIZE = 12;
 export const KINDS = ["video", "pdf"] as const;
 
-export type MaterialFilters = { kind: "" | (typeof KINDS)[number]; category: string; page: number };
+export type MaterialFilters = { kind: "" | (typeof KINDS)[number]; category: string; exam: string; page: number };
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,79}$/;
 
@@ -32,14 +32,16 @@ export function parseMaterialFilters(raw: Record<string, string | string[] | und
   };
   const kind = (KINDS as readonly string[]).includes(one("kind")) ? (one("kind") as MaterialFilters["kind"]) : "";
   const category = SLUG.test(one("category")) ? one("category") : "";
+  const exam = SLUG.test(one("exam")) ? one("exam") : "";
   const page = /^\d{1,4}$/.test(one("page")) ? Math.max(1, Number(one("page"))) : 1;
-  return { kind, category, page };
+  return { kind, category, exam, page };
 }
 
 export function apiPath(filters: MaterialFilters): string {
   const query = new URLSearchParams({ page: String(filters.page), page_size: String(PAGE_SIZE) });
   if (filters.kind) query.set("kind", filters.kind);
   if (filters.category) query.set("category", filters.category);
+  if (filters.exam) query.set("exam", filters.exam);
   return `materials/?${query.toString()}`;
 }
 
@@ -47,6 +49,7 @@ export function materialsHref(lang: string, filters: Partial<MaterialFilters>): 
   const query = new URLSearchParams();
   if (filters.kind) query.set("kind", filters.kind);
   if (filters.category) query.set("category", filters.category);
+  if (filters.exam) query.set("exam", filters.exam);
   if (filters.page && filters.page > 1) query.set("page", String(filters.page));
   const text = query.toString();
   return `/${lang}/materials${text ? `?${text}` : ""}`;

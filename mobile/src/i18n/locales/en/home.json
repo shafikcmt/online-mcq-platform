@@ -70,6 +70,9 @@
     "upcoming": "Upcoming",
     "open": "Open now",
     "results": "My results",
-    "packages": "Packages"
+    "packages": "Packages",
+    "routine": "Exam routine",
+    "materials": "Study materials",
+    "archive": "Past exams"
   }
 }

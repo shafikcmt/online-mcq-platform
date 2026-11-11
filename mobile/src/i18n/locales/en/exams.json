@@ -35,7 +35,9 @@
     "syllabusSubject": "Subject",
     "syllabusChapter": "Chapter",
     "syllabusTopic": "Topic",
-    "notFound": "This exam is not available. It may have been removed or closed."
+    "notFound": "This exam is not available. It may have been removed or closed.",
+    "materials_one": "{{n}} study material for this exam",
+    "materials_other": "{{n}} study materials for this exam"
   },
   "contentLanguage": {
     "bn": "Bangla",

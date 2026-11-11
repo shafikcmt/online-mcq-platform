@@ -279,7 +279,9 @@
     "paid": "A package unlocks this paid exam.",
     "seePackages": "See packages",
     "unavailable": "This exam can't be loaded right now. Please try again in a moment.",
-    "merit": "View the merit list"
+    "merit": "View the merit list",
+    "materials": "Study materials",
+    "materialsLink": "{{n}} study {{n|material|materials}} for this exam"
   },
   "packagesPage": {
     "title": "Packages",
@@ -507,6 +509,8 @@
     "clear": "Clear filters",
     "unavailable": "Study materials can't be loaded right now. Please try again in a moment.",
     "videoLabel": "Video",
-    "pdfLabel": "PDF"
+    "pdfLabel": "PDF",
+    "forExam": "Showing the study materials for one exam.",
+    "showAll": "Show all materials"
   }
 }

@@ -13,5 +13,6 @@
   "watchTitle": "Watch {{title}} on YouTube",
   "openPdf": "Open PDF",
   "openPdfTitle": "Open the PDF: {{title}}",
-  "link": "Study materials"
+  "link": "Study materials",
+  "forExam": "Study materials for this exam."
 }

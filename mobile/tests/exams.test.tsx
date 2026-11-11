@@ -214,4 +214,29 @@ describe("Exam details", () => {
     await signedIn({ "GET /exams/physics/": apiError(404, "not_found", "Not found.") }, "/exam/physics");
     expect(await screen.findByText("This exam is not available. It may have been removed or closed.")).toBeOnTheScreen();
   });
+
+  test("a link to the exam's study materials appears only when it has some, and opens them", async () => {
+    await signedIn(
+      {
+        "GET /exams/physics/": detail({}),
+        "GET /public/materials/": (call) =>
+          call.query.exam === "physics"
+            ? { status: 200, body: { count: 2, next: null, previous: null, results: call.query.page_size === "1" ? [] : [] } }
+            : { status: 200, body: { count: 0, next: null, previous: null, results: [] } },
+      },
+      "/exam/physics",
+    );
+    const link = await screen.findByRole("link", { name: "2 study materials for this exam" });
+    await userEvent.setup().press(link);
+    expect(await screen.findByText("Study materials for this exam.")).toBeOnTheScreen();
+  });
+
+  test("no materials, no link; a failed count request changes nothing", async () => {
+    await signedIn(
+      { "GET /exams/physics/": detail({}), "GET /public/materials/": { status: 200, body: { count: 0, next: null, previous: null, results: [] } } },
+      "/exam/physics",
+    );
+    await screen.findByText("HSC · Physics");
+    expect(screen.queryByRole("link", { name: /study material/ })).toBeNull();
+  });
 });
