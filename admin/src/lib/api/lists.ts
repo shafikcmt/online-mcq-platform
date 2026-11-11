@@ -31,8 +31,8 @@ const LOOKUP_MAX_PAGES = 20;
 /** Every row of a small reference list (categories/subjects for names and filter menus):
  * the first page, then the remaining pages in parallel. Capped, so a huge catalogue
  * cannot turn one screen into hundreds of requests; `truncated` reports the cap. */
-export async function adminLookup<T>(apiPath: string, query = ""): Promise<{ rows: T[]; truncated: boolean }> {
-  const base = `${apiPath}?page_size=${LOOKUP_PAGE_SIZE}&ordering=sort_order${query ? `&${query}` : ""}`;
+export async function adminLookup<T>(apiPath: string, query = "", ordering = "sort_order"): Promise<{ rows: T[]; truncated: boolean }> {
+  const base = `${apiPath}?page_size=${LOOKUP_PAGE_SIZE}&ordering=${ordering}${query ? `&${query}` : ""}`;
   const first = await adminRead<Paginated<T>>(`${base}&page=1`);
   const pages = Math.min(Math.ceil(first.count / LOOKUP_PAGE_SIZE), LOOKUP_MAX_PAGES);
   const rest = await Promise.all(

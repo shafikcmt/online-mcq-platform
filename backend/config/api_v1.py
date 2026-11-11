@@ -21,6 +21,8 @@ from apps.dashboard.api.urls import admin_urlpatterns as dashboard_admin_urlpatt
 from apps.dashboard.api.urls import me_urlpatterns as dashboard_me_urlpatterns
 from apps.exams.api.urls import admin_urlpatterns as exam_admin_urlpatterns
 from apps.exams.api.urls import public_urlpatterns as exam_public_urlpatterns
+from apps.materials.api.urls import admin_urlpatterns as material_admin_urlpatterns
+from apps.materials.api.urls import public_urlpatterns as material_public_urlpatterns
 from apps.notifications.api.urls import me_urlpatterns as notification_me_urlpatterns
 from apps.payments.api.urls import admin_urlpatterns as payment_admin_urlpatterns
 from apps.payments.api.urls import student_urlpatterns as payment_student_urlpatterns
@@ -48,6 +50,7 @@ admin_urlpatterns = [
     *result_admin_urlpatterns,
     *payment_admin_urlpatterns,
     *cms_admin_urlpatterns,
+    *material_admin_urlpatterns,
     *audit_admin_urlpatterns,
     *dashboard_admin_urlpatterns,
     *sms_admin_urlpatterns,
@@ -83,6 +86,7 @@ urlpatterns = [
                     *subscription_public_urlpatterns,
                     *result_public_urlpatterns,
                     *cms_public_urlpatterns,
+                    *material_public_urlpatterns,
                 ],
                 "public",
             )

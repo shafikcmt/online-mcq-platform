@@ -16,7 +16,8 @@
     "about": "About",
     "faq": "FAQ",
     "contact": "Contact",
-    "routine": "Routine"
+    "routine": "Routine",
+    "materials": "Study materials"
   },
   "lang": {
     "label": "Language",
@@ -52,7 +53,9 @@
     "downloadTitle": "Download the app",
     "downloadDescription": "Download the Live Model Test Android app and keep it up to date: step-by-step install and update instructions.",
     "routineTitle": "Exam routine",
-    "routineDescription": "The Live Model Test exam routine: every upcoming and live exam by date and time, with a downloadable routine PDF."
+    "routineDescription": "The Live Model Test exam routine: every upcoming and live exam by date and time, with a downloadable routine PDF.",
+    "materialsTitle": "Study materials",
+    "materialsDescription": "Free study videos and PDF handouts from Live Model Test, by category, subject and teacher."
   },
   "home": {
     "hero": {
@@ -480,5 +483,26 @@
     "unavailable": "The routine can't be loaded right now. Please try again in a moment.",
     "viewRoutine": "Exam routine",
     "details": "{{minutes}} min · {{questions}} questions · {{marks}} marks"
+  },
+  "materials": {
+    "title": "Study materials",
+    "body": "Videos and PDF handouts to prepare with, by category, subject and teacher.",
+    "all": "All",
+    "allTypes": "All types",
+    "video": "Videos",
+    "pdf": "PDFs",
+    "categories": "Category",
+    "types": "Type",
+    "play": "Play video: {{title}}",
+    "watchOnYoutube": "Watch on YouTube",
+    "openPdf": "Open PDF",
+    "teacher": "Teacher: {{name}}",
+    "exam": "Related exam: {{name}}",
+    "empty": "No study materials yet. Check back soon.",
+    "emptyFiltered": "Nothing matches these filters.",
+    "clear": "Clear filters",
+    "unavailable": "Study materials can't be loaded right now. Please try again in a moment.",
+    "videoLabel": "Video",
+    "pdfLabel": "PDF"
   }
 }

@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { CalendarDays, CloudOff, X } from "lucide-react-native";
+import { CalendarDays, CloudOff, PlayCircle, X } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -55,6 +55,9 @@ export default function ExamsScreen() {
           </AppText>
           <AppText color={colors.inkMuted}>{t("exams:subtitle")}</AppText>
         </View>
+        <Pressable accessibilityRole="link" accessibilityLabel={t("materials:link")} onPress={() => router.push("/materials")} hitSlop={8} style={styles.routine}>
+          <PlayCircle size={22} color={colors.brand700} />
+        </Pressable>
         <Pressable accessibilityRole="link" accessibilityLabel={t("routine:link")} onPress={() => router.push("/routine")} hitSlop={8} style={styles.routine}>
           <CalendarDays size={22} color={colors.brand700} />
         </Pressable>
