@@ -12,7 +12,7 @@ export function groupPackages(packages: Package[]): PackageGroup[] {
   const bySlug = new Map<string, PackageGroup>();
   const mixed: PackageGroup = { category: null, packages: [] };
   for (const pkg of packages) {
-    const only = pkg.access.scope === "selected" && pkg.access.categories.length === 1 ? pkg.access.categories[0] : null;
+    const only = pkg.access?.scope === "selected" && pkg.access.categories.length === 1 ? pkg.access.categories[0] : null;
     if (!only) {
       mixed.packages.push(pkg);
       continue;
@@ -31,6 +31,7 @@ export function groupPackages(packages: Package[]): PackageGroup[] {
 
 /** The "what it covers" line of a card, or "" when it covers nothing yet. */
 export function coverageLine(pkg: Package, t: (key: string, values?: Record<string, string | number>) => string, digits: (n: number) => string): string {
+  if (!pkg.access) return "";
   const { scope, exam_count, categories } = pkg.access;
   if (scope === "all") return t("package.coverAll", { n: digits(exam_count) });
   if (!categories.length) return "";

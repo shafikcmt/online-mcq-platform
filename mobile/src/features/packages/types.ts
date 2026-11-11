@@ -11,7 +11,8 @@ export type Package = {
   validity_days: number;
   is_featured: boolean;
   /** What it unlocks: every paid exam, or the listed categories (paid exams open now). */
-  access: PackageAccess;
+  /** Absent from a server that has not been updated yet: treated as unknown, never an error. */
+  access?: PackageAccess;
   subscription: { active_now: boolean; expires_at: string } | null;
 };
 

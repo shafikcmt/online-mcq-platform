@@ -57,6 +57,12 @@ describe("PackageCard coverage line", () => {
     expect(html(pkg("x", { scope: "all", exam_count: 8, categories: [] }), "bn")).toContain("সব পেইড পরীক্ষা (এখন খোলা ৮টি)");
   });
 
+  it("an API without the access block (not updated yet) still renders, in the mixed group", () => {
+    const old = { ...pkg("old", only(med)), access: undefined } as Package;
+    expect(html(old)).toContain("OLD");
+    expect(groupPackages([old])[0].category).toBeNull();
+  });
+
   it("shows nothing when the package covers nothing yet", () => {
     expect(html(pkg("x", { scope: "selected", exam_count: 0, categories: [] }))).not.toContain("exams ·");
   });
