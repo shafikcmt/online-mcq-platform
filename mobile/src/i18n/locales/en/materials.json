@@ -1,0 +1,17 @@
+{
+  "title": "Study materials",
+  "subtitle": "Videos and PDF handouts to prepare with.",
+  "filter": "Show",
+  "kinds": {
+    "all": "All",
+    "video": "Videos",
+    "pdf": "PDFs"
+  },
+  "empty": "No study materials yet. Check back soon.",
+  "teacher": "Teacher: {{name}}",
+  "watch": "Watch on YouTube",
+  "watchTitle": "Watch {{title}} on YouTube",
+  "openPdf": "Open PDF",
+  "openPdfTitle": "Open the PDF: {{title}}",
+  "link": "Study materials"
+}

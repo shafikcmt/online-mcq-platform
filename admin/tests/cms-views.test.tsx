@@ -297,7 +297,7 @@ describe("Notice PDF (announcement dialog)", () => {
     Object.defineProperty(file, "size", { value: size });
     return file;
   };
-  const choose = (file: File) => fireEvent.change(screen.getByTestId("notice-pdf-file"), { target: { files: [file] } });
+  const choose = (file: File) => fireEvent.change(screen.getByTestId("pdf-file"), { target: { files: [file] } });
   const HAS = { available: true, name: "notice.pdf", size_bytes: 2048 };
 
   async function openEdit(row = announcement(), handler?: Parameters<typeof mockApi>[0]) {
@@ -314,7 +314,7 @@ describe("Notice PDF (announcement dialog)", () => {
     fireEvent.click(screen.getByRole("button", { name: "New announcement" }));
     const dialog = await screen.findByRole("dialog", { name: "New announcement" });
     expect(within(dialog).getByText("Save the announcement first, then you can attach a PDF.")).toBeInTheDocument();
-    expect(within(dialog).queryByTestId("notice-pdf-file")).not.toBeInTheDocument();
+    expect(within(dialog).queryByTestId("pdf-file")).not.toBeInTheDocument();
   });
 
   it("with no PDF: says so and offers Attach only", async () => {

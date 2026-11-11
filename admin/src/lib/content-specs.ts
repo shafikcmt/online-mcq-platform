@@ -120,6 +120,14 @@ export const ANNOUNCEMENT_LIST: ListSpec = {
   defaultOrdering: "-created_at",
 };
 
+/** Study materials (apps/materials/api/views.py): newest first by default order; filters by type,
+ * category and whether published. Search: title or teacher. */
+export const MATERIAL_LIST: ListSpec = {
+  filters: { kind: ["video", "pdf"], category: "id", published: "bool" },
+  orderings: ["id", "sort_order", "published_at", "created_at", "updated_at"],
+  defaultOrdering: "sort_order",
+};
+
 export const FAQ_LIST: ListSpec = {
   filters: { is_active: "bool" },
   orderings: ["id", "sort_order", "created_at", "updated_at"],
