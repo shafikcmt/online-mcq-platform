@@ -11,3 +11,5 @@ djangorestframework-simplejwt==5.5.1  # JWT + blacklist (2C). Exact pin: apps/ac
 Pillow==12.3.0              # image validation/re-encoding for question images (SECURITY_PLAN §3.6)
 gunicorn==23.0.0            # production WSGI server (staging/production image only)
 cryptography==46.0.6        # Fernet encryption for SMS gateway secrets stored in the database
+openpyxl==3.1.5             # read/write .xlsx for the bulk question import (read-only mode, size-capped)
+defusedxml==0.7.1           # openpyxl uses it to refuse XML entity attacks in uploaded workbooks

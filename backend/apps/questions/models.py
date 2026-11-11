@@ -22,6 +22,7 @@ from apps.core.i18n import clean_multiline, has_meaningful_text
 from apps.core.models import TimeStampedModel
 
 QUESTION_TEXT_MAX_LENGTH = 5000
+LABEL_MAX_LENGTH = 150  # chapter / topic
 EXPLANATION_MAX_LENGTH = 5000
 OPTION_TEXT_MAX_LENGTH = 1000
 LANGUAGES = ("bn", "en")
@@ -86,6 +87,9 @@ class Question(TimeStampedModel):
         blank=True,
         validators=[MaxLengthValidator(EXPLANATION_MAX_LENGTH)],
     )
+    # Where the question sits in the syllabus (free text, optional). Never affects scoring.
+    chapter = models.CharField(_("chapter"), max_length=LABEL_MAX_LENGTH, blank=True, default="")
+    topic = models.CharField(_("topic"), max_length=LABEL_MAX_LENGTH, blank=True, default="")
     # Optional: empty = not set (docs/DATABASE_DESIGN.md §4.4).
     difficulty = models.CharField(
         _("difficulty"), max_length=10, choices=Difficulty.choices, blank=True, default=""
@@ -123,6 +127,8 @@ class Question(TimeStampedModel):
         "text_en",
         "explanation_bn",
         "explanation_en",
+        "chapter",
+        "topic",
         "image",
         "options",
         "correct_option",
@@ -161,6 +167,8 @@ class Question(TimeStampedModel):
         for field in ("explanation_bn", "explanation_en"):
             setattr(self, field, normalize_content(getattr(self, field)))
         self.difficulty = self.difficulty or ""
+        for field in ("chapter", "topic"):
+            setattr(self, field, " ".join(normalize_content(getattr(self, field)).split()))
         languages = languages_of(self)
         if languages:
             self.available_languages = available_languages_for(languages)

@@ -29,6 +29,14 @@ describe("question editor state", () => {
     ]);
   });
 
+  it("carries the chapter and topic (empty for a new question, kept when editing)", () => {
+    expect(newDraft().chapter).toBe("");
+    const draft = draftFromQuestion(question({ chapter: "Optics", topic: "Light" }));
+    expect([draft.chapter, draft.topic]).toEqual(["Optics", "Light"]);
+    const payload = toPayload({ ...draft, topic: "Speed of light" });
+    expect([payload.chapter, payload.topic]).toEqual(["Optics", "Speed of light"]);
+  });
+
   it("allows only one correct option", () => {
     const draft = draftFromQuestion(question());
     const options = setCorrect(draft.options, draft.options[2].key);

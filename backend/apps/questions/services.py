@@ -237,6 +237,8 @@ QUESTION_FIELDS = (
     "text_en",
     "explanation_bn",
     "explanation_en",
+    "chapter",
+    "topic",
     "difficulty",
     "is_active",
 )
@@ -246,6 +248,8 @@ _COMPARED_FIELDS = (
     "text_en",
     "explanation_bn",
     "explanation_en",
+    "chapter",
+    "topic",
     "difficulty",
     "is_active",
 )

@@ -101,6 +101,8 @@ export function question(overrides: Partial<Question> = {}): Question {
     text_en: "What is the speed of light?",
     explanation_bn: "",
     explanation_en: "",
+    chapter: "",
+    topic: "",
     difficulty: "medium",
     is_active: true,
     available_languages: "both",

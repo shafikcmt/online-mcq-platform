@@ -10,6 +10,7 @@ from apps.catalog.models import Subject
 
 from ..models import (
     EXPLANATION_MAX_LENGTH,
+    LABEL_MAX_LENGTH,
     OPTION_TEXT_MAX_LENGTH,
     QUESTION_TEXT_MAX_LENGTH,
     Difficulty,
@@ -43,6 +44,8 @@ class QuestionAdminSerializer(serializers.ModelSerializer):
     text_en = _text(QUESTION_TEXT_MAX_LENGTH)
     explanation_bn = _text(EXPLANATION_MAX_LENGTH)
     explanation_en = _text(EXPLANATION_MAX_LENGTH)
+    chapter = _text(LABEL_MAX_LENGTH)
+    topic = _text(LABEL_MAX_LENGTH)
     difficulty = serializers.ChoiceField(
         choices=Difficulty.choices, allow_null=True, allow_blank=True, required=False
     )
@@ -60,6 +63,8 @@ class QuestionAdminSerializer(serializers.ModelSerializer):
             "text_en",
             "explanation_bn",
             "explanation_en",
+            "chapter",
+            "topic",
             "difficulty",
             "is_active",
             "available_languages",

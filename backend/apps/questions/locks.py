@@ -20,7 +20,7 @@ CONTENT = "content"
 DEACTIVATE = "deactivate"
 
 # Fields that never change what a student sees or how an answer is scored.
-LOCK_EXEMPT_FIELDS = frozenset({"is_active", "difficulty"})
+LOCK_EXEMPT_FIELDS = frozenset({"is_active", "difficulty", "chapter", "topic"})
 
 _checks: dict[str, list[Callable]] = {CONTENT: [], DEACTIVATE: []}
 

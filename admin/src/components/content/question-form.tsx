@@ -9,7 +9,7 @@ import { Alert } from "@/components/ui/alert";
 import { BilingualField } from "@/components/ui/bilingual-field";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Field, FormSection, Select, Switch } from "@/components/ui/form";
+import { Field, FormSection, Input, Select, Switch } from "@/components/ui/form";
 import { useToast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/api/client";
 import { ApiError, describeError } from "@/lib/api/errors";
@@ -293,6 +293,12 @@ export function QuestionForm({
 
       <FormSection title={t("questions.sectionSettings")}>
         <div className="grid gap-5 md:grid-cols-2">
+          <Field id="q-chapter" label={t("questions.chapter")} optional error={fieldError("chapter")}>
+            <Input id="q-chapter" value={draft.chapter} maxLength={150} onChange={(event) => update("chapter", event.target.value)} disabled={pending} />
+          </Field>
+          <Field id="q-topic" label={t("questions.topic")} optional error={fieldError("topic")}>
+            <Input id="q-topic" value={draft.topic} maxLength={150} onChange={(event) => update("topic", event.target.value)} disabled={pending} />
+          </Field>
           <Field id="q-difficulty" label={t("questions.difficulty")} optional error={fieldError("difficulty")}>
             <Select
               value={draft.difficulty}
