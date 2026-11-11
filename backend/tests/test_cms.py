@@ -518,8 +518,8 @@ class TestAnnouncements:
 
     def test_public_visibility(self, public):
         now = timezone.now()
-        live = announcement(title_en="Live", audience="public")
-        everyone = announcement(title_en="Everyone", audience="all", is_pinned=True)
+        announcement(title_en="Live", audience="public")
+        announcement(title_en="Everyone", audience="all", is_pinned=True)
         announcement(title_en="Draft", published_at=None)
         announcement(title_en="Future", published_at=now + timedelta(hours=1))
         announcement(
@@ -530,14 +530,18 @@ class TestAnnouncements:
         announcement(title_en="Students only", audience="students")
         body = public.get(f"{PUBLIC}announcements/", HTTP_ACCEPT_LANGUAGE="en").json()
         assert [row["title"] for row in body["results"]] == ["Everyone", "Live"]  # pinned first
+        # ``id`` is there so a notice's PDF can be opened (a plain sequence number, no secret);
+        # ``pdf`` says whether one is attached. Nothing internal beyond that.
         assert set(body["results"][0]) == {
+            "id",
             "title",
             "body",
             "is_pinned",
             "published_at",
             "expires_at",
+            "pdf",
         }
-        assert {live.pk, everyone.pk}  # ids are not exposed
+        assert body["results"][0]["pdf"] == {"available": False, "name": "", "size_bytes": 0}
         assert "count" in body  # paginated
 
     def test_student_announcements(self, public):

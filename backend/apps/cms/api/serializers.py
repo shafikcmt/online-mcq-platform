@@ -85,6 +85,23 @@ class SiteSettingsAdminSerializer(serializers.ModelSerializer):
         validators = []
 
 
+class NoticePdfSerializer(serializers.Serializer):
+    """The PDF attached to a notice. Never a file path: it is opened through the API."""
+
+    available = serializers.BooleanField()
+    name = serializers.CharField(allow_blank=True)
+    size_bytes = serializers.IntegerField()
+
+
+def notice_pdf(notice) -> dict:
+    has = bool(notice.pdf)
+    return {
+        "available": has,
+        "name": notice.pdf_name if has else "",
+        "size_bytes": notice.pdf_size if has else 0,
+    }
+
+
 class AnnouncementAdminSerializer(serializers.ModelSerializer):
     title_bn = _text(TITLE_MAX_LENGTH)
     title_en = _text(TITLE_MAX_LENGTH)
@@ -98,6 +115,10 @@ class AnnouncementAdminSerializer(serializers.ModelSerializer):
     # admin's device can never leave a notice scheduled in the future or already ended.
     publish_now = serializers.BooleanField(write_only=True, required=False)
     state = serializers.SerializerMethodField()
+    pdf = serializers.SerializerMethodField()
+
+    def get_pdf(self, obj) -> NoticePdfSerializer:
+        return notice_pdf(obj)
 
     class Meta:
         model = Announcement
@@ -113,6 +134,7 @@ class AnnouncementAdminSerializer(serializers.ModelSerializer):
             "expires_at",
             "publish_now",
             "state",
+            "pdf",
             "created_at",
             "updated_at",
         )
@@ -262,11 +284,16 @@ class PublicAppUpdateSerializer(LocalizedSerializer):
 
 
 class PublicAnnouncementSerializer(LocalizedSerializer):
+    id = serializers.IntegerField()
     title = serializers.SerializerMethodField()
     body = serializers.SerializerMethodField()
     is_pinned = serializers.BooleanField()
     published_at = serializers.DateTimeField()
     expires_at = serializers.DateTimeField(allow_null=True)
+    pdf = serializers.SerializerMethodField()
+
+    def get_pdf(self, obj) -> NoticePdfSerializer:
+        return notice_pdf(obj)
 
     def get_title(self, obj) -> str:
         return self.text(obj, "title")

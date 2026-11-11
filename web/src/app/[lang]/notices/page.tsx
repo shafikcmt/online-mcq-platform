@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Chip, EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
+import { NoticePdfLink } from "@/components/notice-pdf-link";
 import { Pager, pageParam } from "@/components/pager";
 import { publicFetch, type Notice, type Page } from "@/lib/api";
 import { date } from "@/lib/format";
@@ -45,7 +46,7 @@ export default async function NoticesPage({ params, searchParams }: Props) {
         ) : (
           <ol className="flex flex-col gap-4">
             {list.results.map((notice) => (
-              <li key={`${notice.published_at}-${notice.title}`}>
+              <li key={notice.id}>
                 <article className="rounded-card border border-line bg-surface p-6 shadow-sm">
                   <div className="flex flex-wrap items-center gap-2">
                     {notice.is_pinned ? <Chip tone="accent">{t("pinned")}</Chip> : null}
@@ -55,6 +56,7 @@ export default async function NoticesPage({ params, searchParams }: Props) {
                   </div>
                   <h2 className="mt-2 text-lg font-semibold text-ink">{notice.title}</h2>
                   <p className="mt-2 whitespace-pre-line leading-relaxed text-ink-muted">{notice.body}</p>
+                  <NoticePdfLink notice={notice} label={t("notices.pdf")} />
                 </article>
               </li>
             ))}

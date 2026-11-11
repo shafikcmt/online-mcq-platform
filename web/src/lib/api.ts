@@ -84,7 +84,7 @@ export type Package = {
 
 export type Category = { slug: string; name: string; description: string; exam_count: number; subjects: { slug: string; name: string; description: string }[] };
 
-export type Notice = { title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };
+export type Notice = { id: number; pdf: { available: boolean; name: string; size_bytes: number }; title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };
 
 export type Faq = { question: string; answer: string };
 

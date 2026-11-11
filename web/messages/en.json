@@ -308,6 +308,7 @@
     "title": "Notices",
     "body": "Exam schedules, results and other updates.",
     "empty": "No notices right now.",
+    "pdf": "Open PDF",
     "unavailable": "Notices can't be loaded right now. Please try again in a moment."
   },
   "leaderboard": {

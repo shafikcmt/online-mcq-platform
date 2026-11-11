@@ -13,5 +13,7 @@
     "mine": "No notifications yet. You will be told here when a result is published or a payment succeeds.",
     "notices": "No notices right now."
   },
-  "open": "Open"
+  "open": "Open",
+  "openPdf": "Open PDF",
+  "openingPdf": "Opening…"
 }

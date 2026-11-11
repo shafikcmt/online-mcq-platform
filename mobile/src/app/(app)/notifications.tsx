@@ -1,20 +1,23 @@
+import * as Linking from "expo-linking";
 import { router } from "expo-router";
-import { BadgeCheck, CheckCheck, CreditCard, Megaphone, Pin } from "lucide-react-native";
+import { BadgeCheck, CheckCheck, CreditCard, FileText, Megaphone, Pin } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
+import { API_BASE_URL } from "@/api/client";
 import { describeError } from "@/api/describe";
 import { AppText } from "@/components/app-text";
 import { Badge } from "@/components/badge";
 import { Banner } from "@/components/banner";
+import { Button } from "@/components/button";
 import { PageHeader } from "@/components/page-header";
 import { PagedList } from "@/components/paged-list";
 import { Segmented } from "@/components/segmented";
 import { useToast } from "@/components/toast";
 import { EmptyNote } from "@/features/dashboard/section";
-import { fetchNotices, fetchNotifications, markAllRead, markRead } from "@/features/notifications/api";
+import { fetchNoticePdfLink, fetchNotices, fetchNotifications, markAllRead, markRead } from "@/features/notifications/api";
 import type { Notice, Notification } from "@/features/notifications/types";
 import { formatDateTime } from "@/lib/format";
 import { usePages, type Page } from "@/lib/use-pages";
@@ -127,10 +130,26 @@ function NotificationRow({ item, read, onPress }: { item: Notification; read: bo
   );
 }
 
-const noticeKey = (notice: Notice) => `${notice.published_at}-${notice.title}`;
+const noticeKey = (notice: Notice) => String(notice.id);
 
 function Notices({ header }: { header: React.ReactElement }) {
   const { t, i18n } = useTranslation();
+  const notify = useToast();
+  const [opening, setOpening] = useState<number | null>(null);
+
+  async function openPdf(notice: Notice) {
+    if (opening !== null) return;
+    setOpening(notice.id);
+    try {
+      const { path } = await fetchNoticePdfLink(notice.id);
+      await Linking.openURL(`${API_BASE_URL}${path}`);
+    } catch (error) {
+      notify(describeError(error, t));
+    } finally {
+      setOpening(null);
+    }
+  }
+
   const load = useCallback((page: number) => fetchNotices(page), []);
   const list = usePages<Notice, Page<Notice>>(load, "notices", noticeKey);
   return (
@@ -148,6 +167,15 @@ function Notices({ header }: { header: React.ReactElement }) {
           <View style={styles.body}>
             <AppText weight="bold">{item.title}</AppText>
             <AppText variant="small">{item.body}</AppText>
+            {item.pdf?.available ? (
+              <Button
+                label={opening === item.id ? t("notifications:openingPdf") : t("notifications:openPdf")}
+                variant="secondary"
+                disabled={opening !== null}
+                onPress={() => void openPdf(item)}
+                icon={<FileText size={18} color={colors.brand700} />}
+              />
+            ) : null}
             <View style={styles.meta}>
               {item.is_pinned ? <Badge label={t("notifications:pinned")} tone="warning" icon={<Pin size={12} color={colors.warning700} />} /> : null}
               <AppText variant="caption" color={colors.inkSubtle}>

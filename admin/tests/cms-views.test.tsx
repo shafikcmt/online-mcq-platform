@@ -31,6 +31,7 @@ function announcement(overrides: Partial<Announcement> = {}): Announcement {
     published_at: "2026-10-01T04:00:00Z",
     expires_at: null,
     state: "live",
+    pdf: { available: false, name: "", size_bytes: 0 },
     created_at: STAMP,
     updated_at: STAMP,
     ...overrides,
@@ -287,5 +288,79 @@ describe("PagesView", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
     expect(await within(dialog).findByText("A page with this slug already exists.")).toBeInTheDocument();
     expect((calls[0].body as { slug: string }).slug).toBe("about");
+  });
+});
+
+describe("Notice PDF (announcement dialog)", () => {
+  const pdfFile = (name = "notice.pdf", size = 1000) => {
+    const file = new File(["%PDF-1.4\n%%EOF"], name, { type: "application/pdf" });
+    Object.defineProperty(file, "size", { value: size });
+    return file;
+  };
+  const choose = (file: File) => fireEvent.change(screen.getByTestId("notice-pdf-file"), { target: { files: [file] } });
+  const HAS = { available: true, name: "notice.pdf", size_bytes: 2048 };
+
+  async function openEdit(row = announcement(), handler?: Parameters<typeof mockApi>[0]) {
+    const mock = mockApi(handler ?? ((call) => (call.method === "POST" ? json(200, announcement({ pdf: HAS })) : json(200, page([row])))));
+    renderPanel(<AnnouncementsView data={page([row])} state={state("/announcements", ANNOUNCEMENT_LIST, "")} />, "en");
+    fireEvent.click(screen.getAllByRole("button", { name: /Edit / })[0]);
+    const dialog = await screen.findByRole("dialog", { name: "Edit announcement" });
+    return { ...mock, dialog };
+  }
+
+  it("a new announcement asks to save first", async () => {
+    mockApi(() => json(200, page([announcement()])));
+    renderPanel(<AnnouncementsView data={page([announcement()])} state={state("/announcements", ANNOUNCEMENT_LIST, "")} />, "en");
+    fireEvent.click(screen.getByRole("button", { name: "New announcement" }));
+    const dialog = await screen.findByRole("dialog", { name: "New announcement" });
+    expect(within(dialog).getByText("Save the announcement first, then you can attach a PDF.")).toBeInTheDocument();
+    expect(within(dialog).queryByTestId("notice-pdf-file")).not.toBeInTheDocument();
+  });
+
+  it("with no PDF: says so and offers Attach only", async () => {
+    const { dialog } = await openEdit();
+    expect(within(dialog).getByText("No PDF attached.")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Attach PDF" })).toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Remove PDF" })).not.toBeInTheDocument();
+  });
+
+  it("uploads the chosen PDF as multipart to the notice's endpoint", async () => {
+    const { calls, dialog } = await openEdit();
+    choose(pdfFile());
+    expect(await within(dialog).findByText("Attached: notice.pdf")).toBeInTheDocument();
+    const post = calls.find((call) => call.method === "POST")!;
+    expect(post.url).toBe("/api/v1/admin/announcements/1/pdf/");
+    expect(within(dialog).getByRole("link", { name: "Open PDF" })).toHaveAttribute("href", "/api/v1/public/announcements/1/pdf/");
+  });
+
+  it("refuses a non-PDF or oversized file without calling the server", async () => {
+    const { calls, dialog } = await openEdit();
+    choose(pdfFile("notice.docx"));
+    expect(await within(dialog).findByText("Choose a .pdf file.")).toBeInTheDocument();
+    choose(pdfFile("big.pdf", 11 * 1024 * 1024));
+    expect(await within(dialog).findByText("The file is too large (maximum 10 MB).")).toBeInTheDocument();
+    expect(calls.some((call) => call.method === "POST")).toBe(false);
+  });
+
+  it("shows the server's reason for a refused PDF", async () => {
+    const { dialog } = await openEdit(announcement(), (call) => (call.method === "POST" ? apiError(400, "pdf_active_content", "x") : json(200, page([announcement()]))));
+    choose(pdfFile());
+    expect(await within(dialog).findByText(/contains scripts or actions/)).toBeInTheDocument();
+  });
+
+  it("removes the PDF after a confirmation", async () => {
+    const { calls, dialog } = await openEdit(announcement({ pdf: HAS }), (call) => (call.method === "DELETE" ? json(200, announcement()) : json(200, page([announcement({ pdf: HAS })]))));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Remove PDF" }));
+    const confirm = await screen.findByRole("alertdialog", { name: "Remove the PDF?" });
+    fireEvent.click(within(confirm).getByRole("button", { name: "Remove PDF" }));
+    expect(await within(dialog).findByText("No PDF attached.")).toBeInTheDocument();
+    expect(calls.find((call) => call.method === "DELETE")!.url).toBe("/api/v1/admin/announcements/1/pdf/");
+  });
+
+  it("is available in Bangla", async () => {
+    mockApi(() => json(200, page([announcement()])));
+    renderPanel(<AnnouncementsView data={page([announcement()])} state={state("/announcements", ANNOUNCEMENT_LIST, "")} />, "bn");
+    fireEvent.click(screen.getAllByRole("button", { name: /সম্পাদনা/ })[0]);
+    expect(await screen.findByText("কোনো PDF সংযুক্ত নেই।")).toBeInTheDocument();
   });
 });

@@ -8,7 +8,6 @@ audit entry), serialize. Status only changes through the action endpoints.
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import F, Q
-from django.http import FileResponse, HttpResponseNotModified
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -32,7 +31,7 @@ from apps.core.admin_api import (
 )
 from apps.core.exceptions import ApiError
 from apps.core.public_api import PublicAPIMixin
-from apps.core.throttling import SecurityThrottle
+from apps.core.throttling import DocumentUploadThrottle
 
 from .. import services
 from ..exceptions import ExamStateError
@@ -348,15 +347,6 @@ class PublicExamDetailView(PublicAPIMixin, generics.RetrieveAPIView):
 # --------------------------------------------------------------------------------------
 # Routine: the schedule of exams (public) and the routine PDF (admin uploads, public reads)
 # --------------------------------------------------------------------------------------
-class DocumentUploadThrottle(SecurityThrottle):
-    """``document_upload``: per admin; every upload is read whole and checked."""
-
-    scope = "document_upload"
-
-    def identity(self, request, view) -> str:
-        return f"user:{request.user.pk}"
-
-
 def _pdf_info(row) -> dict:
     available = row is not None and bool(row.file)
     return {
@@ -453,15 +443,4 @@ class PublicRoutinePdfView(PublicAPIMixin, APIView):
                 code="not_found",
                 message="No routine PDF is published.",
             )
-        etag = f'"{row.sha256}"'
-        if request.META.get("HTTP_IF_NONE_MATCH") == etag:
-            response = HttpResponseNotModified()
-            response["ETag"] = etag
-            return response
-        response = FileResponse(row.file.open("rb"), content_type="application/pdf")
-        response["Content-Disposition"] = 'inline; filename="exam-routine.pdf"'
-        response["Content-Security-Policy"] = "default-src 'none'"
-        response["X-Content-Type-Options"] = "nosniff"
-        response["Cache-Control"] = "public, max-age=300"
-        response["ETag"] = etag
-        return response
+        return documents.pdf_response(request, row.file, row.sha256, "exam-routine.pdf")

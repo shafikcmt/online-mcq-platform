@@ -47,3 +47,12 @@ class SecurityThrottle(SimpleRateThrottle):
                 "Throttle backend unavailable scope=%s error=%s", self.scope, type(exc).__name__
             )
             raise TemporarilyUnavailable() from exc
+
+
+class DocumentUploadThrottle(SecurityThrottle):
+    """``document_upload``: per admin; every PDF upload is read whole and checked."""
+
+    scope = "document_upload"
+
+    def identity(self, request, view) -> str:
+        return f"user:{request.user.pk}"

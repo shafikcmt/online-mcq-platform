@@ -1,4 +1,5 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import { fireEvent, screen, userEvent, waitFor } from "@testing-library/react-native";
+import * as Linking from "expo-linking";
 
 import type { Notice, Notification } from "@/features/notifications/types";
 
@@ -15,7 +16,7 @@ const items: Notification[] = [
   { id: N1, type: "result_published", title: "Result published", message: "Your result for Physics is ready.", target: { type: "result", attempt_id: ATTEMPT }, is_read: false, created_at: "2026-10-27T10:00:00Z", read_at: null },
   { id: N2, type: "payment_success", title: "Payment successful", message: "Gold is active until 26 November.", target: { type: "payment", payment_id: PAY }, is_read: true, created_at: "2026-10-26T10:00:00Z", read_at: "2026-10-26T11:00:00Z" },
 ];
-const notices: Notice[] = [{ title: "Exam schedule changed", body: "The weekly test moves to Friday.", is_pinned: true, published_at: "2026-10-25T08:00:00Z", expires_at: null }];
+const notices: Notice[] = [{ id: 1, pdf: { available: false, name: "", size_bytes: 0 }, title: "Exam schedule changed", body: "The weekly test moves to Friday.", is_pinned: true, published_at: "2026-10-25T08:00:00Z", expires_at: null }];
 const page = <T,>(results: T[]) => ({ status: 200, body: { count: results.length, next: null, previous: null, results } });
 
 async function signedIn(routes: Parameters<typeof mockBackend>[0], url: string) {
@@ -28,6 +29,24 @@ async function signedIn(routes: Parameters<typeof mockBackend>[0], url: string) 
   await renderApp(url);
   return backend;
 }
+
+// First on purpose: the app is rendered afresh per test and a spy on expo-linking only reaches the
+// component in the first render of a file (same order dependence as tests/routine.test.tsx).
+test("a notice with a PDF opens it through a short-lived signed address", async () => {
+  const open = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  const withPdf: Notice = { ...notices[0], id: 5, title: "Syllabus", pdf: { available: true, name: "s.pdf", size_bytes: 2048 } };
+  const backend = await signedIn(
+    { "GET /me/notifications/": page([]), "GET /announcements/": page([withPdf, { ...notices[0], id: 6, title: "Plain" }]), "GET /announcements/5/pdf-link/": { status: 200, body: { path: "/public/notice-files/tok/", expires_in: 600 } } },
+    "/notifications",
+  );
+  await fireEvent.press(await screen.findByRole("radio", { name: "Notices" }));
+  const buttons = await screen.findAllByRole("button", { name: "Open PDF" });
+  expect(buttons).toHaveLength(1); // only the notice that has a PDF
+  await userEvent.setup().press(buttons[0]);
+  await waitFor(() => expect(open).toHaveBeenCalledWith(expect.stringMatching(/\/public\/notice-files\/tok\/$/)));
+  expect(backend.find("GET", "/announcements/5/pdf-link/")).toHaveLength(1);
+  open.mockRestore();
+});
 
 test("the bell on Home opens the notifications; opening one marks it read and goes to the result", async () => {
   const backend = await signedIn(
@@ -70,4 +89,19 @@ test("notices from the admin, pinned shown as such; empty states", async () => {
   await fireEvent.press(screen.getByRole("radio", { name: "Notices" }));
   expect(await screen.findByText("The weekly test moves to Friday.")).toBeOnTheScreen();
   expect(screen.getByText("Pinned")).toBeOnTheScreen();
+});
+
+test("a failed PDF link shows an error and nothing opens", async () => {
+  const open = jest.spyOn(Linking, "openURL").mockResolvedValue(true);
+  const withPdf: Notice = { ...notices[0], id: 5, pdf: { available: true, name: "s.pdf", size_bytes: 2048 } };
+  await signedIn(
+    { "GET /me/notifications/": page([]), "GET /announcements/": page([withPdf]), "GET /announcements/5/pdf-link/": { status: 404, body: { error: { code: "not_found", message: "x" } } } },
+    "/notifications",
+  );
+  await fireEvent.press(await screen.findByRole("radio", { name: "Notices" }));
+  await fireEvent.press(await screen.findByRole("button", { name: "Open PDF" }));
+  // the failure ends the "Opening…" state, so the button is usable again
+  await waitFor(() => expect(screen.getByRole("button", { name: "Open PDF" })).toBeEnabled());
+  expect(open).not.toHaveBeenCalled();
+  open.mockRestore();
 });
