@@ -7,9 +7,9 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
 
 | # | Requirement | Status | Where / notes |
 |---|---|---|---|
-| 1 | Simulated examinee profiles (admin) | **Not built** | Task open. Needs a clear separation from real students (see "Open decisions"). |
-| 2 | Simulated examinee count per exam | **Not built** | Same. |
-| 3 | Simulated leaderboard entries | **Not built** | Same; the spec itself requires a transparent real/simulated distinction. |
+| 1 | Simulated examinee profiles (admin) | Built (as clearly labelled **sample participants**) | `SAMPLE_PARTICIPANTS.md` |
+| 2 | Simulated examinee count per exam | Built | Per exam, shown apart: "120 students + 30 sample participants". |
+| 3 | Simulated leaderboard entries | Built, labelled, unranked, separate block | Real merit list and positions are never touched. |
 | 4 | Live exam routine (website, app, PDF, admin) | Built | `EXAM_ROUTINE.md` |
 | 5 | YouTube videos, per teacher/category, embedded | Built | `STUDY_MATERIALS.md`. Public/Unlisted videos only (a Private video cannot be shown to anyone but its owner). Teacher is a plain name. |
 | 6 | Package/plan cards by category with price, exam count, validity, benefits | Built | `PACKAGE_DISPLAY.md` |
@@ -30,21 +30,19 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
 | Publish notices (text and PDF) | Yes (Site → Announcements) |
 | Bulk question upload (CSV/Excel) | Yes (Content → Questions → Import) |
 | Syllabus and routine | Yes (exam page → Syllabus; Content → Exam routine) |
-| Results and leaderboard control | Partly: results list/detail and the leaderboard name mode (Settings) exist; no per-entry control (needed for item 3) |
+| Results and leaderboard control | Yes: results list/detail, merit generation, publish/hide, leaderboard name mode (Settings) and sample entries per exam |
 | Study materials and YouTube | Yes (Content → Study materials) |
 | Exam packages and subscription plans | Yes (Commerce → Packages, Subscriptions, Payments, Gateways) |
 | Send push notifications | **No** (item 10) |
-| Simulated examinee control | **No** (items 1–3) |
+| Simulated examinee control | Yes, as labelled sample participants (People → Sample participants; exam page section) |
 
 ## Open decisions (owner)
 
-1. **Simulated examinees.** The spec asks for dummy examinees, counted in the participant number and shown on
-   the leaderboard, "with a transparent distinction between simulated and real results in backend and frontend".
-   Showing invented people as if they were real students would mislead students and could breach consumer-protection
-   and app-store rules, so the design must keep them **clearly labelled and fully separate** from real statistics
-   (ranks, merit lists, results and revenue). Please confirm the wording students should see (for example a
-   "Sample participant" label) before this is built.
+1. **Sample participants** are built in the transparent form the spec itself asks for (always labelled "Sample",
+   in their own block, no rank, counted apart, never in real results or statistics). They are not mixed into real
+   ranks or presented as real students: that would mislead students and could breach consumer-protection and
+   app-store rules. The label wording can be changed in the message files. See `SAMPLE_PARTICIPANTS.md`.
 2. **Push notifications** need an Expo/EAS project id and the push credentials, entered only on the server or in
    the panel, never in chat.
-3. **App size** needs new EAS builds (AAB for Google Play, per-ABI APKs for direct download).
+3. **App size** needs new EAS builds (see `APP_SIZE.md`: a `preview-small` profile is ready).
 4. **Paid study materials** (everything is public today) and a separate teacher entity are not built.

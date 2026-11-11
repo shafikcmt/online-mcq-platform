@@ -75,5 +75,12 @@
     "notVisible": "The leaderboard will be shown when the exam's results are published.",
     "empty": "The merit list has not been prepared yet."
   },
-  "seeResult": "See full result"
+  "seeResult": "See full result",
+  "sample": {
+    "title": "Sample participants",
+    "note_one": "{{n}} sample participant. These are not real students: they have no rank and do not change the merit list.",
+    "note_other": "{{n}} sample participants. These are not real students: they have no rank and do not change the merit list.",
+    "label": "Sample",
+    "row": "Sample participant {{name}}, {{marks}}"
+  }
 }

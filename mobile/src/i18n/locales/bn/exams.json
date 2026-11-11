@@ -37,7 +37,11 @@
     "syllabusTopic": "টপিক",
     "notFound": "এই পরীক্ষাটি পাওয়া যাচ্ছে না। হয়তো সরিয়ে নেওয়া বা বন্ধ করা হয়েছে।",
     "materials_one": "এই পরীক্ষার জন্য {{n}}টি স্টাডি ম্যাটেরিয়াল",
-    "materials_other": "এই পরীক্ষার জন্য {{n}}টি স্টাডি ম্যাটেরিয়াল"
+    "materials_other": "এই পরীক্ষার জন্য {{n}}টি স্টাডি ম্যাটেরিয়াল",
+    "participants": "অংশগ্রহণকারী",
+    "participantsReal_one": "{{n}} জন শিক্ষার্থী",
+    "participantsReal_other": "{{n}} জন শিক্ষার্থী",
+    "participantsMixed": "{{total}} জন: {{real}} জন শিক্ষার্থী + {{sample}} জন স্যাম্পল অংশগ্রহণকারী"
   },
   "contentLanguage": {
     "bn": "বাংলা",

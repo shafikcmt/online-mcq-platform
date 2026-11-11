@@ -38,6 +38,7 @@ import type { SyllabusLineData } from "@/types/syllabus";
 import { AssignedQuestions } from "./assigned-questions";
 import { ExamStatusBadge, examTitle } from "./exam-cells";
 import { ExamResults } from "./exam-results";
+import { ExamSampleParticipants } from "./exam-sample-participants";
 import { ExamSyllabus } from "./exam-syllabus";
 import { ExamSettings, SectionAnchor, sectionElementId, type SectionId } from "./exam-settings";
 import { QuestionPicker, initialPickerQuery, type PickerQuery } from "./question-picker";
@@ -524,6 +525,7 @@ export function ExamEditor({
       </SectionAnchor>
 
       {exam && <ExamSyllabus examId={exam.id} initial={syllabus} />}
+      {exam && <ExamSampleParticipants examId={exam.id} />}
 
       {exam && exam.status !== "draft" && (
         <ExamResults

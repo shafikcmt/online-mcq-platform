@@ -281,7 +281,10 @@
     "unavailable": "This exam can't be loaded right now. Please try again in a moment.",
     "merit": "View the merit list",
     "materials": "Study materials",
-    "materialsLink": "{{n}} study {{n|material|materials}} for this exam"
+    "materialsLink": "{{n}} study {{n|material|materials}} for this exam",
+    "participants": "Participants",
+    "participantsReal": "{{n}} {{n|student|students}}",
+    "participantsMixed": "{{total}}: {{real}} {{real|student|students}} + {{sample}} sample {{sample|participant|participants}}"
   },
   "packagesPage": {
     "title": "Packages",
@@ -339,7 +342,11 @@
     "time": "Time",
     "notPublic": "The merit list for this exam isn't public yet.",
     "unavailable": "The merit list can't be loaded right now. Please try again in a moment.",
-    "all": "All merit lists"
+    "all": "All merit lists",
+    "sampleTitle": "Sample participants",
+    "sampleNote": "These are sample entries, not real students. They have no rank and do not change the merit list above.",
+    "sampleLabel": "Sample",
+    "sampleCount": "{{n}} sample {{n|participant|participants}}"
   },
   "about": {
     "title": "About Live Model Test",
