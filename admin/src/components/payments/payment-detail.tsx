@@ -1,5 +1,6 @@
 "use client";
 
+import { ModeBadge } from "@/components/gateways/gateway-parts";
 import { ArrowLeft, Info } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -70,6 +71,22 @@ export function PaymentDetail({ payment }: { payment: AdminPaymentDetail }) {
           </Item>
           <Item label={t("paymentDetail.validity")}>{t("packages.days", { n: formatNumber(payment.validity_days, locale) })}</Item>
           <Item label={t("paymentDetail.provider")}>{codeLabel(t, "payProvider", payment.provider)}</Item>
+          <Item label={t("paymentDetail.gateway")}>
+            {payment.gateway ? (
+              <Link href={`/payment-gateways`} className="rounded-control text-brand-700 hover:underline">
+                {(locale === "bn" && payment.gateway.name_bn) || payment.gateway.name_en || payment.gateway.slug}
+              </Link>
+            ) : (
+              muted(t("paymentDetail.noGateway"))
+            )}
+          </Item>
+          <Item label={t("paymentDetail.mode")}>
+            {payment.mode ? <ModeBadge mode={payment.mode} /> : muted(t("paymentDetail.noGateway"))}
+            {payment.is_test ? <span className="ml-2 text-xs text-warning-700">{t("paymentDetail.testNote")}</span> : null}
+          </Item>
+          <Item label={t("paymentDetail.channel")}>
+            {payment.channel ? t(`payments.channel.${payment.channel}`) : muted(t("paymentDetail.noGateway"))}
+          </Item>
           <Item label={t("paymentDetail.reference")}>
             <span className="font-mono text-xs break-all">{payment.merchant_reference}</span>
           </Item>

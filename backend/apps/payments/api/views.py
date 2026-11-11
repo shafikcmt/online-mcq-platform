@@ -371,7 +371,7 @@ class MockCheckoutView(PublicAPIMixin, APIView):
 # Admin
 # --------------------------------------------------------------------------------------
 def _admin_queryset():
-    return Payment.objects.select_related("user", "package")
+    return Payment.objects.select_related("user", "package", "gateway")
 
 
 def _ordering(request) -> list:
@@ -408,6 +408,11 @@ def _query_date(request, name):
         parameters=[
             OpenApiParameter("status", OpenApiTypes.STR, enum=PaymentStatus.values),
             OpenApiParameter("provider", OpenApiTypes.STR, enum=PaymentProvider.values),
+            OpenApiParameter("mode", OpenApiTypes.STR, enum=["sandbox", "live"]),
+            OpenApiParameter("channel", OpenApiTypes.STR, enum=["web", "app"]),
+            OpenApiParameter(
+                "gateway", OpenApiTypes.INT, description="Payments made through this gateway's id"
+            ),
             OpenApiParameter("user", OpenApiTypes.INT),
             OpenApiParameter("package", OpenApiTypes.INT),
             OpenApiParameter(
@@ -439,11 +444,13 @@ class AdminPaymentListView(AdminAPIMixin, generics.ListAPIView):
         for name, choices in (
             ("status", PaymentStatus.values),
             ("provider", PaymentProvider.values),
+            ("mode", ("sandbox", "live")),
+            ("channel", ("web", "app")),
         ):
             value = query_choice(request, name, choices)
             if value:
                 queryset = queryset.filter(**{name: value})
-        for name in ("user", "package", "subscription"):
+        for name in ("user", "package", "subscription", "gateway"):
             value = query_int(request, name)
             if value is not None:
                 queryset = queryset.filter(**{f"{name}_id": value})
