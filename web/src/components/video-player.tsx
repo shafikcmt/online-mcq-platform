@@ -27,7 +27,7 @@ export function VideoPlayer({ id, title, playLabel, watchLabel }: { id: string; 
         ) : (
           <button type="button" onClick={() => setPlaying(true)} aria-label={playLabel} className="group absolute inset-0 size-full">
             {/* eslint-disable-next-line @next/next/no-img-element -- a remote cover, loaded lazily */}
-            <img src={thumbnailUrl(id)} alt="" loading="lazy" decoding="async" className="size-full object-cover opacity-90 transition group-hover:opacity-100" />
+            <img src={thumbnailUrl(id)} alt="" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = "none"; }} className="size-full object-cover opacity-90 transition group-hover:opacity-100" />
             <span className="absolute inset-0 flex items-center justify-center">
               <span className="flex size-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-white/40 transition group-hover:bg-brand-700">
                 <Play className="size-6 translate-x-0.5" aria-hidden fill="currentColor" />
