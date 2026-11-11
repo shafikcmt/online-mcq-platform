@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { Lock, Medal } from "lucide-react-native";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -14,6 +14,8 @@ import { EmptyNote } from "@/features/dashboard/section";
 import { fetchLeaderboard } from "@/features/results/api";
 import { formatDuration } from "@/features/results/format";
 import type { LeaderboardPage, LeaderboardRow } from "@/features/results/types";
+import { fetchSamples, type SampleList } from "@/features/sample/api";
+import { SampleBlock } from "@/features/sample/sample-block";
 import { formatDecimal } from "@/lib/format";
 import { localizeDigits } from "@/lib/text";
 import { usePages } from "@/lib/use-pages";
@@ -29,6 +31,15 @@ export default function LeaderboardScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const load = useCallback((page: number) => fetchLeaderboard(slug, page), [slug]);
   const list = usePages<LeaderboardRow, LeaderboardPage>(load, slug, keyOf);
+  // Sample participants (labelled, unranked, separate); nothing is shown when there are none.
+  const [samples, setSamples] = useState<SampleList | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void fetchSamples(slug).then((found) => alive && setSamples(found));
+    return () => {
+      alive = false;
+    };
+  }, [slug]);
   const n = (value: number) => localizeDigits(value, i18n.language);
   const mine = list.extra?.my_position ?? null;
   const code = isApiError(list.error) ? list.error.code : null;
@@ -58,6 +69,7 @@ export default function LeaderboardScreen() {
         list={list}
         keyOf={keyOf}
         header={header}
+        footer={samples ? <SampleBlock data={samples} /> : null}
         renderItem={({ item }) => <Row row={item} />}
         empty={<EmptyNote text={t("results:leaderboard.empty")} />}
         errorView={

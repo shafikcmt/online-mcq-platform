@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "apps.payments",
     "apps.cms",
     "apps.materials",
+    "apps.simulation",
     "apps.notifications",
     "apps.dashboard",
 ]

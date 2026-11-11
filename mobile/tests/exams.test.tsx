@@ -239,4 +239,29 @@ describe("Exam details", () => {
     await screen.findByText("HSC · Physics");
     expect(screen.queryByRole("link", { name: /study material/ })).toBeNull();
   });
+
+  test("the participant line counts real students and sample participants apart", async () => {
+    await signedIn(
+      {
+        "GET /exams/physics/": detail({}),
+        "GET /public/exams/physics/participation/": { status: 200, body: { real_count: 120, sample_count: 30, total_count: 150 } },
+      },
+      "/exam/physics",
+    );
+    expect(await screen.findByText("150: 120 students + 30 sample participants")).toBeOnTheScreen();
+  });
+
+  test("with no sample participants it is just the students; unknown shows no line", async () => {
+    await signedIn(
+      { "GET /exams/physics/": detail({}), "GET /public/exams/physics/participation/": { status: 200, body: { real_count: 1, sample_count: 0, total_count: 1 } } },
+      "/exam/physics",
+    );
+    expect(await screen.findByText("1 student")).toBeOnTheScreen();
+  });
+
+  test("a failed participation request shows no participant line", async () => {
+    await signedIn({ "GET /exams/physics/": detail({}) }, "/exam/physics");
+    await screen.findByText("HSC · Physics");
+    expect(screen.queryByText("Participants")).toBeNull();
+  });
 });

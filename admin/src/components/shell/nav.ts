@@ -21,6 +21,7 @@ import {
   Landmark,
   CalendarDays,
   Video,
+  UserRoundCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,6 +45,7 @@ export const NAV: NavGroup[] = [
     items: [
       { key: "nav.users", href: "/users", icon: Users, ready: true },
       { key: "nav.subscriptions", href: "/subscriptions", icon: ShieldCheck, ready: true },
+      { key: "nav.sample", href: "/sample-participants", icon: UserRoundCheck, ready: true },
     ],
   },
   {

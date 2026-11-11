@@ -8,6 +8,9 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+// The sample-participants section loads its own data and has its own tests (sample-participants.test.tsx).
+vi.mock("@/components/exams/exam-sample-participants", () => ({ ExamSampleParticipants: () => null }));
+
 import { ExamEditor } from "@/components/exams/exam-editor";
 
 import { apiError, category, exam, examRow, findToast, json, mockApi, page, question, renderPanel, subject } from "./content-helpers";

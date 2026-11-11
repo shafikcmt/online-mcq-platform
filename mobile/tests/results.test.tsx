@@ -149,3 +149,35 @@ test("Bangla result details", async () => {
   expect(screen.getByText("১২ মিনিট ৩০ সেকেন্ড")).toBeOnTheScreen();
   expect(screen.getByText("উত্তীর্ণ")).toBeOnTheScreen();
 });
+
+test("leaderboard: sample participants are a separate, labelled block with no position", async () => {
+  const rows: LeaderboardRow[] = [
+    { position: 1, name: "Rah*** H.", obtained_marks: "3.00", total_marks: "3.00", percentage: "100.00", time_used_seconds: 300, is_me: false },
+  ];
+  await signedIn(
+    {
+      "GET /exams/physics/leaderboard/": page(rows, { my_position: 1 }),
+      "GET /public/exams/physics/sample-participants/": {
+        status: 200,
+        body: { count: 2, total_marks: "3.00", results: [{ name: "Zafar", marks: "2.50", percentage: "83.33", is_sample: true }, { name: "Mina", marks: "1.00", percentage: "33.33", is_sample: true }] },
+      },
+    },
+    "/leaderboard/physics",
+  );
+  expect(await screen.findByText("Sample participants")).toBeOnTheScreen();
+  expect(screen.getByText(/2 sample participants\. These are not real students/)).toBeOnTheScreen();
+  expect(screen.getAllByText("Sample")).toHaveLength(2);
+  expect(screen.getByText("Zafar")).toBeOnTheScreen();
+  // the real list is unchanged: one ranked student
+  expect(screen.getByText("Rah*** H.")).toBeOnTheScreen();
+  expect(screen.getByText("1 ranked")).toBeOnTheScreen();
+});
+
+test("leaderboard: no sample participants, no block (also when the request fails)", async () => {
+  const rows: LeaderboardRow[] = [
+    { position: 1, name: "Rah*** H.", obtained_marks: "3.00", total_marks: "3.00", percentage: "100.00", time_used_seconds: 300, is_me: false },
+  ];
+  await signedIn({ "GET /exams/physics/leaderboard/": page(rows, { my_position: 1 }), "GET /public/exams/physics/sample-participants/": apiError(404, "not_found", "x") }, "/leaderboard/physics");
+  await screen.findByText("Rah*** H.");
+  expect(screen.queryByText("Sample participants")).toBeNull();
+});

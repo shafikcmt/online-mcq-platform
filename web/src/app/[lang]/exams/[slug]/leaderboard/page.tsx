@@ -4,7 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
+import { SampleBlock } from "@/components/sample-block";
 import { publicFetch, type Exam, type LeaderboardRow } from "@/lib/api";
+import type { SampleList } from "@/lib/sample";
 import { clock, decimal, digits } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
@@ -17,9 +19,13 @@ type Props = { params: Promise<{ lang: string; slug: string }> };
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 async function load(slug: string, lang: Lang) {
-  if (slug.length > 140 || !SLUG.test(slug)) return { exam: { state: "missing" as const }, rows: { state: "missing" as const } };
-  const [exam, rows] = await Promise.all([publicFetch<Exam>(`exams/${slug}/`, lang), publicFetch<LeaderboardRow[]>(`exams/${slug}/leaderboard/`, lang)]);
-  return { exam, rows };
+  if (slug.length > 140 || !SLUG.test(slug)) return { exam: { state: "missing" as const }, rows: { state: "missing" as const }, sample: { state: "missing" as const } };
+  const [exam, rows, sample] = await Promise.all([
+    publicFetch<Exam>(`exams/${slug}/`, lang),
+    publicFetch<LeaderboardRow[]>(`exams/${slug}/leaderboard/`, lang),
+    publicFetch<SampleList>(`exams/${slug}/sample-participants/`, lang),
+  ]);
+  return { exam, rows, sample };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -45,7 +51,7 @@ export default async function MeritPage({ params }: Props) {
   const { lang: raw, slug } = await params;
   const lang = raw as Lang;
   const t = translator(lang);
-  const { exam, rows } = await load(slug, lang);
+  const { exam, rows, sample } = await load(slug, lang);
   if (exam.state === "missing") notFound();
 
   const back = (
@@ -125,6 +131,7 @@ export default async function MeritPage({ params }: Props) {
             </p>
           </>
         )}
+        {sample.state === "ok" ? <SampleBlock data={sample.data} lang={lang} t={t} /> : null}
         </div>
       </div>
     </>

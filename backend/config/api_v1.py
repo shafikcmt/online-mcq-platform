@@ -30,6 +30,8 @@ from apps.questions.api.urls import admin_urlpatterns as question_admin_urlpatte
 from apps.results.api.urls import admin_urlpatterns as result_admin_urlpatterns
 from apps.results.api.urls import public_urlpatterns as result_public_urlpatterns
 from apps.results.api.urls import student_urlpatterns as result_student_urlpatterns
+from apps.simulation.api.urls import admin_urlpatterns as simulation_admin_urlpatterns
+from apps.simulation.api.urls import public_urlpatterns as simulation_public_urlpatterns
 from apps.subscriptions.api.urls import admin_urlpatterns as subscription_admin_urlpatterns
 from apps.subscriptions.api.urls import me_urlpatterns as subscription_me_urlpatterns
 from apps.subscriptions.api.urls import public_urlpatterns as subscription_public_urlpatterns
@@ -51,6 +53,7 @@ admin_urlpatterns = [
     *payment_admin_urlpatterns,
     *cms_admin_urlpatterns,
     *material_admin_urlpatterns,
+    *simulation_admin_urlpatterns,
     *audit_admin_urlpatterns,
     *dashboard_admin_urlpatterns,
     *sms_admin_urlpatterns,
@@ -87,6 +90,7 @@ urlpatterns = [
                     *result_public_urlpatterns,
                     *cms_public_urlpatterns,
                     *material_public_urlpatterns,
+                    *simulation_public_urlpatterns,
                 ],
                 "public",
             )

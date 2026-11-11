@@ -128,6 +128,13 @@ export const MATERIAL_LIST: ListSpec = {
   defaultOrdering: "sort_order",
 };
 
+/** Sample participants (apps/simulation/api/views.py): by name; search by name. */
+export const SAMPLE_PERSON_LIST: ListSpec = {
+  filters: { is_active: "bool" },
+  orderings: ["id", "name", "created_at"],
+  defaultOrdering: "name",
+};
+
 export const FAQ_LIST: ListSpec = {
   filters: { is_active: "bool" },
   orderings: ["id", "sort_order", "created_at", "updated_at"],

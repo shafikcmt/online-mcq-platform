@@ -31,12 +31,14 @@ type Props<T> = {
   /** Replaces the generic error state (e.g. "not published yet" for a 403). */
   errorView?: React.ReactElement | null;
   separator?: boolean;
+  /** Shown after the last item (and after the list when it is empty), e.g. a labelled extra block. */
+  footer?: React.ReactElement | null;
 };
 
 /** A paged list screen body: skeleton while loading, an error with retry, an empty state,
  * pull-to-refresh, more items near the end, and a quiet notice when a reload failed but
  * earlier items are still shown. */
-export function PagedList<T>({ testID, list, keyOf, renderItem, header, empty, errorView, separator = true }: Props<T>) {
+export function PagedList<T>({ testID, list, keyOf, renderItem, header, empty, errorView, separator = true, footer }: Props<T>) {
   const { t } = useTranslation();
   let body: React.ReactElement;
   if (list.loading) {
@@ -74,10 +76,15 @@ export function PagedList<T>({ testID, list, keyOf, renderItem, header, empty, e
       }
       ListEmptyComponent={body}
       ListFooterComponent={
-        list.loadingMore ? (
-          <View style={styles.more}>
-            <ActivityIndicator color={colors.brand600} />
-          </View>
+        list.loadingMore || footer ? (
+          <>
+            {list.loadingMore ? (
+              <View style={styles.more}>
+                <ActivityIndicator color={colors.brand600} />
+              </View>
+            ) : null}
+            {footer}
+          </>
         ) : undefined
       }
       onEndReached={list.loadMore}

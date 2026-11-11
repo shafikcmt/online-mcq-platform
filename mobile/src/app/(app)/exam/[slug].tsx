@@ -19,6 +19,7 @@ import { startAttempt } from "@/features/attempt/api";
 import { handOff } from "@/features/attempt/handoff";
 import { fetchExam } from "@/features/exams/api";
 import { examMaterialCount } from "@/features/materials/api";
+import { fetchParticipation, type Participation } from "@/features/sample/api";
 import { statusOf } from "@/features/exams/exam-card";
 import { relativeOrDate, shortGap } from "@/features/exams/time";
 import type { StudentExamDetail } from "@/features/exams/types";
@@ -41,6 +42,9 @@ export default function ExamDetailScreen() {
   // Study materials of this exam (a small public request; a failure just hides the link).
   const loadMaterials = useCallback(() => examMaterialCount(slug).catch(() => 0), [slug]);
   const materials = useRemote(loadMaterials).data ?? 0;
+  // Real students and sample participants are counted apart (null = unknown: no line is shown).
+  const loadParticipation = useCallback(() => fetchParticipation(slug), [slug]);
+  const participation = useRemote(loadParticipation).data ?? null;
   const missing = isApiError(error) && error.status === 404;
   const [confirming, setConfirming] = useState(false);
   const [opening, setOpening] = useState(false);
@@ -99,7 +103,7 @@ export default function ExamDetailScreen() {
       ) : null}
       {data && error ? <Banner tone="info" message={t("home:stale")} /> : null}
       {startError ? <Banner tone="error" message={describeError(startError, t)} /> : null}
-      {data ? <Details exam={data} now={now} materials={materials} /> : null}
+      {data ? <Details exam={data} now={now} materials={materials} participation={participation} /> : null}
       {data ? (
         <ConfirmDialog
           open={confirming}
@@ -114,7 +118,7 @@ export default function ExamDetailScreen() {
   );
 }
 
-function Details({ exam, now, materials }: { exam: StudentExamDetail; now: number; materials: number }) {
+function Details({ exam, now, materials, participation }: { exam: StudentExamDetail; now: number; materials: number; participation: Participation | null }) {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
   const n = (value: number) => localizeDigits(value, language);
@@ -130,6 +134,14 @@ function Details({ exam, now, materials }: { exam: StudentExamDetail; now: numbe
   if (exam.start_at) facts.push([t("exams:detail.starts"), formatDateTime(exam.start_at, language)]);
   if (exam.end_at) facts.push([t("exams:detail.ends"), formatDateTime(exam.end_at, language)]);
   facts.push([t("exams:detail.language"), t(`exams:contentLanguage.${exam.content_language}`)]);
+  if (participation && participation.total_count > 0) {
+    facts.push([
+      t("exams:detail.participants"),
+      participation.sample_count > 0
+        ? t("exams:detail.participantsMixed", { total: n(participation.total_count), real: n(participation.real_count), sample: n(participation.sample_count) })
+        : t("exams:detail.participantsReal", { count: participation.real_count, n: n(participation.real_count) }),
+    ]);
+  }
   facts.push([
     t("exams:detail.attempts"),
     exam.attempts_allowed === null

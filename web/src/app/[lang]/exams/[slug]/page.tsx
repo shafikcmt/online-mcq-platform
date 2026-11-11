@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy } from "lucide-react";
+import { ArrowRight, CalendarClock, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,6 +11,7 @@ import { pageHref, scheduleState } from "@/lib/exam-filters";
 import { dateTime, decimal, digits } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
 import { materialsHref, type MaterialPage } from "@/lib/materials";
+import type { Participation } from "@/lib/sample";
 import { alternates } from "@/lib/site";
 
 export const revalidate = 60;
@@ -53,11 +54,12 @@ export default async function ExamPage({ params }: Props) {
   const { lang: raw, slug } = await params;
   const lang = raw as Lang;
   const t = translator(lang);
-  const [fetched, settings, merit, materials] = await Promise.all([
+  const [fetched, settings, merit, materials, participation] = await Promise.all([
     load(slug, lang),
     getSettings(lang),
     SLUG.test(slug) ? publicGet<LeaderboardRow[]>(`exams/${slug}/leaderboard/`, lang) : null, // null = no public merit list
     SLUG.test(slug) ? publicGet<MaterialPage>(`materials/?exam=${slug}&page_size=1`, lang) : null, // null = none to show
+    SLUG.test(slug) ? publicGet<Participation>(`exams/${slug}/participation/`, lang) : null, // null = unknown: show nothing
   ]);
   if (fetched.state === "missing") notFound();
 
@@ -94,6 +96,19 @@ export default async function ExamPage({ params }: Props) {
     { icon: MinusCircle, label: t("examDetail.negative"), value: negative ? t("examDetail.negativeValue", { n: decimal(exam.negative_marks, lang) }) : t("examDetail.none") },
     ...(exam.pass_marks ? [{ icon: Target, label: t("examDetail.passMarks"), value: decimal(exam.pass_marks, lang) }] : []),
     { icon: Languages, label: t("examDetail.language"), value: t(`examDetail.languages.${exam.content_language}`) },
+    // Real students and sample participants are counted apart, and the sample ones are named as such.
+    ...(participation && participation.total_count > 0
+      ? [
+          {
+            icon: Users,
+            label: t("examDetail.participants"),
+            value:
+              participation.sample_count > 0
+                ? t("examDetail.participantsMixed", { total: digits(participation.total_count, lang), real: digits(participation.real_count, lang), sample: digits(participation.sample_count, lang) })
+                : t("examDetail.participantsReal", { n: digits(participation.real_count, lang) }),
+          },
+        ]
+      : []),
   ];
 
   return (
