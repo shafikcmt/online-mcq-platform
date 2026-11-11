@@ -9,6 +9,7 @@ import { AppText } from "@/components/app-text";
 import { Card } from "@/components/card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { LanguagePicker } from "@/components/language-picker";
+import { NotificationsRow } from "@/features/push/notifications-row";
 import { Screen } from "@/components/screen";
 import { useToast } from "@/components/toast";
 import type { Language } from "@/i18n";
@@ -94,6 +95,7 @@ export default function ProfileScreen() {
       <Section title={t("profile:sectionSettings")}>
         <AppText weight="medium">{t("profile:language")}</AppText>
         <LanguagePicker value={language} onChange={(next) => void changeLanguage(next)} />
+        <NotificationsRow />
       </Section>
 
       <Section title={t("profile:sectionAccount")}>

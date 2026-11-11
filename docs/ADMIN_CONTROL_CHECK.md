@@ -16,7 +16,7 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
 | 7 | Notices: text and PDF | Built | `NOTICE_PDF.md` (text notices existed) |
 | 8 | Bulk question upload CSV/Excel | Built | `QUESTION_BULK_IMPORT.md`. Edit/delete of imported questions is the normal question screen. |
 | 9 | App size 25–30 MB | **Not done** | Needs measuring and new builds run by the owner (preview APK ≈ 98 MB). |
-| 10 | Upcoming-exam card and notifications | **Partly** | Card shows date/time, start–end, subject, marks, duration, status, syllabus and a link to the exam's study materials (website and app). **Push notifications and reminders are not built** (need an Expo/EAS project and push credentials from the owner). Admin-written per-exam notices are done through announcements. |
+| 10 | Upcoming-exam card and notifications | Built; push **not yet proven on a phone** | Card shows date/time, start–end, subject, marks, duration, status, syllabus and a link to the exam's study materials (website and app). Push messages and automatic exam reminders are built end to end and tested with a fake Expo, but **switched off** until the owner creates the Expo project and push credentials (`PUSH_NOTIFICATIONS.md`). Per-exam notices also work through announcements. |
 | 11 | Student dashboard: Routine, Result, Archive, Syllabus | Built | App Home quick access: Routine, Study materials, Open now, Upcoming, My results, **Past exams** (archive), Packages. Result (marks, merit position, correct/wrong, analysis) and review of old questions exist in the Results tab; syllabus is on every exam page. |
 | 12 | UI/UX reference | Followed | Not seen by eye on real devices. |
 | 13 | Admin control summary | See below | |
@@ -33,7 +33,7 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
 | Results and leaderboard control | Yes: results list/detail, merit generation, publish/hide, leaderboard name mode (Settings) and sample entries per exam |
 | Study materials and YouTube | Yes (Content → Study materials) |
 | Exam packages and subscription plans | Yes (Commerce → Packages, Subscriptions, Payments, Gateways) |
-| Send push notifications | **No** (item 10) |
+| Send push notifications | Yes (Site → Push notifications; automatic reminders), off until the owner's Expo setup |
 | Simulated examinee control | Yes, as labelled sample participants (People → Sample participants; exam page section) |
 
 ## Open decisions (owner)
@@ -42,7 +42,7 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
    in their own block, no rank, counted apart, never in real results or statistics). They are not mixed into real
    ranks or presented as real students: that would mislead students and could breach consumer-protection and
    app-store rules. The label wording can be changed in the message files. See `SAMPLE_PARTICIPANTS.md`.
-2. **Push notifications** need an Expo/EAS project id and the push credentials, entered only on the server or in
-   the panel, never in chat.
+2. **Push notifications** need the Expo project id and push credentials (FCM), set up by the owner as described
+   in `PUSH_NOTIFICATIONS.md`; secrets go only on the server, never in chat. Nothing has been sent to a real phone yet.
 3. **App size** needs new EAS builds (see `APP_SIZE.md`: a `preview-small` profile is ready).
 4. **Paid study materials** (everything is public today) and a separate teacher entity are not built.

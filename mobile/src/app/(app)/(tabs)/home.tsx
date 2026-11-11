@@ -20,6 +20,7 @@ import { CategoryGrid } from "@/features/home/category-grid";
 import { dayPart } from "@/features/home/greeting";
 import { QuickAccess } from "@/features/home/quick-access";
 import { pickSpotlight } from "@/features/home/spotlight";
+import { PushPrompt } from "@/features/push/push-prompt";
 import { SpotlightCard } from "@/features/home/spotlight-card";
 import { localizeDigits } from "@/lib/text";
 import { useRemote } from "@/lib/use-remote";
@@ -110,6 +111,7 @@ function Content({ data, now }: { data: Dashboard; now: number }) {
   return (
     <>
       {spotlight ? <SpotlightCard spotlight={spotlight} /> : null}
+      <PushPrompt />
       <CategoryGrid />
       <QuickAccess />
       <SubscriptionCard subscription={data.subscription} />
