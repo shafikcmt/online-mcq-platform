@@ -10,7 +10,15 @@ export type Package = {
   currency: string;
   validity_days: number;
   is_featured: boolean;
+  /** What it unlocks: every paid exam, or the listed categories (paid exams open now). */
+  access: PackageAccess;
   subscription: { active_now: boolean; expires_at: string } | null;
+};
+
+export type PackageAccess = {
+  scope: "all" | "selected";
+  exam_count: number;
+  categories: { slug: string; name: string; exam_count: number }[];
 };
 
 export type PaymentStatus = "pending" | "success" | "failed" | "cancelled";

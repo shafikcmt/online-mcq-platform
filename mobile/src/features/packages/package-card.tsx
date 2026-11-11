@@ -19,6 +19,13 @@ export function PackageCard({ pkg, busy, onBuy }: { pkg: Package; busy: boolean;
   const language = i18n.language;
   const days = t("packages:validity", { count: pkg.validity_days, n: localizeDigits(pkg.validity_days, language) });
   const sub = pkg.subscription;
+  const { scope, exam_count: examCount, categories } = pkg.access;
+  const coverage =
+    scope === "all"
+      ? t("packages:coverAll", { n: localizeDigits(examCount, language) })
+      : categories.length
+        ? t("packages:coverSome", { count: examCount, n: localizeDigits(examCount, language), names: categories.map((category) => category.name).join(", ") })
+        : "";
   return (
     <View style={[styles.card, pkg.is_featured && styles.featured]}>
       <View style={styles.head}>
@@ -33,6 +40,13 @@ export function PackageCard({ pkg, busy, onBuy }: { pkg: Package; busy: boolean;
         </AppText>
         <AppText color={colors.inkMuted}>/ {days}</AppText>
       </View>
+      {coverage ? (
+        <View style={styles.coverage}>
+          <AppText variant="small" weight="semibold" color={colors.brand800}>
+            {coverage}
+          </AppText>
+        </View>
+      ) : null}
       {pkg.description ? <AppText color={colors.inkMuted}>{pkg.description}</AppText> : null}
       {pkg.features.length ? (
         <View style={styles.features}>
@@ -63,6 +77,7 @@ const styles = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", gap: space.sm },
   name: { flex: 1 },
   priceRow: { flexDirection: "row", alignItems: "baseline", gap: space.xs, flexWrap: "wrap" },
+  coverage: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.control, backgroundColor: colors.brand50 },
   features: { gap: space.xs },
   feature: { flexDirection: "row", gap: space.sm },
   tick: { marginTop: 3 },

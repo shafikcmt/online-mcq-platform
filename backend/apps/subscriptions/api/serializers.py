@@ -29,7 +29,7 @@ from ..models import (
     Subscription,
     SubscriptionStatus,
 )
-from ..selectors import EffectiveStatus, effective_status
+from ..selectors import EffectiveStatus, active_package_coverage, effective_status
 
 MAX_SORT_ORDER = 2_147_483_647
 MAX_FEATURE_ITEMS_IN = 100  # bound on raw input; the model enforces the real limit
@@ -230,6 +230,21 @@ class MySubscriptionSerializer(LocalizedSerializer):
         return effective_status(obj, self.context.get("now") or timezone.now())
 
 
+class PackageCategoryCoverageSerializer(serializers.Serializer):
+    slug = serializers.CharField()
+    name = serializers.CharField()
+    exam_count = serializers.IntegerField()
+
+
+class PackageCoverageSerializer(serializers.Serializer):
+    scope = serializers.ChoiceField(
+        choices=["all", "selected"],
+        help_text="all = every paid exam; selected = the categories listed.",
+    )
+    exam_count = serializers.IntegerField(help_text="Paid exams open for students right now.")
+    categories = PackageCategoryCoverageSerializer(many=True)
+
+
 class PublicPackageSerializer(LocalizedSerializer):
     slug = serializers.CharField()
     name = serializers.SerializerMethodField()
@@ -239,12 +254,30 @@ class PublicPackageSerializer(LocalizedSerializer):
     currency = serializers.CharField()
     validity_days = serializers.IntegerField()
     is_featured = serializers.BooleanField()
+    access = serializers.SerializerMethodField()
 
     def get_name(self, obj) -> str:
         return self.text(obj, "name")
 
     def get_description(self, obj) -> str:
         return self.text(obj, "description")
+
+    def get_access(self, obj) -> PackageCoverageSerializer:
+        """What the package unlocks, computed once per request for all active packages."""
+        coverage = self.context.get("_coverage")
+        if coverage is None:
+            coverage = self.context["_coverage"] = active_package_coverage()
+        found = coverage.get(obj.pk)
+        if found is None:
+            return {"scope": "selected", "exam_count": 0, "categories": []}
+        return {
+            "scope": found.scope,
+            "exam_count": found.exam_count,
+            "categories": [
+                {"slug": category.slug, "name": self.text(category, "name"), "exam_count": count}
+                for category, count in found.categories
+            ],
+        }
 
     def get_features(self, obj) -> list[str]:
         """The request language's list, or the other language's when it is empty."""

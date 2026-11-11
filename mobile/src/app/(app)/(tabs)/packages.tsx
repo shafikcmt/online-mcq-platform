@@ -16,6 +16,8 @@ import { newPaymentKey, openCheckout } from "@/features/packages/checkout";
 import { MethodChoice } from "@/features/packages/method-choice";
 import { methodsForPrice } from "@/features/packages/methods";
 import { formatMoney } from "@/features/packages/money";
+import { categoriesOf, coversCategory } from "@/features/packages/categories";
+import { CategoryChips } from "@/features/packages/category-chips";
 import { PackageCard } from "@/features/packages/package-card";
 import type { Package, PaymentMethod } from "@/features/packages/types";
 import { formatDate } from "@/lib/format";
@@ -35,6 +37,7 @@ export default function PackagesScreen() {
   const language = i18n.language;
   const load = useCallback((page: number) => fetchPackages(page), []);
   const list = usePages<Package, Page<Package>>(load, "packages", keyOf);
+  const [category, setCategory] = useState(""); // "" = every package
   const [chosen, setChosen] = useState<Package | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
@@ -78,6 +81,10 @@ export default function PackagesScreen() {
     }
   }
 
+  const categories = categoriesOf(list.items);
+  // A category that no longer exists after a refresh falls back to "All".
+  const active = categories.some((choice) => choice.slug === category) ? category : "";
+  const shown = active ? { ...list, items: list.items.filter((pkg) => coversCategory(pkg, active)) } : list;
   const days = (pkg: Package) => t("packages:validity", { count: pkg.validity_days, n: localizeDigits(pkg.validity_days, language) });
   const header = (
     <>
@@ -92,6 +99,7 @@ export default function PackagesScreen() {
           <Receipt size={22} color={colors.brand700} />
         </Pressable>
       </View>
+      {categories.length > 1 ? <CategoryChips label={t("packages:categories")} allLabel={t("packages:allCategories")} categories={categories} value={active} onChange={setCategory} /> : null}
       {failure ? <Banner tone="error" message={describeError(failure, t)} /> : null}
     </>
   );
@@ -100,11 +108,11 @@ export default function PackagesScreen() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <PagedList<Package>
         testID="package-list"
-        list={list}
+        list={shown}
         keyOf={keyOf}
         header={header}
         renderItem={({ item }) => <PackageCard pkg={item} busy={busy === item.slug} onBuy={() => setChosen(item)} />}
-        empty={<EmptyNote text={t("packages:empty")} />}
+        empty={<EmptyNote text={t(active ? "packages:noneInCategory" : "packages:empty")} />}
       />
       {chosen ? (
         <ConfirmDialog

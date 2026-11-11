@@ -7,9 +7,12 @@ import { publicGet, type Package, type Page } from "@/lib/api";
 import { pageHref } from "@/lib/exam-filters";
 import { digits } from "@/lib/format";
 import { isLang, messages, translator, type Lang } from "@/lib/i18n";
+import { groupPackages } from "@/lib/packages";
 import { alternates } from "@/lib/site";
 
 export const revalidate = 60;
+
+const anchor = (group: { category: { slug: string } | null }) => (group.category ? `cat-${group.category.slug}` : "cat-mixed");
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
@@ -26,6 +29,7 @@ export default async function PackagesPage({ params }: { params: Promise<{ lang:
   const t = translator(lang);
   const how = messages(lang).packagesPage.how;
   const packages = await publicGet<Page<Package>>("packages/?page_size=100", lang);
+  const groups = packages ? groupPackages(packages.results) : [];
 
   return (
     <>
@@ -35,13 +39,35 @@ export default async function PackagesPage({ params }: { params: Promise<{ lang:
           {packages === null ? (
             <UnavailableNote text={t("packagesPage.unavailable")} />
           ) : packages.results.length ? (
-            <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {packages.results.map((pkg) => (
-                <li key={pkg.slug}>
-                  <PackageCard pkg={pkg} lang={lang} />
-                </li>
+            <div className="space-y-10">
+              {groups.length > 1 ? (
+                <nav aria-label={t("package.groupLabel")} className="flex flex-wrap gap-2">
+                  {groups.map((group) => (
+                    <a
+                      key={group.category?.slug ?? "mixed"}
+                      href={`#${anchor(group)}`}
+                      className="inline-flex min-h-10 items-center rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink hover:border-brand-600"
+                    >
+                      {group.category?.name ?? t("package.groupMixed")}
+                    </a>
+                  ))}
+                </nav>
+              ) : null}
+              {groups.map((group) => (
+                <div key={group.category?.slug ?? "mixed"} id={anchor(group)} className="scroll-mt-24">
+                  {groups.length > 1 ? (
+                    <h2 className="mb-4 text-xl font-bold text-ink">{group.category?.name ?? t("package.groupMixed")}</h2>
+                  ) : null}
+                  <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {group.packages.map((pkg) => (
+                      <li key={pkg.slug}>
+                        <PackageCard pkg={pkg} lang={lang} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           ) : (
             <EmptyNote text={t("home.packages.empty")} />
           )}

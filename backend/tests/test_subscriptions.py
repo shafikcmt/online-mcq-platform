@@ -1119,6 +1119,7 @@ class TestPublicPackages:
             "currency",
             "validity_days",
             "is_featured",
+            "access",
         }
         assert gold["name"] == "গোল্ড"
         assert gold["description"] == "English only" and gold["features"] == ["All paid exams"]

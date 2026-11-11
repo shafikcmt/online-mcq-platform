@@ -16,12 +16,21 @@ does not matter here: deactivating a package stops new sales, not paid access.
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 
+from apps.catalog.models import Category
 from apps.exams.models import AccessType
+from apps.exams.selectors import listable_exams
 
-from .models import PackageAccessRule, RuleType, Subscription, SubscriptionStatus
+from .models import (
+    Package,
+    PackageAccessRule,
+    PackageStatus,
+    RuleType,
+    Subscription,
+    SubscriptionStatus,
+)
 
 
 class EffectiveStatus:
@@ -167,3 +176,66 @@ def active_grants(user, *, at: datetime | None = None) -> AccessGrants | None:
         elif rule_type == RuleType.EXAM:
             exams.add(exam_id)
     return AccessGrants(all_paid, frozenset(categories), frozenset(exams))
+
+
+@dataclass(frozen=True)
+class PackageCoverage:
+    """What a package unlocks, for pricing cards: ``scope`` is ``all`` (every paid exam) or
+    ``selected``; ``exam_count`` the paid exams that are open for students now; ``categories``
+    the (category, exam count) pairs, in the admin's category order, that have at least one."""
+
+    scope: str
+    exam_count: int
+    categories: tuple[tuple[Category, int], ...]
+
+
+def active_package_coverage() -> dict[int, PackageCoverage]:
+    """Coverage of every active package, from the access rules and the exams students can see
+    (published, active category) — a fixed number of queries however many packages there are.
+    Draft exams and exams in inactive categories are not counted, so a card never promises them."""
+    paid = listable_exams().filter(access_type=AccessType.PAID)
+    per_category = dict(
+        paid.order_by()
+        .values_list("category_id")
+        .annotate(n=Count("pk"))
+        .values_list("category_id", "n")
+    )
+    categories = {
+        category.pk: category
+        for category in Category.objects.filter(is_active=True, pk__in=per_category).order_by(
+            "sort_order", "id"
+        )
+    }
+    rules = list(
+        PackageAccessRule.objects.filter(package__status=PackageStatus.ACTIVE).values_list(
+            "package_id", "rule_type", "category_id", "exam_id"
+        )
+    )
+    single_exams = {exam_id for _p, kind, _c, exam_id in rules if kind == RuleType.EXAM}
+    exam_category = dict(paid.filter(pk__in=single_exams).values_list("pk", "category_id"))
+
+    by_package: dict[int, list] = {}
+    for package_id, kind, category_id, exam_id in rules:
+        by_package.setdefault(package_id, []).append((kind, category_id, exam_id))
+
+    result: dict[int, PackageCoverage] = {}
+    package_ids = Package.objects.filter(status=PackageStatus.ACTIVE).values_list("pk", flat=True)
+    for package_id in package_ids:
+        mine = by_package.get(package_id, [])
+        if any(kind == RuleType.ALL_PAID_EXAMS for kind, _c, _e in mine):
+            counts = {cid: n for cid, n in per_category.items() if cid in categories}
+            scope = "all"
+        else:
+            counts = {}
+            whole = {cid for kind, cid, _e in mine if kind == RuleType.CATEGORY}
+            for cid in whole:
+                if cid in categories:
+                    counts[cid] = per_category.get(cid, 0)
+            for kind, _c, exam_id in mine:
+                cid = exam_category.get(exam_id) if kind == RuleType.EXAM else None
+                if cid is not None and cid not in whole and cid in categories:
+                    counts[cid] = counts.get(cid, 0) + 1
+            scope = "selected"
+        ordered = tuple((categories[cid], n) for cid in categories if (n := counts.get(cid, 0)) > 0)
+        result[package_id] = PackageCoverage(scope, sum(n for _c, n in ordered), ordered)
+    return result
