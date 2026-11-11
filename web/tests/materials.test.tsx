@@ -24,16 +24,17 @@ const material = (over: Partial<Material> = {}): Material => ({
 
 describe("material filters", () => {
   it("keeps valid values and drops anything else", () => {
-    expect(parseMaterialFilters({ kind: "pdf", category: "hsc", page: "3" })).toEqual({ kind: "pdf", category: "hsc", page: 3 });
-    expect(parseMaterialFilters({ kind: "<script>", category: "../x", page: "-1" })).toEqual({ kind: "", category: "", page: 1 });
+    expect(parseMaterialFilters({ kind: "pdf", category: "hsc", page: "3" })).toEqual({ kind: "pdf", category: "hsc", exam: "", page: 3 });
+    expect(parseMaterialFilters({ kind: "<script>", category: "../x", page: "-1" })).toEqual({ kind: "", category: "", exam: "", page: 1 });
     expect(parseMaterialFilters({ kind: ["video", "pdf"] }).kind).toBe("video");
     expect(parseMaterialFilters({ page: "99999999" }).page).toBe(1);
   });
 
   it("builds the API path and page links from valid filters only", () => {
-    expect(apiPath({ kind: "video", category: "hsc", page: 2 })).toBe("materials/?page=2&page_size=12&kind=video&category=hsc");
+    expect(apiPath({ kind: "video", category: "hsc", exam: "physics-1", page: 2 })).toBe("materials/?page=2&page_size=12&kind=video&category=hsc&exam=physics-1");
     expect(materialsHref("bn", {})).toBe("/bn/materials");
-    expect(materialsHref("en", { kind: "pdf", category: "hsc", page: 2 })).toBe("/en/materials?kind=pdf&category=hsc&page=2");
+    expect(materialsHref("en", { kind: "pdf", category: "hsc", exam: "p1", page: 2 })).toBe("/en/materials?kind=pdf&category=hsc&exam=p1&page=2")
+    expect(parseMaterialFilters({ exam: "bad slug!" }).exam).toBe("");
   });
 });
 

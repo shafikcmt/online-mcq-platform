@@ -244,3 +244,20 @@ test("Home still works when categories cannot load", async () => {
   expect(await screen.findByText("No active package")).toBeOnTheScreen();
   expect(screen.queryByRole("heading", { name: "Exam categories" })).toBeNull();
 });
+
+test("quick access reaches the routine, study materials, past exams and results", async () => {
+  await resetDevice({ language: "en", refresh: "R0" });
+  mockBackend({
+    "POST /auth/token/refresh/": { status: 200, body: { access: "A1", refresh: "R1" } },
+    "GET /me/": { status: 200, body: STUDENT },
+    "GET /public/routine/": { status: 200, body: { pdf: { available: false, size_bytes: 0, updated_at: null }, exams: [] } },
+  });
+  await renderApp("/home");
+  expect(await screen.findByRole("heading", { name: "Quick access" })).toBeOnTheScreen();
+  for (const name of ["Upcoming", "Open now", "Exam routine", "Study materials", "My results", "Past exams", "Packages"]) {
+    expect(screen.getByRole("link", { name })).toBeOnTheScreen();
+  }
+  const user = userEvent.setup();
+  await user.press(screen.getByRole("link", { name: "Exam routine" }));
+  expect(await screen.findByText("No exams are scheduled right now. Check back soon.")).toBeOnTheScreen();
+});

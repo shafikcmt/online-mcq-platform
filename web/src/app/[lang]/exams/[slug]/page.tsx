@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy } from "lucide-react";
+import { ArrowRight, CalendarClock, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,6 +10,7 @@ import { getSettings, publicFetch, publicGet, type Exam, type LeaderboardRow } f
 import { pageHref, scheduleState } from "@/lib/exam-filters";
 import { dateTime, decimal, digits } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
+import { materialsHref, type MaterialPage } from "@/lib/materials";
 import { alternates } from "@/lib/site";
 
 export const revalidate = 60;
@@ -52,10 +53,11 @@ export default async function ExamPage({ params }: Props) {
   const { lang: raw, slug } = await params;
   const lang = raw as Lang;
   const t = translator(lang);
-  const [fetched, settings, merit] = await Promise.all([
+  const [fetched, settings, merit, materials] = await Promise.all([
     load(slug, lang),
     getSettings(lang),
     SLUG.test(slug) ? publicGet<LeaderboardRow[]>(`exams/${slug}/leaderboard/`, lang) : null, // null = no public merit list
+    SLUG.test(slug) ? publicGet<MaterialPage>(`materials/?exam=${slug}&page_size=1`, lang) : null, // null = none to show
   ]);
   if (fetched.state === "missing") notFound();
 
@@ -170,6 +172,21 @@ export default async function ExamPage({ params }: Props) {
                 labels={{ subject: t("examDetail.syllabusSubject"), chapter: t("examDetail.syllabusChapter"), topic: t("examDetail.syllabusTopic") }}
                 lang={lang}
               />
+            </section>
+          ) : null}
+
+          {materials && materials.count > 0 ? (
+            <section aria-labelledby="exam-materials">
+              <h2 id="exam-materials" className="text-lg font-semibold text-ink">
+                {t("examDetail.materials")}
+              </h2>
+              <Link
+                href={materialsHref(lang, { exam: slug })}
+                className="mt-4 flex items-center justify-between gap-3 rounded-card border border-line bg-surface p-4 font-semibold text-brand-700 hover:border-brand-600"
+              >
+                {t("examDetail.materialsLink", { n: digits(materials.count, lang) })}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
             </section>
           ) : null}
 

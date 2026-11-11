@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { CloudOff } from "lucide-react-native";
+import { ChevronRight, CloudOff, PlayCircle } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +18,7 @@ import { Screen } from "@/components/screen";
 import { startAttempt } from "@/features/attempt/api";
 import { handOff } from "@/features/attempt/handoff";
 import { fetchExam } from "@/features/exams/api";
+import { examMaterialCount } from "@/features/materials/api";
 import { statusOf } from "@/features/exams/exam-card";
 import { relativeOrDate, shortGap } from "@/features/exams/time";
 import type { StudentExamDetail } from "@/features/exams/types";
@@ -37,6 +38,9 @@ export default function ExamDetailScreen() {
   const load = useCallback(() => fetchExam(slug), [slug]);
   const { data, error, loading, refreshing, refresh, retry } = useRemote(load);
   const now = useServerNow(data?.server_time);
+  // Study materials of this exam (a small public request; a failure just hides the link).
+  const loadMaterials = useCallback(() => examMaterialCount(slug).catch(() => 0), [slug]);
+  const materials = useRemote(loadMaterials).data ?? 0;
   const missing = isApiError(error) && error.status === 404;
   const [confirming, setConfirming] = useState(false);
   const [opening, setOpening] = useState(false);
@@ -95,7 +99,7 @@ export default function ExamDetailScreen() {
       ) : null}
       {data && error ? <Banner tone="info" message={t("home:stale")} /> : null}
       {startError ? <Banner tone="error" message={describeError(startError, t)} /> : null}
-      {data ? <Details exam={data} now={now} /> : null}
+      {data ? <Details exam={data} now={now} materials={materials} /> : null}
       {data ? (
         <ConfirmDialog
           open={confirming}
@@ -110,7 +114,7 @@ export default function ExamDetailScreen() {
   );
 }
 
-function Details({ exam, now }: { exam: StudentExamDetail; now: number }) {
+function Details({ exam, now, materials }: { exam: StudentExamDetail; now: number; materials: number }) {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
   const n = (value: number) => localizeDigits(value, language);
@@ -182,6 +186,20 @@ function Details({ exam, now }: { exam: StudentExamDetail; now: number }) {
           ))}
         </Card>
       ) : null}
+      {materials > 0 ? (
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel={t("exams:detail.materials", { count: materials, n: n(materials) })}
+          onPress={() => router.push({ pathname: "/materials", params: { exam: exam.slug } })}
+          style={({ pressed }) => [styles.materials, pressed && styles.pressed]}
+        >
+          <PlayCircle size={22} color={colors.brand700} />
+          <AppText weight="semibold" color={colors.brand700} style={styles.materialsText}>
+            {t("exams:detail.materials", { count: materials, n: n(materials) })}
+          </AppText>
+          <ChevronRight size={18} color={colors.brand700} />
+        </Pressable>
+      ) : null}
       {exam.instructions ? (
         <Card style={styles.instructions}>
           <AppText weight="bold" role="heading">
@@ -223,6 +241,9 @@ const styles = StyleSheet.create({
   factLabel: { flex: 1 },
   factValue: { flexShrink: 1, textAlign: "right" },
   instructions: { gap: space.sm },
+  materials: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.lg, borderRadius: radius.card, borderWidth: 1, borderColor: colors.brand100, backgroundColor: colors.brand50 },
+  materialsText: { flex: 1 },
+  pressed: { opacity: 0.85 },
   syllabusLine: { flexDirection: "row", gap: space.md, paddingVertical: space.sm },
   syllabusNumber: { minWidth: 22 },
   syllabusText: { flex: 1, gap: 2 },
