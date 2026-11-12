@@ -48,6 +48,9 @@ describe("routine helpers (Bangladesh time)", () => {
   it("a range shows the end only when there is one", () => {
     expect(timeRange(exam(), "en")).toBe("6:30 pm – 8:30 pm");
     expect(timeRange(exam({ end_at: null }), "en")).toBe("6:30 pm");
+    // An end on a later day names that day (a 24-hour window is not "6:30 pm – 6:30 pm").
+    expect(timeRange({ start_at: "2026-11-15T08:13:00Z", end_at: "2026-11-16T08:13:00Z" }, "en")).toBe("2:13 pm – 16 November, 2:13 pm");
+    expect(timeRange({ start_at: "2026-11-15T08:13:00Z", end_at: "2026-11-16T08:13:00Z" }, "bn")).toContain("১৬ নভেম্বর");
   });
 
   it("labels a day with its weekday in the page's language", () => {

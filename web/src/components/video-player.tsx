@@ -1,7 +1,7 @@
 "use client";
 
 import { Play } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { embedUrl, isYoutubeId, thumbnailUrl, watchUrl } from "@/lib/materials";
 
@@ -11,6 +11,13 @@ import { embedUrl, isYoutubeId, thumbnailUrl, watchUrl } from "@/lib/materials";
  * without JavaScript. */
 export function VideoPlayer({ id, title, playLabel, watchLabel }: { id: string; title: string; playLabel: string; watchLabel: string }) {
   const [playing, setPlaying] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
+  const cover = useRef<HTMLImageElement>(null);
+  // A cover that failed before the page became interactive fires no `onError`; check it once here.
+  useEffect(() => {
+    const image = cover.current;
+    if (image && image.complete && image.naturalWidth === 0) setCoverFailed(true);
+  }, []);
   if (!isYoutubeId(id)) return null;
   return (
     <div>
@@ -27,7 +34,7 @@ export function VideoPlayer({ id, title, playLabel, watchLabel }: { id: string; 
         ) : (
           <button type="button" onClick={() => setPlaying(true)} aria-label={playLabel} className="group absolute inset-0 size-full">
             {/* eslint-disable-next-line @next/next/no-img-element -- a remote cover, loaded lazily */}
-            <img src={thumbnailUrl(id)} alt="" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.style.display = "none"; }} className="size-full object-cover opacity-90 transition group-hover:opacity-100" />
+            {coverFailed ? null : <img ref={cover} src={thumbnailUrl(id)} alt="" loading="lazy" decoding="async" onError={() => setCoverFailed(true)} className="size-full object-cover opacity-90 transition group-hover:opacity-100" />}
             <span className="absolute inset-0 flex items-center justify-center">
               <span className="flex size-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-white/40 transition group-hover:bg-brand-700">
                 <Play className="size-6 translate-x-0.5" aria-hidden fill="currentColor" />

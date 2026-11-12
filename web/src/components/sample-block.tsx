@@ -12,11 +12,13 @@ export function SampleBlock({ data, lang, t }: { data: SampleList; lang: Lang; t
   if (data.count === 0) return null;
   return (
     <section aria-labelledby="sample-participants" className="mt-10">
-      <h2 id="sample-participants" className="flex items-center gap-2 text-lg font-semibold text-ink">
-        <Users className="size-5 text-ink-subtle" aria-hidden />
-        {t("merit.sampleTitle")}
-        <span className="text-sm font-normal text-ink-muted">({t("merit.sampleCount", { n: digits(data.count, lang) })})</span>
-      </h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h2 id="sample-participants" className="flex items-center gap-2 text-lg font-semibold text-ink">
+          <Users className="size-5 shrink-0 text-ink-subtle" aria-hidden />
+          {t("merit.sampleTitle")}
+        </h2>
+        <p className="text-sm text-ink-muted">{t("merit.sampleCount", { n: digits(data.count, lang) })}</p>
+      </div>
       <p className="mt-1 text-sm text-ink-muted">{t("merit.sampleNote")}</p>
       <div className="mt-3 overflow-x-auto rounded-card border border-dashed border-line-strong bg-surface">
         <table className="w-full text-sm">
