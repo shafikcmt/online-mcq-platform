@@ -89,7 +89,8 @@ export default async function ExamPage({ params }: Props) {
     labels: { download: t("app.download"), open: t("app.open"), soon: t("app.soon") },
     lang,
   };
-  const facts = [
+  // `wide`: a long value gets the full row instead of wrapping in a narrow card.
+  const facts: { icon: typeof Clock3; label: string; value: string; wide?: boolean }[] = [
     { icon: Clock3, label: t("examDetail.duration"), value: t("exam.minutes", { n: digits(exam.duration_minutes, lang) }) },
     { icon: FileQuestion, label: t("examDetail.questions"), value: digits(exam.total_questions, lang) },
     { icon: Trophy, label: t("examDetail.totalMarks"), value: decimal(exam.total_marks, lang) },
@@ -102,6 +103,7 @@ export default async function ExamPage({ params }: Props) {
           {
             icon: Users,
             label: t("examDetail.participants"),
+            wide: participation.sample_count > 0,
             value:
               participation.sample_count > 0
                 ? t("examDetail.participantsMixed", { total: digits(participation.total_count, lang), real: digits(participation.real_count, lang), sample: digits(participation.sample_count, lang) })
@@ -134,8 +136,8 @@ export default async function ExamPage({ params }: Props) {
               {t("examDetail.facts")}
             </h2>
             <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {facts.map(({ icon: Icon, label, value }) => (
-                <div key={label} className="rounded-card border border-line bg-surface p-4">
+              {facts.map(({ icon: Icon, label, value, wide }) => (
+                <div key={label} className={`rounded-card border border-line bg-surface p-4 ${wide ? "col-span-2 sm:col-span-3" : ""}`}>
                   <dt className="flex items-center gap-1.5 text-xs font-medium text-ink-subtle">
                     <Icon className="size-4" aria-hidden />
                     {label}

@@ -45,10 +45,24 @@ export function clockTime(iso: string, language: string): string {
   return `${clock} ${hours < 12 ? "am" : "pm"}`;
 }
 
+/** "15 November" / "১৫ নভেম্বর" for a day key. */
+export function shortDay(key: string, language: string): string {
+  try {
+    return new Intl.DateTimeFormat(language === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${key}T12:00:00Z`));
+  } catch {
+    return key;
+  }
+}
+
+/** An end on a later day carries its date ("2:13 pm – 16 November, 2:13 pm"), so a window of a
+ * day or more is not read as zero minutes. */
 export function timeRange(exam: Pick<RoutineExam, "start_at" | "end_at">, language: string): string {
   if (!exam.start_at) return "";
   const start = clockTime(exam.start_at, language);
-  return exam.end_at ? `${start} – ${clockTime(exam.end_at, language)}` : start;
+  if (!exam.end_at) return start;
+  const end = clockTime(exam.end_at, language);
+  const endDay = dayKey(exam.end_at);
+  return endDay === dayKey(exam.start_at) ? `${start} – ${end}` : `${start} – ${shortDay(endDay, language)}, ${end}`;
 }
 
 export const isLive = (exam: Pick<RoutineExam, "start_at">, now: number): boolean => !exam.start_at || Date.parse(exam.start_at) <= now;

@@ -84,6 +84,7 @@ export function SiteFooter({ lang, settings }: { lang: Lang; settings: Settings 
             ))}
           </ul>
         </div>
+        {contact.length || settings?.app_download_url ? (
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold text-ink">{contact.length ? t("footer.contact") : t("footer.getApp")}</h2>
           {contact.map((line) => (
@@ -98,6 +99,7 @@ export function SiteFooter({ lang, settings }: { lang: Lang; settings: Settings 
             </Link>
           ) : null}
         </div>
+        ) : null}
       </div>
       <div className="flex flex-col items-center justify-between gap-2 border-t border-line px-4 py-5 text-center text-xs text-ink-subtle sm:flex-row sm:px-6 lg:mx-auto lg:max-w-6xl">
         <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>

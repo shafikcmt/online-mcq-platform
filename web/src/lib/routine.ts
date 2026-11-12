@@ -58,11 +58,20 @@ export function clockTime(iso: string, lang: Lang): string {
   return `${clock} ${hours < 12 ? "am" : "pm"}`;
 }
 
-/** "6:30 pm – 8:30 pm" (the end only when the exam has one). */
+/** "15 November" / "১৫ নভেম্বর" for a `dayKey`. */
+export function shortDay(key: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(lang === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${key}T12:00:00Z`));
+}
+
+/** "6:30 pm – 8:30 pm" (the end only when the exam has one). An end on a later day carries its
+ * date, "2:13 pm – 16 November, 2:13 pm", so a window of a day or more is not read as zero minutes. */
 export function timeRange(exam: Pick<RoutineExam, "start_at" | "end_at">, lang: Lang): string {
   if (!exam.start_at) return "";
   const start = clockTime(exam.start_at, lang);
-  return exam.end_at ? `${start} – ${clockTime(exam.end_at, lang)}` : start;
+  if (!exam.end_at) return start;
+  const end = clockTime(exam.end_at, lang);
+  const endDay = dayKey(exam.end_at);
+  return endDay === dayKey(exam.start_at) ? `${start} – ${end}` : `${start} – ${shortDay(endDay, lang)}, ${end}`;
 }
 
 export type RoutineState = "live" | "upcoming";

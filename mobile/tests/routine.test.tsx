@@ -59,6 +59,8 @@ describe("routine helpers (Bangladesh time)", () => {
     expect(clockTime("2026-11-14T12:30:00Z", "bn")).toBe("সন্ধ্যা ৬:৩০");
     expect(timeRange(exam(), "en")).toBe("6:30 pm – 8:30 pm");
     expect(timeRange(exam({ end_at: null }), "en")).toBe("6:30 pm");
+    // An end on a later day names that day (a 24-hour window is not "2:13 pm – 2:13 pm").
+    expect(timeRange({ start_at: "2026-11-15T08:13:00Z", end_at: "2026-11-16T08:13:00Z" }, "en")).toBe("2:13 pm – 16 November, 2:13 pm");
   });
 
   test("day label and live state", () => {
