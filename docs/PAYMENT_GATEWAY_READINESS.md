@@ -31,7 +31,7 @@ provider calls in the tests are fakes.
 |---|---|---|---|
 | **G1** | ~~Server switch vs panel~~ **Resolved:** `PAYMENT_PROVIDER=database` offers only the panel's gateways and needs no environment credentials; `unavailable` stays the kill switch. Found during this review (before, any value other than `unavailable` made production demand `BKASH_*` / `SSLCOMMERZ_*` environment credentials that the panel's gateway never used). | None now. The server still runs `unavailable`; change it to `database` only when you begin sandbox testing. | Done (tests in `test_payment_database_mode.py`). Takes effect on the server after the next deploy and a `.env.prod` change. |
 | **G2** | **No real provider run.** Signature rules, status names, amount formats, whether the reference is echoed, token limits, failure paths are assumptions from public descriptions. | A real payment could be refused (fail-closed) or mishandled until corrected. | Run `PAYMENT_GATEWAY_TESTING.md` §4 and `PAYMENT_METHODS.md` §4 with the client's sandbox credentials; fix the adapter for each difference. |
-| **G3** | **No key rotation or re-encryption tool.** Changing or losing `SECRET_ENCRYPTION_KEY` makes stored credentials (and the SMS key) unreadable. | Payments through DB gateways fail until credentials are typed in again. | Keep the key backed up; a rotation tool can be added later (decrypt with old key, encrypt with new). |
+| **G3** | ~~No key rotation tool.~~ **Closed:** `SECRET_ENCRYPTION_KEY_PREVIOUS` + `manage.py rotate_secrets` ([SECRET_KEY_ROTATION.md](SECRET_KEY_ROTATION.md)). A **lost** key still cannot be recovered. | Only if the key is lost: credentials must be typed in again. | Keep the key backed up. The tool is tested automatically; it has not been run on the production server. |
 | **G4** | **Return into the app.** `PAYMENT_RETURN_URL` in `.env.prod.example` is the website's `/payment-return` page. An in-app payment returns to the website page, not into the app, unless the app's return URL is `livemodeltest://payment-result` (server setting or the gateway's own app return URL). | Only matters if students pay inside the app. The app's checkout waits for the app link to close the in-app browser. | Set the app return URL when app payments are used; test on a device. Whether the app may sell subscriptions outside Google Play Billing is **unconfirmed for Bangladesh** (`PAYMENT_METHODS.md` §8). |
 | **G5** | **bKash has no IPN here.** Settlement relies on the browser returning plus the 10-minute reconciliation. | A student who closes the page waits up to the reconciliation interval (default 10 min) for activation. | Acceptable; admin can re-verify one payment. Add bKash's webhook only from its official document. |
 | **G6** | **Old app builds** send `provider` and no `channel`. The server still accepts that (first gateway of the adapter, default return URL). | Old builds cannot choose between two accounts of one provider, and return via the default URL. | New APK (bump `mobile/app.json` version) and update notice. |
@@ -78,8 +78,9 @@ manually.
 **Credentials may have leaked:** (1) change them **at the provider** first; (2) enter the new
 ones in the panel; (3) look at the gateway history and the admin audit log for unfamiliar
 changes; (4) if an admin account may be involved, change its password and review the admin
-users. If `SECRET_ENCRYPTION_KEY` leaked, generate a new key, set it, and re-enter every
-credential (the old ciphertext becomes unreadable).
+users. If `SECRET_ENCRYPTION_KEY` leaked, change it with the rotation steps in
+[SECRET_KEY_ROTATION.md](SECRET_KEY_ROTATION.md) (no credential has to be typed in again), and
+also change the provider credentials, since a leaked key may have exposed them.
 
 **Encryption key lost:** the panel shows credentials as unreadable. Generate a new key, set it,
 re-enter every gateway credential (and the SMS key).

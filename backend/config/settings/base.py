@@ -19,6 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent  # .../backend
 SECRET_KEY = env_str("DJANGO_SECRET_KEY", "")
 # Fernet key that encrypts secrets stored in the database (SMS gateway API keys).
 SECRET_ENCRYPTION_KEY = env_str("SECRET_ENCRYPTION_KEY", "")
+# Old keys, kept only while rotating (decrypt only); see `manage.py rotate_secrets`.
+SECRET_ENCRYPTION_KEY_PREVIOUS = env_list("SECRET_ENCRYPTION_KEY_PREVIOUS", "")
 DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 # Extra origins allowed to send CSRF-protected requests. Production (nginx serves the panel

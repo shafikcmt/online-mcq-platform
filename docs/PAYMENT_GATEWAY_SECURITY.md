@@ -88,8 +88,9 @@ counts) and never a value.
 ## 7. What the owner must do
 
 1. **Back up `SECRET_ENCRYPTION_KEY`** in the password store, separate from the server. If it
-   is lost or changed, every stored credential (and the SMS key) becomes unreadable and must be
-   typed in again; payments in flight fail until you do. There is no re-encryption tool yet.
+   is lost, every stored credential (and the SMS key) becomes unreadable and must be typed in
+   again; payments in flight fail until you do. To **change** the key without losing anything,
+   follow [SECRET_KEY_ROTATION.md](SECRET_KEY_ROTATION.md).
 2. Keep `/srv/mcq/.env.prod` mode 600, readable only by the deploy user.
 3. Give the Admin role to as few people as possible; each admin needs a strong password and
    should use the Basic-Auth lock in front of the panel.
