@@ -15,6 +15,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -287,6 +288,63 @@ def send_due_reminders(now=None) -> int:
         except (
             IntegrityError
         ):  # another worker created it first: the unique constraint is the guard
+            continue
+        created += 1
+        deliver(message.pk)
+    return created
+
+
+# --------------------------------------------------------------------------------------
+# New exam announcements
+# --------------------------------------------------------------------------------------
+def new_exam_text(exam: Exam) -> dict:
+    title_en = exam.title_en or exam.title_bn
+    title_bn = exam.title_bn or exam.title_en
+    texts = {
+        "title_en": "New exam",
+        "body_en": f"“{title_en}” has been added. Tap to see the details.",
+        "title_bn": "নতুন পরীক্ষা",
+        "body_bn": f"“{title_bn}” যোগ হয়েছে। বিস্তারিত দেখতে ট্যাপ করুন।",
+    }
+    return {key: value[:PUSH_BODY_MAX_LENGTH] for key, value in texts.items()}
+
+
+def exams_to_announce(now=None):
+    """Exams published for the first time within the last ``NEW_EXAM_ANNOUNCE_WINDOW_MINUTES``,
+    still published, not over, and not announced yet. The window keeps a restart or a late
+    scheduler from announcing something old; exams published before this feature existed have no
+    first-publish time and are never announced."""
+    now = now or timezone.now()
+    since = now - timedelta(minutes=settings.NEW_EXAM_ANNOUNCE_WINDOW_MINUTES)
+    return (
+        Exam.objects.filter(
+            status=ExamStatus.PUBLISHED,
+            category__is_active=True,
+            first_published_at__gte=since,
+            first_published_at__lte=now,
+        )
+        .filter(Q(end_at__isnull=True) | Q(end_at__gt=now))
+        .exclude(pk__in=PushMessage.objects.filter(kind=PushKind.NEW_EXAM).values("exam_id"))
+        .order_by("first_published_at", "id")
+    )
+
+
+def send_new_exam_announcements(now=None) -> int:
+    """Announce newly published exams by push, once each. Returns how many were created. No-op
+    while push is off or the announcements are switched off."""
+    if not (settings.PUSH_ENABLED and settings.PUSH_ANNOUNCE_NEW_EXAMS):
+        return 0
+    created = 0
+    for exam in exams_to_announce(now):
+        try:
+            with transaction.atomic():
+                message = PushMessage.objects.create(
+                    kind=PushKind.NEW_EXAM,
+                    exam=exam,
+                    status=PushStatus.PENDING,
+                    **new_exam_text(exam),
+                )
+        except IntegrityError:  # another worker announced it first
             continue
         created += 1
         deliver(message.pk)

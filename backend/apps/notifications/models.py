@@ -145,6 +145,7 @@ class PushDevice(models.Model):
 class PushKind(models.TextChoices):
     MANUAL = "manual", _("Sent by an admin")
     EXAM_REMINDER = "exam_reminder", _("Exam reminder")
+    NEW_EXAM = "new_exam", _("New exam announcement")
 
 
 class PushStatus(models.TextChoices):
@@ -219,6 +220,12 @@ class PushMessage(models.Model):
                 fields=["exam", "kind", "reminder_offset"],
                 condition=models.Q(kind="exam_reminder"),
                 name="push_reminder_once",
+            ),
+            # One "new exam" announcement per exam, ever.
+            models.UniqueConstraint(
+                fields=["exam", "kind"],
+                condition=models.Q(kind="new_exam"),
+                name="push_new_exam_once",
             ),
         ]
         indexes = [models.Index(fields=["status", "created_at"], name="push_message_status_idx")]

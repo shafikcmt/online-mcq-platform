@@ -32,7 +32,7 @@ import type { Paginated } from "@/types/content";
 import { PUSH_LIMITS, type PushExamOption, type PushKind, type PushMessage, type PushMessageState, type PushStatusInfo } from "@/types/push";
 
 const TONE: Record<PushMessageState, string> = { pending: "pending", sending: "pending", sent: "success", failed: "failed", disabled: "inactive" };
-const KINDS: PushKind[] = ["manual", "exam_reminder"];
+const KINDS: PushKind[] = ["manual", "exam_reminder", "new_exam"];
 const STATES: PushMessageState[] = ["pending", "sending", "sent", "failed", "disabled"];
 const NO_ERRORS: MappedErrors = { fields: {}, form: [] };
 const rowId = (row: { id: number }) => row.id;
@@ -107,6 +107,7 @@ export function PushView({ data, state: serverState, status, exams }: { data: Pa
           )}
           <p className="text-ink-muted">{t("push.devices", { n: formatNumber(status.devices, locale) })}</p>
           <p className="text-ink-muted">{status.reminder_offsets.length ? t("push.reminders", { list: status.reminder_offsets.map(offsetText).join(", ") }) : t("push.noReminders")}</p>
+          {status.announce_new_exams === undefined ? null : <p className="text-ink-muted">{t(status.announce_new_exams ? "push.newExamsOn" : "push.newExamsOff")}</p>}
         </CardBody>
       </Card>
 

@@ -346,6 +346,10 @@ EXAM_REMINDER_OFFSETS_MINUTES = [
     if value.strip().isdigit()
 ]
 EXAM_REMINDER_INTERVAL_SECONDS = env_int("EXAM_REMINDER_INTERVAL_SECONDS", 60)
+# A newly published exam is announced by push once (only while PUSH_ENABLED). The window is how
+# long after its first publication it still counts as new.
+PUSH_ANNOUNCE_NEW_EXAMS = env_bool("PUSH_ANNOUNCE_NEW_EXAMS", True)
+NEW_EXAM_ANNOUNCE_WINDOW_MINUTES = env_int("NEW_EXAM_ANNOUNCE_WINDOW_MINUTES", 30)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Live Model Test API",

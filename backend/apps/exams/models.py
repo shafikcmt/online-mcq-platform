@@ -181,6 +181,11 @@ class Exam(TimeStampedModel):
     result_published_at = models.DateTimeField(
         _("results published at"), null=True, blank=True, editable=False
     )
+    # When the exam was published for the first time (never changed afterwards). It tells a
+    # brand-new exam from an old one that was edited or published again.
+    first_published_at = models.DateTimeField(
+        _("first published at"), null=True, blank=True, editable=False
+    )
     is_featured = models.BooleanField(_("featured"), default=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
