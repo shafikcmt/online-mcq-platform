@@ -22,6 +22,7 @@ import { QuickAccess } from "@/features/home/quick-access";
 import { pickSpotlight } from "@/features/home/spotlight";
 import { PushPrompt } from "@/features/push/push-prompt";
 import { SpotlightCard } from "@/features/home/spotlight-card";
+import { StudySection } from "@/features/home/study-section";
 import { localizeDigits } from "@/lib/text";
 import { useRemote } from "@/lib/use-remote";
 import { useServerNow } from "@/lib/use-server-now";
@@ -113,6 +114,7 @@ function Content({ data, now }: { data: Dashboard; now: number }) {
       {spotlight ? <SpotlightCard spotlight={spotlight} /> : null}
       <PushPrompt />
       <CategoryGrid />
+      <StudySection />
       <QuickAccess />
       <SubscriptionCard subscription={data.subscription} />
       <Section title={t("home:sections.available")} count={available.count} shown={available.items.length} seeAll="/exams?when=open">

@@ -7,7 +7,7 @@ audit entry), serialize. Status only changes through the action endpoints.
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import F, Q
+from django.db.models import Count, F, Q
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -59,6 +59,7 @@ from .serializers import (
     ExamQuestionListSerializer,
     PublicExamDetailSerializer,
     PublicExamSerializer,
+    PublicRoutineExamSerializer,
     SyllabusListSerializer,
 )
 
@@ -413,18 +414,33 @@ class RoutinePdfAdminView(AdminAPIMixin, APIView):
 
 class PublicRoutineSerializer(serializers.Serializer):
     pdf = RoutinePdfSerializer()
-    exams = PublicExamSerializer(many=True)
+    exams = PublicRoutineExamSerializer(many=True)
 
 
 class PublicRoutineView(PublicAPIMixin, APIView):
     """The exam routine: every scheduled exam that has not ended, earliest first, plus whether a
-    routine PDF is published (``GET /public/routine/pdf/``). One call, no paging."""
+    routine PDF is published (``GET /public/routine/pdf/``). One call, no paging. Each exam
+    carries its syllabus and the number of its study materials (two extra queries in all)."""
 
     @extend_schema(operation_id="public_routine", responses=PublicRoutineSerializer)
     def get(self, request):
-        exams = list(with_question_totals(routine_exams(timezone.now()))[:ROUTINE_MAX_EXAMS])
+        from apps.materials.selectors import public_materials
+
+        exams = list(
+            with_question_totals(routine_exams(timezone.now())).prefetch_related("syllabus_items")[
+                :ROUTINE_MAX_EXAMS
+            ]
+        )
+        counts = dict(
+            public_materials()
+            .filter(exam__in=[exam.pk for exam in exams])
+            .order_by()
+            .values_list("exam")
+            .annotate(n=Count("pk"))
+        )
         body = {"pdf": _pdf_info(RoutinePdf.current()), "exams": exams}
-        return Response(PublicRoutineSerializer(body, context={"request": request}).data)
+        context = {"request": request, "material_counts": counts}
+        return Response(PublicRoutineSerializer(body, context=context).data)
 
 
 class PublicRoutinePdfView(PublicAPIMixin, APIView):

@@ -472,7 +472,8 @@ class TestCategoryListing:
         rows = APIClient().get("/api/v1/public/categories/").json()["results"]
         assert [row["slug"] for row in rows] == ["biology", "physics"]  # "art" is inactive
         assert all(
-            set(row) == {"slug", "name", "description", "subjects", "exam_count"} for row in rows
+            set(row) == {"slug", "name", "description", "subjects", "exam_count", "live_count"}
+            for row in rows
         )
         assert all(row["exam_count"] == 0 for row in rows)
 

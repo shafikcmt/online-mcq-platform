@@ -208,7 +208,8 @@ test("no featured card for a new student; categories with exams and shortcuts ar
         next: null,
         previous: null,
         results: [
-          { slug: "medical", name: "মেডিকেল ভর্তি", exam_count: 12 },
+          { slug: "medical", name: "মেডিকেল ভর্তি", exam_count: 12, live_count: 1 },
+          { slug: "job", name: "চাকরি", exam_count: 3, live_count: 0 },
           { slug: "empty", name: "খালি", exam_count: 0 },
         ],
       },
@@ -216,21 +217,44 @@ test("no featured card for a new student; categories with exams and shortcuts ar
   });
   await renderApp("/home");
   expect(await screen.findByText("মেডিকেল ভর্তি")).toBeOnTheScreen();
-  expect(screen.getByText("১২টি পরীক্ষা")).toBeOnTheScreen();
+  expect(screen.getByRole("heading", { name: "পরীক্ষা বিভাগ" })).toBeOnTheScreen();
   expect(screen.queryByText("খালি")).toBeNull(); // no exams yet: not shown
+  // A red dot (and the words "live now") marks a category with a scheduled exam running.
+  expect(screen.getByTestId("live-medical")).toBeOnTheScreen();
+  expect(screen.queryByTestId("live-job")).toBeNull();
   expect(screen.getByRole("heading", { name: "কুইক অ্যাক্সেস" })).toBeOnTheScreen();
   expect(screen.queryByRole("button", { name: /পরীক্ষায় যোগ দিন/ })).toBeNull();
 
-  // A category opens the Exams tab filtered to it.
+  // A category opens its own screen: its exams in every state.
   const user = userEvent.setup();
   backend.calls.length = 0;
-  await user.press(screen.getByRole("link", { name: "মেডিকেল ভর্তি, ১২টি পরীক্ষা" }));
+  await user.press(screen.getByRole("link", { name: "মেডিকেল ভর্তি, ১২টি পরীক্ষা, এখন লাইভ" }));
   await act(async () => {
     jest.advanceTimersByTime(100);
   });
-  expect(await screen.findByRole("button", { name: "সব ক্যাটাগরি দেখান (এখন: মেডিকেল ভর্তি)" })).toBeOnTheScreen();
-  const query = backend.find("GET", "/exams/").at(-1)?.query;
-  expect(query).toMatchObject({ when: "open", category: "medical" });
+  expect(screen).toHavePathname("/category/medical");
+  expect(await screen.findByRole("heading", { name: "মেডিকেল ভর্তি" })).toBeOnTheScreen();
+  const queries = backend.find("GET", "/exams/").map((call) => call.query);
+  expect(queries.map((query) => query.when).sort()).toEqual(["ended", "open", "upcoming"]);
+  expect(queries.every((query) => query.category === "medical")).toBe(true);
+});
+
+test("the study section says 'Coming soon' until something is published, then opens that kind", async () => {
+  await resetDevice({ language: "en", refresh: "R0" });
+  mockBackend({
+    "POST /auth/token/refresh/": { status: 200, body: { access: "A1", refresh: "R1" } },
+    "GET /me/": { status: 200, body: STUDENT },
+    "GET /public/materials/": (request: { query: Record<string, string> }) => ({
+      status: 200,
+      body: { count: request.query.kind === "video" ? 4 : 0, next: null, previous: null, results: [] },
+    }),
+  });
+  await renderApp("/home");
+  expect(await screen.findByRole("heading", { name: "Study section" })).toBeOnTheScreen();
+  expect(await screen.findByRole("link", { name: "PDF notes, Coming soon" })).toBeDisabled();
+  const user = userEvent.setup();
+  await user.press(await screen.findByRole("link", { name: "Video lessons" }));
+  expect(screen).toHavePathname("/materials");
 });
 
 test("Home still works when categories cannot load", async () => {
@@ -242,7 +266,7 @@ test("Home still works when categories cannot load", async () => {
   });
   await renderApp("/home");
   expect(await screen.findByText("No active package")).toBeOnTheScreen();
-  expect(screen.queryByRole("heading", { name: "Exam categories" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "Exam section" })).toBeNull();
 });
 
 test("quick access reaches the routine, study materials, past exams and results", async () => {

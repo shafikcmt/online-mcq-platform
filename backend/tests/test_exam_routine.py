@@ -97,7 +97,7 @@ def test_each_row_has_what_the_schedule_shows(subject):
     assert row["category"]["slug"] == "science"
     # No answer data, no internal ids, no syllabus (that is on the exam's own page).
     dumped = json.dumps(row)
-    for secret in ("is_correct", "explanation", "public_id", "created_by", '"id"', "syllabus"):
+    for secret in ("is_correct", "explanation", "public_id", "created_by", '"id"'):
         assert secret not in dumped, secret
 
 
@@ -280,3 +280,44 @@ def test_uploads_are_limited_per_admin(api, settings):
     settings.AUTH_THROTTLE_RATES = {**settings.AUTH_THROTTLE_RATES, "document_upload": "2/hour"}
     codes = [upload(api).status_code for _ in range(3)]
     assert codes == [200, 200, 429]
+
+
+# --------------------------------------------------------------------------------------
+# Syllabus, study materials and "live now" (what the app's routine and category tiles show)
+# --------------------------------------------------------------------------------------
+def test_routine_exams_carry_their_syllabus_and_material_count(
+    subject, django_assert_max_num_queries
+):
+    from apps.exams.models import ExamSyllabusItem
+    from apps.materials.models import MaterialKind, StudyMaterial
+
+    first = scheduled(subject, 2)
+    second = scheduled(subject, 4)
+    ExamSyllabusItem.objects.create(exam=first, sort_order=0, subject="Math", topic="Algebra")
+    ExamSyllabusItem.objects.create(exam=first, sort_order=1, topic="Geometry")
+    for published in (timezone.now(), timezone.now(), None):  # a draft is not counted
+        StudyMaterial.objects.create(
+            kind=MaterialKind.VIDEO,
+            title_en="Lesson",
+            youtube_id="dQw4w9WgXcQ",
+            exam=first,
+            published_at=published,
+        )
+    with django_assert_max_num_queries(8):
+        rows = APIClient().get(ROUTINE).json()["exams"]
+    assert [row["slug"] for row in rows] == [first.slug, second.slug]
+    assert rows[0]["syllabus"] == [
+        {"subject": "Math", "chapter": "", "topic": "Algebra"},
+        {"subject": "", "chapter": "", "topic": "Geometry"},
+    ]
+    assert (rows[0]["material_count"], rows[1]["material_count"]) == (2, 0)
+    assert rows[1]["syllabus"] == []
+
+
+def test_categories_count_the_scheduled_exams_running_now(subject):
+    scheduled(subject, -1, length_hours=3)  # running
+    scheduled(subject, 5)  # not yet
+    make_exam(subject, publish=True)  # "any time": open, but not a live exam
+    rows = APIClient().get("/api/v1/public/categories/").json()["results"]
+    row = next(r for r in rows if r["slug"] == subject.category.slug)
+    assert (row["exam_count"], row["live_count"]) == (3, 1)

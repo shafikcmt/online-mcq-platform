@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronRight, CloudOff, PlayCircle } from "lucide-react-native";
+import { Archive, CalendarDays, ChevronRight, CloudOff, Medal, PlayCircle, Trophy } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import type { TFunction } from "i18next";
@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageHeader } from "@/components/page-header";
 import { Screen } from "@/components/screen";
 import { startAttempt } from "@/features/attempt/api";
+import { ShortcutGrid } from "@/features/category/shortcuts";
 import { handOff } from "@/features/attempt/handoff";
 import { fetchExam } from "@/features/exams/api";
 import { examMaterialCount } from "@/features/materials/api";
@@ -158,8 +159,31 @@ function Details({ exam, now, materials, participation }: { exam: StudentExamDet
           <Badge label={t(`exams:status.${status.key}`)} tone={status.tone} icon={<status.Icon size={14} color={badgeIconColor(status.tone)} />} />
         ) : null}
       </View>
+      {exam.start_at && Date.parse(exam.start_at) <= now && (!exam.end_at || Date.parse(exam.end_at) > now) ? (
+        <View style={styles.liveBand} accessible accessibilityRole="text">
+          <View style={styles.liveTitle}>
+            <View style={styles.liveDot} />
+            <AppText weight="bold" color={colors.brand950}>
+              {t("exams:live.title")}
+            </AppText>
+          </View>
+          {exam.end_at ? (
+            <AppText variant="small" color={colors.brand800} align="center">
+              {t("exams:live.until", { date: formatDateTime(exam.end_at, language) })}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
       <StatePanel exam={exam} now={now} />
       {exam.description ? <AppText color={colors.inkMuted}>{exam.description}</AppText> : null}
+      <ShortcutGrid
+        items={[
+          { key: "routine", label: t("category:routine"), href: { pathname: "/routine", params: { category: exam.category.slug, categoryName: exam.category.name } }, Icon: CalendarDays },
+          { key: "results", label: t("category:results"), href: "/results", Icon: Trophy },
+          { key: "archive", label: t("category:archive"), href: { pathname: "/exams", params: { when: "ended", category: exam.category.slug, categoryName: exam.category.name } }, Icon: Archive },
+          { key: "merit", label: t("category:merit"), href: { pathname: "/leaderboard/[slug]", params: { slug: exam.slug } }, Icon: Medal },
+        ]}
+      />
       <Card style={styles.facts}>
         <AppText weight="bold" role="heading">
           {t("exams:detail.facts")}
@@ -247,6 +271,9 @@ function StatePanel({ exam, now }: { exam: StudentExamDetail; now: number }) {
 
 const styles = StyleSheet.create({
   badges: { flexDirection: "row", flexWrap: "wrap", gap: space.xs },
+  liveBand: { alignItems: "center", gap: space.xs, padding: space.lg, borderRadius: radius.card, backgroundColor: colors.brand100 },
+  liveTitle: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  liveDot: { width: 10, height: 10, borderRadius: radius.full, backgroundColor: colors.danger700 },
   facts: { gap: space.xs },
   fact: { flexDirection: "row", gap: space.md, paddingVertical: space.sm },
   factLine: { borderTopWidth: 1, borderTopColor: colors.line },

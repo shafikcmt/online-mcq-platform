@@ -265,3 +265,56 @@ describe("Exam details", () => {
     expect(screen.queryByText("Participants")).toBeNull();
   });
 });
+
+describe("Category screen and the exam's shortcuts", () => {
+  const byWhen = (request: { query: Record<string, string> }) => {
+    const rows: Record<string, StudentExam[]> = {
+      open: [exam({ slug: "live-1", title: "Daily quiz", start_at: new Date(Date.now() - HOUR).toISOString(), end_at: new Date(Date.now() + 5 * HOUR).toISOString() }), exam({ slug: "any-1", title: "Practice set" })],
+      upcoming: [exam({ slug: "next-1", title: "Weekly test", can_start: false, locked_reason: "exam_not_started", start_at: new Date(Date.now() + 3 * HOUR).toISOString() })],
+      ended: [exam({ slug: "old-1", title: "Old model test", can_start: false, locked_reason: "exam_ended" })],
+    };
+    return page(rows[request.query.when] ?? []);
+  };
+
+  test("lists the category's exams: live first with a Live mark, then upcoming, then archived", async () => {
+    await signedIn({ "GET /exams/": byWhen }, "/category/hsc?name=HSC");
+    expect(await screen.findByRole("heading", { name: "HSC" })).toBeOnTheScreen();
+    expect(screen.getByText("4 exams")).toBeOnTheScreen();
+    expect(screen.getByRole("link", { name: "Daily quiz, Live, Ends in 5 h" })).toBeOnTheScreen();
+    expect(screen.getByRole("link", { name: "Practice set" })).toBeOnTheScreen(); // no schedule: open, not "live"
+    expect(screen.getByRole("link", { name: "Weekly test, Upcoming, Starts in 3 h" })).toBeOnTheScreen();
+    expect(screen.getByRole("link", { name: "Old model test, Archived" })).toBeOnTheScreen();
+    for (const name of ["Archive", "Results", "Routine", "Study"]) expect(screen.getByRole("link", { name })).toBeOnTheScreen();
+  });
+
+  test("an exam opens from the list, and the routine shortcut keeps the category", async () => {
+    await signedIn(
+      { "GET /exams/": byWhen, "GET /public/routine/": { status: 200, body: { pdf: { available: false, size_bytes: 0, updated_at: null }, exams: [] } } },
+      "/category/hsc?name=HSC",
+    );
+    await fireEvent.press(await screen.findByRole("link", { name: "Routine" }));
+    expect(await screen.findByText("No exams are scheduled in this category right now.")).toBeOnTheScreen();
+  });
+
+  test("an empty category says so", async () => {
+    await signedIn({ "GET /exams/": page([]) }, "/category/hsc?name=HSC");
+    expect(await screen.findByText("No exams in this category yet. Check back soon.")).toBeOnTheScreen();
+  });
+
+  test("a running scheduled exam says it is live and until when; the exam screen has its shortcuts", async () => {
+    await signedIn(
+      { "GET /exams/physics/": detail({ start_at: new Date(Date.now() - HOUR).toISOString(), end_at: new Date(Date.now() + 5 * HOUR).toISOString() }) },
+      "/exam/physics",
+    );
+    expect(await screen.findByText("This live exam is running now")).toBeOnTheScreen();
+    for (const name of ["Routine", "Results", "Archive", "Merit list"]) expect(screen.getByRole("link", { name })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("link", { name: "Merit list" }));
+    expect(screen).toHavePathname("/leaderboard/physics");
+  });
+
+  test("an exam with no schedule shows no live band", async () => {
+    await signedIn({ "GET /exams/physics/": detail() }, "/exam/physics");
+    await screen.findByText("Physics model test");
+    expect(screen.queryByText("This live exam is running now")).toBeNull();
+  });
+});

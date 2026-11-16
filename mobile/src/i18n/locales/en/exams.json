@@ -84,5 +84,9 @@
     "ready": "Ready to start"
   },
   "minutes": "{{n}} min",
-  "clearCategory": "Show all categories (now: {{name}})"
+  "clearCategory": "Show all categories (now: {{name}})",
+  "live": {
+    "title": "This live exam is running now",
+    "until": "You can take it any time until {{date}}."
+  }
 }

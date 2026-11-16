@@ -8,6 +8,7 @@ import bnCommon from "./locales/bn/common.json";
 import bnExams from "./locales/bn/exams.json";
 import bnHome from "./locales/bn/home.json";
 import bnNotifications from "./locales/bn/notifications.json";
+import bnCategory from "./locales/bn/category.json";
 import bnMaterials from "./locales/bn/materials.json";
 import bnRoutine from "./locales/bn/routine.json";
 import bnPackages from "./locales/bn/packages.json";
@@ -20,6 +21,7 @@ import enCommon from "./locales/en/common.json";
 import enExams from "./locales/en/exams.json";
 import enHome from "./locales/en/home.json";
 import enNotifications from "./locales/en/notifications.json";
+import enCategory from "./locales/en/category.json";
 import enMaterials from "./locales/en/materials.json";
 import enRoutine from "./locales/en/routine.json";
 import enPackages from "./locales/en/packages.json";
@@ -35,8 +37,8 @@ export const LANGUAGES = ["bn", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const resources = {
-  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom, results: bnResults, packages: bnPackages, notifications: bnNotifications, update: bnUpdate, routine: bnRoutine, materials: bnMaterials },
-  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom, results: enResults, packages: enPackages, notifications: enNotifications, update: enUpdate, routine: enRoutine, materials: enMaterials },
+  bn: { common: bnCommon, auth: bnAuth, profile: bnProfile, home: bnHome, exams: bnExams, room: bnRoom, results: bnResults, packages: bnPackages, notifications: bnNotifications, update: bnUpdate, routine: bnRoutine, materials: bnMaterials, category: bnCategory },
+  en: { common: enCommon, auth: enAuth, profile: enProfile, home: enHome, exams: enExams, room: enRoom, results: enResults, packages: enPackages, notifications: enNotifications, update: enUpdate, routine: enRoutine, materials: enMaterials, category: enCategory },
 } as const;
 
 const i18n = createInstance();
@@ -44,7 +46,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: "bn",
   fallbackLng: "bn",
-  ns: ["common", "auth", "profile", "home", "exams", "room", "results", "packages", "notifications", "update", "routine", "materials"],
+  ns: ["common", "auth", "profile", "home", "exams", "room", "results", "packages", "notifications", "update", "routine", "materials", "category"],
   defaultNS: "common",
   interpolation: { escapeValue: false }, // React escapes; no HTML is ever rendered
   returnNull: false,

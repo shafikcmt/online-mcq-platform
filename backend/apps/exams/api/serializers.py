@@ -273,5 +273,15 @@ class PublicExamSerializer(LocalizedSerializer):
         return self._ref(obj.subject)
 
 
+class PublicRoutineExamSerializer(SyllabusMixin, PublicExamSerializer):
+    """One exam of the routine: the exam fields, its syllabus (prefetched by the view) and how
+    many published study materials belong to it (``material_counts`` in the context)."""
+
+    material_count = serializers.SerializerMethodField()
+
+    def get_material_count(self, obj) -> int:
+        return self.context.get("material_counts", {}).get(obj.pk, 0)
+
+
 class PublicExamDetailSerializer(SyllabusMixin, PublicExamSerializer):
     """The public exam page: the exam fields plus its syllabus."""

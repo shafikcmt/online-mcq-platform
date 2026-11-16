@@ -93,8 +93,36 @@ describe("Routine screen", () => {
     expect(screen.getByText("6:30 pm – 8:30 pm")).toBeOnTheScreen();
     expect(screen.getByText("Physics model test")).toBeOnTheScreen();
     expect(screen.getAllByText("HSC · Physics")).toHaveLength(2);
-    expect(screen.getAllByText("30 min · 25 questions · 25 marks")).toHaveLength(2);
+    for (const fact of ["25 marks", "30 min", "25 questions"]) expect(screen.getAllByText(fact)).toHaveLength(2);
     expect(backend.find("GET", "/public/routine/")[0].headers.Authorization).toBeUndefined();
+  });
+
+  test("a card shows the topics (two, then Show more), the study materials and a Live mark", async () => {
+    jest.spyOn(Date, "now").mockReturnValue(Date.parse("2026-11-14T13:00:00Z")); // inside the exam's window
+    const syllabus = ["Motion", "Force", "Energy"].map((topic) => ({ subject: "Physics", chapter: "", topic }));
+    await open({ "GET /public/routine/": routine({ exams: [exam({ syllabus, material_count: 2 })] }) });
+    expect(await screen.findByText("1. Physics: Motion")).toBeOnTheScreen();
+    expect(screen.getByText("Live")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Open Physics model test" })).toHaveTextContent("Start live exam");
+    expect(screen.queryByText("3. Physics: Energy")).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Show more" }));
+    expect(screen.getByText("3. Physics: Energy")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("link", { name: "Study materials (2)" }));
+    expect(screen).toHavePathname("/materials");
+  });
+
+  test("opened from a category it shows that category only, until the chip is cleared", async () => {
+    await resetDevice({ language: "en", refresh: "R0" });
+    mockBackend({
+      "POST /auth/token/refresh/": { status: 200, body: { access: "A1", refresh: "R1" } },
+      "GET /me/": { status: 200, body: STUDENT },
+      "GET /public/routine/": routine({ exams: [exam(), exam({ slug: "bcs-1", title: "BCS quiz", category: { slug: "bcs", name: "BCS" } })] }),
+    });
+    await renderApp("/routine?category=bcs&categoryName=BCS");
+    expect(await screen.findByText("BCS quiz")).toBeOnTheScreen();
+    expect(screen.queryByText("Physics model test")).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Show all categories (now: BCS)" }));
+    expect(screen.getByText("Physics model test")).toBeOnTheScreen();
   });
 
   test("no PDF, no button", async () => {
