@@ -159,6 +159,77 @@ def ranked_results(exam: Exam):
 
 
 # --------------------------------------------------------------------------------------
+# The question paper of a past exam (the archive)
+# --------------------------------------------------------------------------------------
+def paper_allowed(exam: Exam, now: datetime, *, entitled: bool) -> bool:
+    """May a student read this exam's questions WITH the answers, without having taken it?
+
+    Only when nobody can sit it any more and the answers are no longer a secret:
+    - the exam has an end time and it has passed (an exam with no end can always be taken, so
+      its answers are never shown here);
+    - the admin allows answer review for it and its results are visible (``results_visible``);
+    - the student is entitled to the exam (it is free, or their subscription covers it)."""
+    over = exam.end_at is not None and exam.end_at <= now
+    return bool(over and entitled and exam.allow_answer_review and results_visible(exam, now))
+
+
+def paper_payload(exam: Exam, language: str, request=None) -> list[dict]:
+    """The exam's questions in the admin's order, each with its options, the correct one, the
+    marks and the explanation. Call only after ``paper_allowed``."""
+    bilingual = exam.content_language == ContentLanguage.BOTH
+    if not bilingual:
+        language = exam.content_language  # the paper exists in one language only
+    options = QuestionOption.objects.only(
+        "id", "question_id", "text_bn", "text_en", "is_correct", "sort_order"
+    )
+    rows = (
+        exam.exam_questions.select_related("question")
+        .prefetch_related(Prefetch("question__options", queryset=options))
+        .order_by("sort_order", "id")
+    )
+    items = []
+    for number, row in enumerate(rows, start=1):
+        question = row.question
+        option_items = []
+        correct_id = None
+        for option in question.options.all():
+            if option.is_correct:
+                correct_id = option.pk
+            entry = {
+                "id": option.pk,
+                "text": resolve_bilingual(option, "text", language)[0],
+                "is_correct": option.is_correct,
+            }
+            if bilingual:
+                entry.update(text_bn=option.text_bn, text_en=option.text_en)
+            option_items.append(entry)
+        image = None
+        if question.image:
+            image = question.image.url
+            if request is not None:
+                image = request.build_absolute_uri(image)
+        item = {
+            "question_id": question.pk,
+            "number": number,
+            "text": resolve_bilingual(question, "text", language)[0],
+            "image": image,
+            "options": option_items,
+            "correct_option_id": correct_id,
+            "marks": row.marks if row.marks is not None else exam.default_marks,
+            "explanation": resolve_bilingual(question, "explanation", language)[0],
+        }
+        if bilingual:
+            item.update(
+                text_bn=question.text_bn,
+                text_en=question.text_en,
+                explanation_bn=question.explanation_bn,
+                explanation_en=question.explanation_en,
+            )
+        items.append(item)
+    return items
+
+
+# --------------------------------------------------------------------------------------
 # Answer review payload (only after ``review_allowed``)
 # --------------------------------------------------------------------------------------
 def review_payload(result: Result, request=None) -> list[dict]:

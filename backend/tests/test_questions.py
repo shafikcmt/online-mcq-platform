@@ -806,8 +806,12 @@ class TestConfidentiality:
         # Question management stays admin-only; the only other question URL is the exam
         # room's autosave (Milestone 4B), which takes a question id but returns no content.
         exam_room_answer = "/api/v1/attempts/{public_id}/answers/{question_id}/"
+        # The archive: the paper of an exam that is OVER (nobody can sit it any more), only when
+        # answer review is allowed, results are visible and the student may see the exam
+        # (``results.selectors.paper_allowed``; tests/test_student_exams.py::TestQuestionPaper).
+        past_paper = "/api/v1/exams/{slug}/questions/"
         for path in schema["paths"]:
-            if "question" in path and path != exam_room_answer:
+            if "question" in path and path not in (exam_room_answer, past_paper):
                 assert path.startswith("/api/v1/admin/"), path
         # No non-admin operation can return an answer key or explanation.
         components = schema["components"]["schemas"]
@@ -832,7 +836,11 @@ class TestConfidentiality:
         for path, operations in schema["paths"].items():
             # Answer review (4C) is the one documented student exception: correct answers
             # only after submission, a visible result and allow_answer_review.
-            if path.startswith("/api/v1/admin/") or path == "/api/v1/results/{attempt_id}/review/":
+            # ... and the paper of an exam that is over (see ``past_paper`` above).
+            if path.startswith("/api/v1/admin/") or path in (
+                "/api/v1/results/{attempt_id}/review/",
+                past_paper,
+            ):
                 continue
             for operation in operations.values():
                 for response in operation.get("responses", {}).values():

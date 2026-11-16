@@ -349,3 +349,42 @@ describe("Notices about an exam", () => {
     expect(screen).toHavePathname("/exam/physics");
   });
 });
+
+describe("Question paper of a past exam", () => {
+  const paperBody = {
+    slug: "physics",
+    title: "Physics model test",
+    total_questions: 2,
+    questions: [
+      { question_id: 1, number: 1, text: "Unit of force?", image: null, options: [{ id: 11, text: "Newton", is_correct: true }, { id: 12, text: "Joule", is_correct: false }], correct_option_id: 11, marks: "1.00", explanation: "F = ma, measured in newtons." },
+      { question_id: 2, number: 2, text: "Unit of energy?", image: null, options: [{ id: 21, text: "Watt", is_correct: false }, { id: 22, text: "Joule", is_correct: true }], correct_option_id: 22, marks: "1.00", explanation: "" },
+    ],
+  };
+  const over = detail({ can_start: false, locked_reason: "exam_ended", seconds_if_started_now: null, end_at: new Date(Date.now() - HOUR).toISOString(), questions_available: true });
+
+  test("an ended exam offers its paper; answers stay hidden until asked for", async () => {
+    await signedIn({ "GET /exams/physics/": over, "GET /exams/physics/questions/": { status: 200, body: paperBody } }, "/exam/physics");
+    await fireEvent.press(await screen.findByRole("button", { name: "View questions and answers" }));
+    expect(screen).toHavePathname("/paper/physics");
+    expect(await screen.findByText("Unit of force?")).toBeOnTheScreen();
+    expect(screen.getByText("2 questions")).toBeOnTheScreen();
+    expect(screen.queryByText("F = ma, measured in newtons.")).toBeNull();
+    expect(screen.queryByLabelText(/Correct answer/)).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Show answers" }));
+    expect(screen.getByText("F = ma, measured in newtons.")).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/Correct answer/)).toHaveLength(2);
+    await fireEvent.press(screen.getByRole("button", { name: "Hide answers" }));
+    expect(screen.queryByText("F = ma, measured in newtons.")).toBeNull();
+  });
+
+  test("an exam that can still be taken has no such button", async () => {
+    await signedIn({ "GET /exams/physics/": detail({ questions_available: false }) }, "/exam/physics");
+    await screen.findByText("Physics model test");
+    expect(screen.queryByRole("button", { name: "View questions and answers" })).toBeNull();
+  });
+
+  test("a refusal from the server is explained, with no questions shown", async () => {
+    await signedIn({ "GET /exams/physics/questions/": apiError(403, "questions_not_available", "x") }, "/paper/physics");
+    expect(await screen.findByText("The questions of this exam cannot be viewed yet. They open after the exam is over.")).toBeOnTheScreen();
+  });
+});

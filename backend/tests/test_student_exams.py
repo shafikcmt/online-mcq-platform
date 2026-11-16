@@ -236,3 +236,90 @@ class TestFiltersAndDetail:
         for _ in range(6):
             take(student, exam(access_type="paid"), "c")
         assert count() == few
+
+
+# --------------------------------------------------------------------------------------
+# The archive: the question paper of an exam that is over
+# --------------------------------------------------------------------------------------
+def ended(**fields):
+    """A published exam whose window closed an hour ago."""
+    now = timezone.now()
+    fields.setdefault("start_at", now - timedelta(days=2))
+    fields.setdefault("end_at", now - timedelta(hours=1))
+    return exam(**fields)
+
+
+def paper(user, row, **headers):
+    return jwt_client(user).get(f"{LIST}{row.slug}/questions/", **headers)
+
+
+class TestQuestionPaper:
+    def test_a_student_who_never_took_the_exam_reads_its_paper_with_the_answers(self, student):
+        past = ended()
+        assert detail(student, past)["questions_available"] is True
+        response = paper(student, past, HTTP_ACCEPT_LANGUAGE="en")
+        assert response.status_code == 200, response.content
+        body = response.json()
+        assert body["slug"] == past.slug and body["total_questions"] == len(body["questions"]) > 0
+        first = body["questions"][0]
+        assert set(first) >= {
+            "number",
+            "text",
+            "options",
+            "correct_option_id",
+            "marks",
+            "explanation",
+        }
+        assert "selected_option_id" not in first  # the paper only, nobody's answers
+        correct = [option for option in first["options"] if option["is_correct"]]
+        assert len(correct) == 1 and correct[0]["id"] == first["correct_option_id"]
+        assert [question["number"] for question in body["questions"]] == list(
+            range(1, body["total_questions"] + 1)
+        )
+
+    def test_an_exam_that_can_still_be_taken_never_shows_its_answers(self, student):
+        now = timezone.now()
+        open_now = exam(start_at=now - timedelta(hours=1), end_at=now + timedelta(hours=1))
+        any_time = exam()  # no window at all: it can always be taken
+        upcoming = exam(start_at=now + timedelta(days=1), end_at=now + timedelta(days=2))
+        for row in (open_now, any_time, upcoming):
+            assert detail(student, row)["questions_available"] is False
+            response = paper(student, row)
+            assert response.status_code == 403
+            assert response.json()["error"]["code"] == "questions_not_available"
+            assert "is_correct" not in response.content.decode()
+
+    def test_the_admin_can_keep_the_paper_closed(self, student):
+        no_review = ended(allow_answer_review=False)
+        hidden = ended(result_visibility="manual")  # results not published by the admin
+        for row in (no_review, hidden):
+            assert detail(student, row)["questions_available"] is False
+            assert paper(student, row).status_code == 403
+        Exam.objects.filter(pk=hidden.pk).update(result_published_at=timezone.now())
+        assert paper(student, hidden).status_code == 200
+
+    def test_a_paid_exam_needs_a_subscription_that_covers_it(self, student):
+        paid = ended(access_type="paid")
+        assert detail(student, paid)["questions_available"] is False
+        assert paper(student, paid).status_code == 403
+        grant(student, make_package(rules=all_paid()))
+        assert paper(student, paid).status_code == 200
+
+    def test_needs_a_student_and_a_real_published_exam(self, student):
+        past = ended()
+        assert APIClient().get(f"{LIST}{past.slug}/questions/").status_code == 401
+        assert jwt_client(student).get(f"{LIST}no-such-exam/questions/").status_code == 404
+        Exam.objects.filter(pk=past.pk).update(status="unpublished")
+        assert paper(student, past).status_code == 404
+
+    def test_the_list_never_carries_the_flag_or_answers(self, student):
+        past = ended()
+        row = by_slug(listing(student, "?when=ended"))[past.slug]
+        assert "questions_available" not in row and "questions" not in row
+
+    def test_the_paper_costs_a_fixed_number_of_queries(self, student):
+        past = ended()
+        client = jwt_client(student)
+        with CaptureQueriesContext(connection) as queries:
+            assert client.get(f"{LIST}{past.slug}/questions/").status_code == 200
+        assert len(queries) <= 10, len(queries)

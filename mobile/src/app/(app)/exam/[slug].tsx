@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { Archive, CalendarDays, ChevronRight, CloudOff, Medal, PlayCircle, Trophy } from "lucide-react-native";
+import { Archive, BookOpenCheck, CalendarDays, ChevronRight, CloudOff, Medal, PlayCircle, Trophy } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import type { TFunction } from "i18next";
@@ -177,6 +177,14 @@ function Details({ exam, now, materials, participation }: { exam: StudentExamDet
       ) : null}
       <StatePanel exam={exam} now={now} />
       <ExamNotices slug={exam.slug} />
+      {exam.questions_available ? (
+        <Button
+          label={t("exams:paper.open")}
+          variant="secondary"
+          icon={<BookOpenCheck size={18} color={colors.brand700} />}
+          onPress={() => router.push({ pathname: "/paper/[slug]", params: { slug: exam.slug } })}
+        />
+      ) : null}
       {exam.description ? <AppText color={colors.inkMuted}>{exam.description}</AppText> : null}
       <ShortcutGrid
         items={[

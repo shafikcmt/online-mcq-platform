@@ -69,6 +69,30 @@ class ReviewQuestionSerializer(serializers.Serializer):
     explanation_en = serializers.CharField(required=False, allow_blank=True)
 
 
+class PaperQuestionSerializer(serializers.Serializer):
+    """One question of a past exam's paper (the archive): no student answer, only the paper."""
+
+    question_id = serializers.IntegerField()
+    number = serializers.IntegerField()
+    text = serializers.CharField()
+    text_bn = serializers.CharField(required=False)
+    text_en = serializers.CharField(required=False)
+    image = serializers.CharField(allow_null=True)
+    options = ReviewOptionSerializer(many=True)
+    correct_option_id = serializers.IntegerField(allow_null=True)
+    marks = serializers.DecimalField(max_digits=7, decimal_places=2)
+    explanation = serializers.CharField(allow_blank=True)
+    explanation_bn = serializers.CharField(required=False, allow_blank=True)
+    explanation_en = serializers.CharField(required=False, allow_blank=True)
+
+
+class PaperSerializer(serializers.Serializer):
+    slug = serializers.CharField()
+    title = serializers.CharField()
+    total_questions = serializers.IntegerField()
+    questions = PaperQuestionSerializer(many=True)
+
+
 class ReviewSerializer(serializers.Serializer):
     result = ResultSummarySerializer()
     questions = ReviewQuestionSerializer(many=True)

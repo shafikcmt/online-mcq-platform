@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .admin_views import AdminAttemptDetailView, AdminAttemptListView
-from .exam_views import StudentExamDetailView, StudentExamListView
+from .exam_views import StudentExamDetailView, StudentExamListView, StudentExamPaperView
 from .views import (
     AnswerBatchView,
     AnswerView,
@@ -14,6 +14,7 @@ from .views import (
 student_urlpatterns = [
     path("exams/", StudentExamListView.as_view(), name="exam-list"),
     path("exams/<slug:slug>/", StudentExamDetailView.as_view(), name="exam-detail"),
+    path("exams/<slug:slug>/questions/", StudentExamPaperView.as_view(), name="exam-questions"),
     path("exams/<slug:slug>/attempts/", AttemptStartView.as_view(), name="attempt-start"),
     path("attempts/", AttemptListView.as_view(), name="attempt-list"),
     path("attempts/<uuid:public_id>/", AttemptDetailView.as_view(), name="attempt-detail"),
