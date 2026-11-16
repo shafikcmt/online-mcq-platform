@@ -12,4 +12,5 @@ export type Notification = {
 };
 
 /** `GET /announcements/` (student JWT): published notices for students. */
-export type Notice = { id: number; pdf: { available: boolean; name: string; size_bytes: number }; title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };
+/** `exam`: the published exam a notice is about, or null for a general one (absent from an older server). */
+export type Notice = { id: number; exam?: { slug: string; title: string } | null; pdf: { available: boolean; name: string; size_bytes: number }; title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };

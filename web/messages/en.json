@@ -293,7 +293,8 @@
     "participantsReal": "{{n}} {{n|student|students}}",
     "participantsMixed": "{{total}}: {{real}} {{real|student|students}} + {{sample}} sample {{sample|participant|participants}}",
     "liveTitle": "This live exam is running now",
-    "liveUntil": "You can take it in the app any time until {{date}}."
+    "liveUntil": "You can take it in the app any time until {{date}}.",
+    "notices": "Notices for this exam"
   },
   "packagesPage": {
     "title": "Packages",
@@ -330,7 +331,8 @@
     "body": "Exam schedules, results and other updates.",
     "empty": "No notices right now.",
     "pdf": "Open PDF",
-    "unavailable": "Notices can't be loaded right now. Please try again in a moment."
+    "unavailable": "Notices can't be loaded right now. Please try again in a moment.",
+    "exam": "About: {{title}}"
   },
   "leaderboard": {
     "title": "Leaderboard",

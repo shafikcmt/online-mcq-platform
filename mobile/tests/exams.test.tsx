@@ -318,3 +318,34 @@ describe("Category screen and the exam's shortcuts", () => {
     expect(screen.queryByText("This live exam is running now")).toBeNull();
   });
 });
+
+describe("Notices about an exam", () => {
+  const notice = { id: 4, title: "Room change", body: "The exam is in Hall B.", is_pinned: false, published_at: new Date().toISOString(), expires_at: null, pdf: { available: false, name: "", size_bytes: 0 }, exam: { slug: "physics", title: "Physics model test" } };
+
+  test("the exam screen shows its notices, asking the server for this exam only", async () => {
+    const backend = await signedIn(
+      { "GET /exams/physics/": detail(), "GET /announcements/": { status: 200, body: { count: 1, next: null, previous: null, results: [notice] } } },
+      "/exam/physics",
+    );
+    expect(await screen.findByRole("heading", { name: "Notices for this exam" })).toBeOnTheScreen();
+    expect(screen.getByText("Room change")).toBeOnTheScreen();
+    expect(screen.getByText("The exam is in Hall B.")).toBeOnTheScreen();
+    expect(backend.find("GET", "/announcements/").at(-1)?.query).toMatchObject({ exam: "physics" });
+  });
+
+  test("no notices, or notices that cannot load: the block is simply not there", async () => {
+    await signedIn({ "GET /exams/physics/": detail(), "GET /announcements/": "network" }, "/exam/physics");
+    await screen.findByText("Physics model test");
+    expect(screen.queryByRole("heading", { name: "Notices for this exam" })).toBeNull();
+  });
+
+  test("the notices list names the exam and opens it", async () => {
+    await signedIn(
+      { "GET /announcements/": { status: 200, body: { count: 1, next: null, previous: null, results: [notice] } }, "GET /exams/physics/": detail() },
+      "/notifications",
+    );
+    await fireEvent.press(await screen.findByText("Notices"));
+    await fireEvent.press(await screen.findByRole("link", { name: "About: Physics model test" }));
+    expect(screen).toHavePathname("/exam/physics");
+  });
+});

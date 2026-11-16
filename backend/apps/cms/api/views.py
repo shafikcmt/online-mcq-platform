@@ -13,6 +13,7 @@ Student (student JWT): ``GET /api/v1/announcements/`` — notices for students +
 """
 
 import logging
+import re
 from types import SimpleNamespace
 
 from django.conf import settings
@@ -169,6 +170,7 @@ ANNOUNCEMENT_ORDERING = ("id", "published_at", "expires_at", "created_at", "upda
             OpenApiParameter("audience", OpenApiTypes.STR, enum=Audience.values),
             OpenApiParameter("published", OpenApiTypes.BOOL, description="false = drafts"),
             OpenApiParameter("is_pinned", OpenApiTypes.BOOL),
+            OpenApiParameter("exam", OpenApiTypes.INT, description="Exam id."),
             OpenApiParameter("search", OpenApiTypes.STR, description="Bangla/English title."),
             _ordering_parameter(ANNOUNCEMENT_ORDERING),
         ]
@@ -191,7 +193,10 @@ class AnnouncementListCreateView(ContentListCreateView):
         pinned = query_bool(self.request, "is_pinned")
         if pinned is not None:
             queryset = queryset.filter(is_pinned=pinned)
-        return queryset
+        exam = self.request.query_params.get("exam", "")
+        if exam.isdigit():
+            queryset = queryset.filter(exam_id=int(exam))
+        return queryset.select_related("exam")
 
 
 class AnnouncementDetailView(ContentDetailView):
@@ -379,13 +384,26 @@ class PublicAppUpdateView(PublicAPIMixin, APIView):
         return Response(PublicAppUpdateSerializer(notice, context={"request": request}).data)
 
 
+EXAM_SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def _for_exam(request, queryset):
+    """``?exam=<slug>``: only the notices about that exam (a malformed slug matches nothing)."""
+    slug = request.query_params.get("exam")
+    if slug is None:
+        return queryset
+    if len(slug) > 140 or not EXAM_SLUG.fullmatch(slug):
+        return queryset.none()
+    return selectors.for_exam(queryset, slug)
+
+
 class PublicAnnouncementListView(PublicAPIMixin, generics.ListAPIView):
     """Website notices: published, not expired, audience public or everyone."""
 
     serializer_class = PublicAnnouncementSerializer
 
     def get_queryset(self):
-        return selectors.public_announcements()
+        return _for_exam(self.request, selectors.public_announcements())
 
 
 class StudentAnnouncementListView(generics.ListAPIView):
@@ -394,7 +412,7 @@ class StudentAnnouncementListView(generics.ListAPIView):
     serializer_class = PublicAnnouncementSerializer
 
     def get_queryset(self):
-        return selectors.student_announcements()
+        return _for_exam(self.request, selectors.student_announcements())
 
     @extend_schema(tags=["announcements"], operation_id="student_announcements_list")
     def get(self, request, *args, **kwargs):

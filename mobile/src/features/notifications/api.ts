@@ -19,6 +19,12 @@ export function fetchNotices(page: number) {
   return api<Page<Notice>>(`/announcements/?page=${page}&page_size=20`);
 }
 
+/** The notices about one exam (newest first, pinned on top); a few are enough for its screen. */
+export async function fetchExamNotices(slug: string): Promise<Notice[]> {
+  const page = await api<Page<Notice>>(`/announcements/?exam=${encodeURIComponent(slug)}&page_size=5`);
+  return page.results;
+}
+
 /** A short-lived signed address for a notice's PDF (the phone's browser cannot send the
  * student's token). `path` is relative to the API base. */
 export function fetchNoticePdfLink(id: number) {

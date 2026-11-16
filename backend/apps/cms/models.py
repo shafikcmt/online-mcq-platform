@@ -407,6 +407,16 @@ class Announcement(BilingualContent):
     # null = draft; visible from published_at until expires_at (if set).
     published_at = models.DateTimeField(_("published at"), null=True, blank=True)
     expires_at = models.DateTimeField(_("expires at"), null=True, blank=True)
+    # Optional: the exam this notice is about. Such a notice is also shown on that exam's own
+    # page (website and app). Deleting the exam keeps the notice as a general one.
+    exam = models.ForeignKey(
+        "exams.Exam",
+        verbose_name=_("exam"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
     # An optional PDF attached to the notice (checked and stored by ``core.documents``; served
     # only by the API). The name, size and hash describe the stored file.
     pdf = models.FileField(_("PDF"), upload_to="documents/", blank=True)
@@ -414,7 +424,7 @@ class Announcement(BilingualContent):
     pdf_size = models.PositiveIntegerField(_("PDF size (bytes)"), default=0)
     pdf_sha256 = models.CharField(_("PDF SHA-256"), max_length=64, blank=True, default="")
 
-    AUDIT_VALUE_FIELDS = ("title_bn", "title_en", "audience", "is_pinned")
+    AUDIT_VALUE_FIELDS = ("title_bn", "title_en", "audience", "is_pinned", "exam_id")
     AUDIT_DATE_FIELDS = ("published_at", "expires_at")
     AUDIT_PRESENCE_FIELDS = ("body_bn", "body_en", "pdf")
 

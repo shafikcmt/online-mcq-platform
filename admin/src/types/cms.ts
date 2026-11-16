@@ -20,6 +20,9 @@ export type Announcement = {
   state: AnnouncementState;
   /** Optional attached PDF (never a file address: it is opened through the API). */
   pdf: { available: boolean; name: string; size_bytes: number };
+  /** The exam this notice is about (it is then shown on that exam's page too); null = general. */
+  exam: number | null;
+  exam_label: string;
   created_at: string;
   updated_at: string;
 };

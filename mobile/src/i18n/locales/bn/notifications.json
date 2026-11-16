@@ -15,5 +15,7 @@
   },
   "open": "খুলুন",
   "openPdf": "PDF খুলুন",
-  "openingPdf": "খুলছে…"
+  "openingPdf": "খুলছে…",
+  "aboutExam": "পরীক্ষা: {{title}}",
+  "examNotices": "এই পরীক্ষার নোটিশ"
 }

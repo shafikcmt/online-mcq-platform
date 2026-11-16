@@ -19,6 +19,7 @@ import { startAttempt } from "@/features/attempt/api";
 import { ShortcutGrid } from "@/features/category/shortcuts";
 import { handOff } from "@/features/attempt/handoff";
 import { fetchExam } from "@/features/exams/api";
+import { ExamNotices } from "@/features/notifications/exam-notices";
 import { examMaterialCount } from "@/features/materials/api";
 import { fetchParticipation, type Participation } from "@/features/sample/api";
 import { statusOf } from "@/features/exams/exam-card";
@@ -175,6 +176,7 @@ function Details({ exam, now, materials, participation }: { exam: StudentExamDet
         </View>
       ) : null}
       <StatePanel exam={exam} now={now} />
+      <ExamNotices slug={exam.slug} />
       {exam.description ? <AppText color={colors.inkMuted}>{exam.description}</AppText> : null}
       <ShortcutGrid
         items={[

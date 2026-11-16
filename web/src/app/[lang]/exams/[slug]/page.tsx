@@ -1,12 +1,12 @@
-import { Archive, ArrowRight, CalendarClock, CalendarDays, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy, Users } from "lucide-react";
+import { Archive, ArrowRight, CalendarClock, CalendarDays, ChevronLeft, Clock3, FileQuestion, Languages, Megaphone, MinusCircle, Target, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AppButton } from "@/components/app-button";
-import { Chip, PageIntro, UnavailableNote } from "@/components/cards";
+import { Chip, NoticeItem, PageIntro, UnavailableNote } from "@/components/cards";
 import { SyllabusTable } from "@/components/syllabus-table";
-import { getSettings, publicFetch, publicGet, type Exam, type LeaderboardRow } from "@/lib/api";
+import { getSettings, publicFetch, publicGet, type Exam, type LeaderboardRow, type Notice, type Page } from "@/lib/api";
 import { pageHref, scheduleState } from "@/lib/exam-filters";
 import { dateTime, decimal, digits } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
@@ -54,12 +54,13 @@ export default async function ExamPage({ params }: Props) {
   const { lang: raw, slug } = await params;
   const lang = raw as Lang;
   const t = translator(lang);
-  const [fetched, settings, merit, materials, participation] = await Promise.all([
+  const [fetched, settings, merit, materials, participation, notices] = await Promise.all([
     load(slug, lang),
     getSettings(lang),
     SLUG.test(slug) ? publicGet<LeaderboardRow[]>(`exams/${slug}/leaderboard/`, lang) : null, // null = no public merit list
     SLUG.test(slug) ? publicGet<MaterialPage>(`materials/?exam=${slug}&page_size=1`, lang) : null, // null = none to show
     SLUG.test(slug) ? publicGet<Participation>(`exams/${slug}/participation/`, lang) : null, // null = unknown: show nothing
+    SLUG.test(slug) ? publicGet<Page<Notice>>(`announcements/?exam=${slug}&page_size=5`, lang) : null, // notices about this exam
   ]);
   if (fetched.state === "missing") notFound();
 
@@ -139,6 +140,20 @@ export default async function ExamPage({ params }: Props) {
               </p>
               {exam.end_at ? <p className="mt-1 text-sm text-brand-800">{t("examDetail.liveUntil", { date: dateTime(exam.end_at, lang) })}</p> : null}
             </div>
+          ) : null}
+
+          {notices?.results.length ? (
+            <section aria-labelledby="exam-notices">
+              <h2 id="exam-notices" className="flex items-center gap-2 text-lg font-semibold text-ink">
+                <Megaphone className="size-5 text-warning-700" aria-hidden />
+                {t("examDetail.notices")}
+              </h2>
+              <div className="mt-4 grid gap-3">
+                {notices.results.map((notice) => (
+                  <NoticeItem key={notice.id} notice={notice} lang={lang} showExam={false} />
+                ))}
+              </div>
+            </section>
           ) : null}
 
           <nav aria-label={t("category.shortcuts")}>

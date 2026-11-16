@@ -32,6 +32,8 @@ function announcement(overrides: Partial<Announcement> = {}): Announcement {
     expires_at: null,
     state: "live",
     pdf: { available: false, name: "", size_bytes: 0 },
+    exam: null,
+    exam_label: "",
     created_at: STAMP,
     updated_at: STAMP,
     ...overrides,
@@ -104,6 +106,25 @@ describe("AnnouncementsView", () => {
     expect(ended).toHaveTextContent("Ended");
   });
 
+  it("a notice about an exam: the exam is chosen in the form, sent as its id, and named in the list", async () => {
+    const exams = [{ id: 7, title_bn: "", title_en: "Physics final" }];
+    const { calls } = mockApi((call) => (call.method === "POST" ? json(201, announcement({ id: 9 })) : json(200, page([announcement()]))));
+    renderPanel(
+      <AnnouncementsView data={page([announcement({ exam: 7, exam_label: "Physics final" })])} state={state("/announcements", ANNOUNCEMENT_LIST, "")} exams={exams} />,
+      "en",
+    );
+    expect(bodyRows()[0]).toHaveTextContent("Exam: Physics final");
+    fireEvent.click(screen.getByRole("button", { name: "New announcement" }));
+    const dialog = await screen.findByRole("dialog", { name: "New announcement" });
+    expect(within(dialog).getByLabelText(/About this exam/)).toHaveValue(""); // a general notice by default
+    fireEvent.change(within(dialog).getAllByLabelText(/English/)[0], { target: { value: "Room change" } });
+    fireEvent.change(within(dialog).getAllByLabelText(/English/)[1], { target: { value: "Hall B." } });
+    fireEvent.change(within(dialog).getByLabelText(/About this exam/), { target: { value: "7" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }));
+    await waitFor(() => expect(calls.some((call) => call.method === "POST")).toBe(true));
+    expect(calls.find((call) => call.method === "POST")?.body).toMatchObject({ exam: 7 });
+  });
+
   it("filters and search go to the URL", () => {
     view();
     fireEvent.change(screen.getAllByLabelText("Shown to")[0], { target: { value: "students" } });
@@ -138,6 +159,7 @@ describe("AnnouncementsView", () => {
       is_pinned: true,
       published_at: "2026-11-01T09:00:00+06:00",
       expires_at: null,
+      exam: null,
     });
   });
 

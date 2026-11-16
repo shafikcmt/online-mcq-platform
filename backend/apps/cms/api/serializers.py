@@ -11,10 +11,12 @@ import unicodedata
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.i18n import clean_multiline, clean_single_line, has_meaningful_text, normalize_digits
 from apps.core.public_api import LocalizedSerializer
+from apps.exams.models import Exam
 
 from ..models import (
     ANNOUNCEMENT_BODY_MAX_LENGTH,
@@ -102,6 +104,11 @@ def notice_pdf(notice) -> dict:
     }
 
 
+class NoticeExamSerializer(serializers.Serializer):
+    slug = serializers.CharField()
+    title = serializers.CharField()
+
+
 class AnnouncementAdminSerializer(serializers.ModelSerializer):
     title_bn = _text(TITLE_MAX_LENGTH)
     title_en = _text(TITLE_MAX_LENGTH)
@@ -116,9 +123,17 @@ class AnnouncementAdminSerializer(serializers.ModelSerializer):
     publish_now = serializers.BooleanField(write_only=True, required=False)
     state = serializers.SerializerMethodField()
     pdf = serializers.SerializerMethodField()
+    # Optional: the exam the notice is about (it is then shown on that exam's page too).
+    exam = serializers.PrimaryKeyRelatedField(
+        queryset=Exam.objects.all(), required=False, allow_null=True
+    )
+    exam_label = serializers.SerializerMethodField()
 
     def get_pdf(self, obj) -> NoticePdfSerializer:
         return notice_pdf(obj)
+
+    def get_exam_label(self, obj) -> str:
+        return str(obj.exam) if obj.exam_id else ""
 
     class Meta:
         model = Announcement
@@ -135,6 +150,8 @@ class AnnouncementAdminSerializer(serializers.ModelSerializer):
             "publish_now",
             "state",
             "pdf",
+            "exam",
+            "exam_label",
             "created_at",
             "updated_at",
         )
@@ -291,9 +308,18 @@ class PublicAnnouncementSerializer(LocalizedSerializer):
     published_at = serializers.DateTimeField()
     expires_at = serializers.DateTimeField(allow_null=True)
     pdf = serializers.SerializerMethodField()
+    exam = serializers.SerializerMethodField()
 
     def get_pdf(self, obj) -> NoticePdfSerializer:
         return notice_pdf(obj)
+
+    @extend_schema_field(NoticeExamSerializer(allow_null=True))
+    def get_exam(self, obj):
+        """The exam the notice is about, when it is one visitors can open (published)."""
+        exam = obj.exam if obj.exam_id else None
+        if exam is None or exam.status != "published":
+            return None
+        return {"slug": exam.slug, "title": self.text(exam, "title") or exam.slug}
 
     def get_title(self, obj) -> str:
         return self.text(obj, "title")

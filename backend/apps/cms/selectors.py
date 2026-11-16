@@ -65,12 +65,21 @@ def forget_default_language() -> None:
 def visible_announcements(*audiences: str, now=None):
     """Published (``published_at <= now``), not expired, for one of ``audiences``."""
     now = now or timezone.now()
-    return Announcement.objects.filter(
-        Q(expires_at__isnull=True) | Q(expires_at__gt=now),
-        published_at__isnull=False,
-        published_at__lte=now,
-        audience__in=audiences,
-    ).order_by("-is_pinned", "-published_at", "-id")
+    return (
+        Announcement.objects.filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gt=now),
+            published_at__isnull=False,
+            published_at__lte=now,
+            audience__in=audiences,
+        )
+        .select_related("exam")
+        .order_by("-is_pinned", "-published_at", "-id")
+    )
+
+
+def for_exam(queryset, slug: str):
+    """Only the notices about one published exam (``slug``); an unknown slug matches nothing."""
+    return queryset.filter(exam__slug=slug, exam__status="published")
 
 
 def public_announcements(now=None):
