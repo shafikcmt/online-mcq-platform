@@ -88,5 +88,15 @@
   "live": {
     "title": "This live exam is running now",
     "until": "You can take it any time until {{date}}."
+  },
+  "paper": {
+    "title": "Question paper",
+    "open": "View questions and answers",
+    "count_one": "{{n}} question",
+    "count_other": "{{n}} questions",
+    "show": "Show answers",
+    "hide": "Hide answers",
+    "marks": "{{n}} marks",
+    "notAvailable": "The questions of this exam cannot be viewed yet. They open after the exam is over."
   }
 }

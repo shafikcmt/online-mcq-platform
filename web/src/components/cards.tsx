@@ -107,7 +107,8 @@ export function PackageCard({ pkg, lang }: { pkg: Package; lang: Lang }) {
   );
 }
 
-export function NoticeItem({ notice, lang }: { notice: Notice; lang: Lang }) {
+/** `showExam`: name (and link to) the exam a notice is about; off on that exam's own page. */
+export function NoticeItem({ notice, lang, showExam = true }: { notice: Notice; lang: Lang; showExam?: boolean }) {
   const t = translator(lang);
   return (
     <article className="rounded-card border border-line bg-surface p-5">
@@ -118,6 +119,12 @@ export function NoticeItem({ notice, lang }: { notice: Notice; lang: Lang }) {
         </time>
       </div>
       <h3 className="mt-2 font-semibold text-ink">{notice.title}</h3>
+      {showExam && notice.exam ? (
+        <Link href={`/${lang}/exams/${notice.exam.slug}`} className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline">
+          <FileQuestion className="size-4" aria-hidden />
+          {t("notices.exam", { title: notice.exam.title })}
+        </Link>
+      ) : null}
       <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-ink-muted">{notice.body}</p>
       <NoticePdfLink notice={notice} label={t("notices.pdf")} />
     </article>

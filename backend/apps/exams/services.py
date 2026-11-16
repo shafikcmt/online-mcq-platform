@@ -614,7 +614,9 @@ def publish_exam(exam_id: int, *, ctx: AuditContext) -> Exam:
         raise ValidationError(errors)
     before = exam.status
     exam.status = ExamStatus.PUBLISHED
-    exam.save(update_fields=["status", "updated_at"])
+    if exam.first_published_at is None:
+        exam.first_published_at = timezone.now()
+    exam.save(update_fields=["status", "first_published_at", "updated_at"])
     _audit(
         ctx,
         "exam.publish",

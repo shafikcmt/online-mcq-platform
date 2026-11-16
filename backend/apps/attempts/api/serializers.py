@@ -200,3 +200,8 @@ class StudentExamSerializer(PublicExamSerializer):
 
 class StudentExamDetailSerializer(SyllabusMixin, StudentExamSerializer):
     server_time = serializers.DateTimeField(source="student.server_time")
+    questions_available = serializers.BooleanField(
+        source="student.questions_available",
+        help_text="The exam is over and its paper (questions with answers) can be read: "
+        "GET /exams/{slug}/questions/.",
+    )

@@ -166,6 +166,13 @@ function Notices({ header }: { header: React.ReactElement }) {
           </View>
           <View style={styles.body}>
             <AppText weight="bold">{item.title}</AppText>
+            {item.exam ? (
+              <Pressable accessibilityRole="link" hitSlop={6} onPress={() => router.push({ pathname: "/exam/[slug]", params: { slug: item.exam?.slug ?? "" } })}>
+                <AppText variant="small" weight="semibold" color={colors.brand700}>
+                  {t("notifications:aboutExam", { title: item.exam.title })}
+                </AppText>
+              </Pressable>
+            ) : null}
             <AppText variant="small">{item.body}</AppText>
             {item.pdf?.available ? (
               <Button

@@ -148,7 +148,12 @@ def test_the_status_shows_whether_push_is_on_and_how_many_phones(api, settings, 
     device(make_student(), 1)
     device(make_student(), 2, is_active=False)
     settings.EXAM_REMINDER_OFFSETS_MINUTES = [60, 1440, 60]
-    assert api.get(ADMIN).json() == {"enabled": True, "devices": 1, "reminder_offsets": [60, 1440]}
+    assert api.get(ADMIN).json() == {
+        "enabled": True,
+        "devices": 1,
+        "reminder_offsets": [60, 1440],
+        "announce_new_exams": True,
+    }
 
 
 def test_a_message_reaches_every_active_student_phone_in_their_language(
@@ -471,3 +476,82 @@ def test_reminder_wording(minutes, en, bn):
     exam = mock.Mock(title_en="Physics test", title_bn="পদার্থবিজ্ঞান")
     text = push_services.reminder_text(exam, minutes)
     assert en in text["body_en"] and bn in text["body_bn"]
+
+
+# --------------------------------------------------------------------------------------
+# New exam announcements
+# --------------------------------------------------------------------------------------
+def published_now(**fields):
+    exam = timed_exam(600)  # make_exam(publish=True): its first-publish time is "now"
+    for name, value in fields.items():
+        setattr(exam, name, value)
+    if fields:
+        exam.save()
+    return exam
+
+
+def test_publishing_stamps_the_first_publish_time_only_once():
+    from apps.exams import services as exam_services
+    from tests.test_exams import CTX
+
+    exam = timed_exam(600)
+    first = exam.first_published_at
+    assert first is not None
+    exam_services.unpublish_exam(exam.pk, ctx=CTX)
+    exam_services.publish_exam(exam.pk, ctx=CTX)
+    exam.refresh_from_db()
+    assert exam.first_published_at == first  # publishing again is not "new"
+
+
+def test_a_new_exam_is_announced_once_and_opens_the_exam(expo):
+    device(make_student(preferred_language="bn"), 1)
+    device(make_student(preferred_language="en"), 2)
+    exam = published_now()
+    assert push_services.send_new_exam_announcements() == 1
+    message = PushMessage.objects.get()
+    assert message.kind == PushKind.NEW_EXAM and message.exam == exam
+    assert message.status == PushStatus.SENT
+    titles = sorted(sent["title"] for sent in expo.sent)
+    assert titles == ["New exam", "নতুন পরীক্ষা"]
+    assert all(sent["data"] == {"type": "exam", "exam_slug": exam.slug} for sent in expo.sent)
+    assert push_services.send_new_exam_announcements() == 0  # not twice
+    assert PushMessage.objects.count() == 1
+
+
+def test_old_draft_ended_and_already_started_long_ago_exams_are_not_announced(expo, settings):
+    settings.NEW_EXAM_ANNOUNCE_WINDOW_MINUTES = 30
+    published_now(first_published_at=timezone.now() - timedelta(hours=2))  # not new any more
+    published_now(first_published_at=None)  # published before this feature existed
+    published_now(status="draft")
+    published_now(
+        start_at=timezone.now() - timedelta(days=2), end_at=timezone.now() - timedelta(days=1)
+    )
+    assert push_services.send_new_exam_announcements() == 0
+    assert not PushMessage.objects.exists()
+
+
+def test_new_exam_announcements_can_be_switched_off_and_need_push(expo, settings):
+    published_now()
+    settings.PUSH_ANNOUNCE_NEW_EXAMS = False
+    assert push_services.send_new_exam_announcements() == 0
+    settings.PUSH_ANNOUNCE_NEW_EXAMS = True
+    settings.PUSH_ENABLED = False
+    assert push_services.send_new_exam_announcements() == 0
+    assert not PushMessage.objects.exists()
+
+
+def test_the_scheduler_task_sends_reminders_and_announcements(expo, settings):
+    from apps.notifications.tasks import send_exam_reminders_task
+
+    settings.EXAM_REMINDER_OFFSETS_MINUTES = [60]
+    timed_exam(58)  # due for a reminder and newly published: two messages
+    assert send_exam_reminders_task() == 2
+    kinds = sorted(PushMessage.objects.values_list("kind", flat=True))
+    assert kinds == ["exam_reminder", "new_exam"]
+
+
+def test_the_history_can_be_filtered_to_new_exam_announcements(api, expo):
+    published_now()
+    push_services.send_new_exam_announcements()
+    rows = api.get(f"{ADMIN}messages/?kind=new_exam").json()["results"]
+    assert len(rows) == 1 and rows[0]["kind"] == "new_exam"

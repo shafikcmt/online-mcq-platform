@@ -540,6 +540,7 @@ class TestAnnouncements:
             "published_at",
             "expires_at",
             "pdf",
+            "exam",
         }
         assert body["results"][0]["pdf"] == {"available": False, "name": "", "size_bytes": 0}
         assert "count" in body  # paginated

@@ -1,7 +1,8 @@
 /** Push notifications (apps/notifications/api/push_views.py). */
-export type PushStatusInfo = { enabled: boolean; devices: number; reminder_offsets: number[] };
+/** `announce_new_exams`: a newly published exam is announced once (absent from an older server). */
+export type PushStatusInfo = { enabled: boolean; devices: number; reminder_offsets: number[]; announce_new_exams?: boolean };
 export type PushMessageState = "pending" | "sending" | "sent" | "failed" | "disabled";
-export type PushKind = "manual" | "exam_reminder";
+export type PushKind = "manual" | "exam_reminder" | "new_exam";
 export type PushMessage = {
   id: number;
   kind: PushKind;

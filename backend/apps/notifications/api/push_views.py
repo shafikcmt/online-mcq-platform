@@ -85,6 +85,9 @@ class PushStatusSerializer(serializers.Serializer):
     enabled = serializers.BooleanField(help_text="False: messages are recorded but not sent.")
     devices = serializers.IntegerField(help_text="Active phones that will receive a message.")
     reminder_offsets = serializers.ListField(child=serializers.IntegerField())
+    announce_new_exams = serializers.BooleanField(
+        help_text="A newly published exam is announced by push once."
+    )
 
 
 class PushStatusView(AdminAPIMixin, APIView):
@@ -97,6 +100,7 @@ class PushStatusView(AdminAPIMixin, APIView):
                 "enabled": settings.PUSH_ENABLED,
                 "devices": push_services.active_devices().count(),
                 "reminder_offsets": sorted(set(settings.EXAM_REMINDER_OFFSETS_MINUTES)),
+                "announce_new_exams": settings.PUSH_ANNOUNCE_NEW_EXAMS,
             }
         )
 

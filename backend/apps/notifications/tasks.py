@@ -19,4 +19,7 @@ def send_exam_reminders_task() -> int:
     count = push_services.send_due_reminders()
     if count:
         logger.info("Exam reminders sent count=%s", count)
-    return count
+    announced = push_services.send_new_exam_announcements()
+    if announced:
+        logger.info("New exam announcements sent count=%s", announced)
+    return count + announced

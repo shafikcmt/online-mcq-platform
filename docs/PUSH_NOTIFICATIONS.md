@@ -57,3 +57,16 @@ Admin Panel shows "Push is switched off" and saves messages in the history witho
 - Tests: `backend/tests/test_push.py` (50), admin `push-view.test.tsx` (8), app `push.test.tsx` (17).
 - Not built: delivery receipts (Expo's second step; tickets are recorded), per-student or per-category targeting,
   scheduled (future) admin messages, notification preferences per type, iOS (the app is Android only today).
+
+## New exam announcements
+
+When an exam is published **for the first time**, every phone gets one "New exam" message that opens the exam.
+The scheduler (the same one as the reminders, every minute) sends it; it is recorded in the history as type
+"New exam".
+
+- Only while `PUSH_ENABLED=1`; switch just this off with `PUSH_ANNOUNCE_NEW_EXAMS=0`.
+- Once per exam, ever (a database constraint): unpublishing and publishing again, or editing, does not repeat it.
+- An exam counts as new for `NEW_EXAM_ANNOUNCE_WINDOW_MINUTES` (30) after its first publication, so turning push
+  on later never announces old exams; exams published before this feature have no first-publish time at all.
+- Not sent for an exam that is already over or whose category is inactive.
+- Like the rest of push, it has only been tested against a stand-in for Expo, never on a real phone.

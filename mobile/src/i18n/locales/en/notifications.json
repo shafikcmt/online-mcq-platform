@@ -15,5 +15,7 @@
   },
   "open": "Open",
   "openPdf": "Open PDF",
-  "openingPdf": "Opening…"
+  "openingPdf": "Opening…",
+  "aboutExam": "About: {{title}}",
+  "examNotices": "Notices for this exam"
 }

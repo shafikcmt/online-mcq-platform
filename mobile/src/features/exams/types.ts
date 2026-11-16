@@ -44,7 +44,31 @@ export type StudentExam = {
 export type SyllabusLine = { subject: string; chapter: string; topic: string };
 
 /** `GET /exams/{slug}/` (the exam's own screen): also the syllabus lines the admin wrote. */
-export type StudentExamDetail = StudentExam & { server_time: string; syllabus: SyllabusLine[] };
+export type StudentExamDetail = StudentExam & {
+  server_time: string;
+  syllabus: SyllabusLine[];
+  /** The exam is over and its paper (questions with answers) can be read (absent from an older server). */
+  questions_available?: boolean;
+};
+
+/** `GET /exams/{slug}/questions/`: the paper of an exam that is over. The Bangla / English
+ * variants are present only when the exam has both languages. */
+export type PaperOption = { id: number; text: string; text_bn?: string; text_en?: string; is_correct: boolean };
+export type PaperQuestion = {
+  question_id: number;
+  number: number;
+  text: string;
+  text_bn?: string;
+  text_en?: string;
+  image: string | null;
+  options: PaperOption[];
+  correct_option_id: number | null;
+  marks: string;
+  explanation: string;
+  explanation_bn?: string;
+  explanation_en?: string;
+};
+export type ExamPaper = { slug: string; title: string; total_questions: number; questions: PaperQuestion[] };
 
 export type ExamPage = { count: number; next: string | null; previous: string | null; results: StudentExam[]; server_time: string };
 

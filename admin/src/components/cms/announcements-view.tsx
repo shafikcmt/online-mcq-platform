@@ -27,7 +27,7 @@ import { useListUrl } from "@/lib/use-list-url";
 import { AUDIENCES, type Announcement, type AnnouncementState } from "@/types/cms";
 import type { Paginated } from "@/types/content";
 
-import { CmsFormDialog } from "./cms-form-dialog";
+import { CmsFormDialog, type NoticeExamOption } from "./cms-form-dialog";
 
 /** The server's computed state as a badge (tones shared with the other status badges). */
 const STATE_TONE: Record<AnnouncementState, string> = { draft: "draft", scheduled: "pending", live: "active", expired: "archived" };
@@ -40,7 +40,7 @@ export function AnnouncementStateBadge({ state }: { state: AnnouncementState }) 
 /** Announcements (website and app notices): URL-driven list like the other content lists;
  * create/edit in a dialog, delete after a confirmation. The state (draft, scheduled, live,
  * ended) is the server's, computed from the publish window. */
-export function AnnouncementsView({ data, state: serverState }: { data: Paginated<Announcement>; state: ListState }) {
+export function AnnouncementsView({ data, state: serverState, exams = [] }: { data: Paginated<Announcement>; state: ListState; exams?: NoticeExamOption[] }) {
   const { locale, t } = useI18n();
   const { notify } = useToast();
   const { state, key: urlKey, update, pending: navigating } = useListUrl(ANNOUNCEMENT_LIST);
@@ -65,7 +65,10 @@ export function AnnouncementsView({ data, state: serverState }: { data: Paginate
   const title = (row: Announcement) => (
     <span className="flex items-start gap-2">
       {row.is_pinned && <Pin className="mt-1 size-3.5 shrink-0 text-brand-700" aria-label={t("announcements.pinned")} />}
-      <BilingualName bn={row.title_bn} en={row.title_en} />
+      <span className="min-w-0">
+        <BilingualName bn={row.title_bn} en={row.title_en} />
+        {row.exam_label ? <span className="mt-0.5 block text-xs text-ink-muted">{t("announcements.examTag", { name: row.exam_label })}</span> : null}
+      </span>
     </span>
   );
 
@@ -199,6 +202,7 @@ export function AnnouncementsView({ data, state: serverState }: { data: Paginate
         <CmsFormDialog
           key={editing === "new" ? "new" : editing.id}
           kind="announcement"
+          exams={exams}
           entry={editing === "new" ? null : editing}
           open
           onOpenChange={(open) => !open && setEditing(null)}

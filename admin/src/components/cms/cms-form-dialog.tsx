@@ -11,6 +11,7 @@ import { describeError } from "@/lib/api/errors";
 import { isValidationError, mapFieldErrors, type MappedErrors } from "@/lib/api/field-errors";
 import { MAX_SORT_ORDER } from "@/lib/content-limits";
 import { fromDhakaInput, toDhakaInput } from "@/lib/exam-form";
+import { localized } from "@/lib/localized";
 import { useI18n } from "@/lib/i18n/provider";
 import { NoticePdfField } from "./notice-pdf-field";
 import { AUDIENCES, CMS_LIMITS, type Announcement, type Audience, type CmsPage, type Faq } from "@/types/cms";
@@ -50,7 +51,11 @@ type FormState = {
   is_active: boolean;
   sort_order: string;
   slug: string;
+  exam: string; // an exam id, or "" for a general notice
 };
+
+/** An exam the admin can link an announcement to. */
+export type NoticeExamOption = { id: number; title_bn: string; title_en: string };
 
 function initialState(kind: CmsKind, entry: Entry | null): FormState {
   const pair = PAIRS[kind];
@@ -70,6 +75,7 @@ function initialState(kind: CmsKind, entry: Entry | null): FormState {
     is_active: entry && "is_active" in entry ? entry.is_active : true,
     sort_order: entry && "sort_order" in entry ? String(entry.sort_order) : "0",
     slug: entry && "slug" in entry ? entry.slug : "",
+    exam: announcement?.exam ? String(announcement.exam) : "",
   };
 }
 
@@ -86,6 +92,7 @@ export function CmsFormDialog({
   onOpenChange,
   onSaved,
   onPdfChanged,
+  exams = [],
 }: {
   kind: CmsKind;
   entry: Entry | null;
@@ -94,8 +101,10 @@ export function CmsFormDialog({
   onSaved: (entry: Entry, created: boolean) => void;
   /** The announcement's PDF was attached or removed (it saves by itself, not with the form). */
   onPdfChanged?: () => void;
+  /** Announcements only: the exams a notice can be about. */
+  exams?: NoticeExamOption[];
 }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const formId = useId();
   const pair = PAIRS[kind];
   const prefix = PREFIX[kind];
@@ -109,7 +118,7 @@ export function CmsFormDialog({
     `${pair.first}_en`,
     `${pair.second}_bn`,
     `${pair.second}_en`,
-    ...(kind === "announcement" ? ["audience", "is_pinned", "published_at", "expires_at", "publish_now"] : []),
+    ...(kind === "announcement" ? ["audience", "is_pinned", "published_at", "expires_at", "publish_now", "exam"] : []),
     ...(kind === "faq" ? ["is_active", "sort_order"] : []),
     ...(kind === "page" ? ["slug", "is_active"] : []),
   ];
@@ -139,6 +148,7 @@ export function CmsFormDialog({
       if (form.visibility === "now") body.publish_now = true; // the server stamps its own time
       else body.published_at = form.visibility === "at" ? fromDhakaInput(form.published_at) : null;
       body.expires_at = fromDhakaInput(form.expires_at);
+      body.exam = form.exam ? Number(form.exam) : null;
     }
     if (kind === "faq") {
       body.is_active = form.is_active;
@@ -264,6 +274,18 @@ export function CmsFormDialog({
                 <Input type="datetime-local" value={form.expires_at} onChange={(event) => set("expires_at", event.target.value)} disabled={pending} />
               </Field>
             </div>
+            <Field id={`${formId}-exam`} label={t("announcements.exam")} optional hint={t("announcements.examHint")} error={fieldError("exam")}>
+              <Select value={form.exam} onChange={(event) => set("exam", event.target.value)} disabled={pending}>
+                <option value="">{t("announcements.examNone")}</option>
+                {/* An exam that is no longer in the list (very old) stays selectable by its saved name. */}
+                {form.exam && !exams.some((exam) => String(exam.id) === form.exam) ? <option value={form.exam}>{(entry as Announcement | null)?.exam_label || `#${form.exam}`}</option> : null}
+                {exams.map((exam) => (
+                  <option key={exam.id} value={exam.id}>
+                    {localized(locale, exam.title_bn, exam.title_en).text}
+                  </option>
+                ))}
+              </Select>
+            </Field>
             <NoticePdfField notice={entry as Announcement | null} onChanged={() => onPdfChanged?.()} />
           </>
         )}

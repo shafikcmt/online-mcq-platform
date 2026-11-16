@@ -44,3 +44,11 @@ deletes its file.
    (refused) and open the PDF.
 2. Website: the notice shows **Open PDF**; it opens the file. Remove it in the panel; the button disappears.
 3. App: sign in, Notifications → Notices → **Open PDF** opens the viewer.
+
+## Notices about one exam
+
+An announcement can be linked to an exam ("About this exam" in the form). It then also appears on that exam's
+own page on the website and in the app ("Notices for this exam"), and the notices list names the exam with a
+link. Audience, publish time, expiry and the PDF work the same as for any notice. Only a published exam is ever
+named to students; deleting the exam keeps the notice as a general one. API: `?exam=<slug>` on
+`GET /public/announcements/` and `GET /announcements/`; `exam` (id) on the admin endpoints.

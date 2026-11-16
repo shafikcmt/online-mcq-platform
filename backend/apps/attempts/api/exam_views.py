@@ -5,24 +5,32 @@ student can do now, by the exam engine's own start rules.
                            ``category``, ``when`` (``open`` / ``upcoming`` / ``ended``),
                            ``search`` (title); paginated, with ``server_time``
 - ``GET /exams/{slug}/``   one exam, with instructions and ``server_time``
+- ``GET /exams/{slug}/questions/``  the paper of an exam that is over: its questions with the
+                           correct answers and explanations (``results.selectors.paper_allowed``)
 
-Never questions, options or answers. The status comes from
+The list and the details never carry questions, options or answers. The status comes from
 ``attempts.selectors.student_exam_status`` (also used by the dashboard), so the list, the
 details and the start endpoint can never disagree.
 """
 
 from django.db.models import F, Q
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import generics, serializers
+from rest_framework import generics, serializers, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.catalog.models import SLUG_MAX_LENGTH
 from apps.core.admin_api import INVALID_CHOICE_MESSAGE, query_choice, query_search
+from apps.core.exceptions import ApiError
+from apps.core.i18n import resolve_bilingual
 from apps.exams.api.views import public_exams
 from apps.exams.models import AccessType, ExamType
 from apps.exams.selectors import open_window
+from apps.results.api.serializers import PaperSerializer
+from apps.results.selectors import paper_allowed, paper_payload
 from apps.subscriptions.selectors import active_grants
 
 from ..selectors import attempt_history, student_exam_status
@@ -39,6 +47,9 @@ def _attach_status(user, exams, now):
     for exam in exams:
         exam.student = student_exam_status(exam, now, grants=grants, history=history)
         exam.student["server_time"] = now
+        exam.student["questions_available"] = paper_allowed(
+            exam, now, entitled=exam.student["has_access"]
+        )
 
 
 @extend_schema_view(
@@ -113,3 +124,37 @@ class StudentExamDetailView(generics.RetrieveAPIView):
         exam = self.get_object()
         _attach_status(request.user, [exam], timezone.now())
         return Response(self.get_serializer(exam).data)
+
+
+PAPER_NOT_AVAILABLE_MESSAGE = _(
+    "The questions of this exam cannot be viewed. They open after the exam is over."
+)
+
+
+class StudentExamPaperView(APIView):
+    """The archive: the questions of an exam that is over, with the correct answers and the
+    explanations, for a student who may see the exam (also one who never took it). Refused
+    with ``questions_not_available`` while the exam can still be taken, when the admin has
+    switched answer review off or hidden the results, or when a paid exam is not covered."""
+
+    http_method_names = ["get", "options"]
+
+    @extend_schema(operation_id="student_exam_questions", responses=PaperSerializer, tags=["exams"])
+    def get(self, request, slug):
+        exam = generics.get_object_or_404(public_exams(), slug=slug)
+        now = timezone.now()
+        _attach_status(request.user, [exam], now)
+        if not exam.student["questions_available"]:
+            raise ApiError(
+                status_code=status.HTTP_403_FORBIDDEN,
+                code="questions_not_available",
+                message=str(PAPER_NOT_AVAILABLE_MESSAGE),
+            )
+        questions = paper_payload(exam, request.LANGUAGE_CODE, request)
+        data = {
+            "slug": exam.slug,
+            "title": resolve_bilingual(exam, "title", request.LANGUAGE_CODE)[0],
+            "total_questions": len(questions),
+            "questions": questions,
+        }
+        return Response(PaperSerializer(data).data)
