@@ -2,7 +2,10 @@ name: Admin Panel CI
 
 on:
   push:
-    branches: [develop, main]
+  # Pushes to develop only: main always receives commits that develop already tested, and
+  # "Deploy production" runs this same workflow again as its gate before anything is built.
+  # Running it a third time on main only spent Actions minutes.
+    branches: [develop]
     paths:
       - "admin/**"
       - ".github/workflows/admin-ci.yml"

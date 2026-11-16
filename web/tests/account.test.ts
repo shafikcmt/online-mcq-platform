@@ -55,11 +55,15 @@ async function redirectOf(run: () => Promise<unknown>): Promise<string> {
 }
 
 let fetchMock: ReturnType<typeof vi.fn>;
+let visitor = 0;
 
 beforeEach(() => {
   state.cookies.clear();
   state.cookieWrites.length = 0;
-  state.forwardedFor = `203.0.113.${Math.floor(Math.random() * 200) + 1}`; // a fresh visitor each test
+  // A fresh visitor each test. A counter, not a random number: two tests that drew the same
+  // address shared one sign-in budget, and the limit test failed now and then.
+  visitor += 1;
+  state.forwardedFor = `203.0.113.${visitor}`;
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
 });
