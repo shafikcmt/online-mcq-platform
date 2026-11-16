@@ -2,7 +2,9 @@ name: Mobile App CI
 
 on:
   push:
-    branches: [develop, main]
+  # Pushes to develop only: main always receives commits that develop already tested, so a
+  # second run on main only spent Actions minutes. (The app is not part of the deployment.)
+    branches: [develop]
     paths:
       - "mobile/**"
       - ".github/workflows/mobile-ci.yml"

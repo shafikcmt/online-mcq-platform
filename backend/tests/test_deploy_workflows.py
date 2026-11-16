@@ -51,7 +51,9 @@ def test_ci_workflows_stay_ci_only_and_are_the_deploy_gate():
     for name in ("backend-ci.yml", "admin-ci.yml", "web-ci.yml"):
         data = load(name)
         assert "workflow_call" in data["on"], name
-        assert data["on"]["push"]["branches"] == ["develop", "main"], name
+        # develop only: main is tested by the deployment's own gate (the three jobs below), so
+        # a separate run on main would be the same tests a third time.
+        assert data["on"]["push"]["branches"] == ["develop"], name
         text = (WORKFLOWS / name).read_text()
         assert "self-hosted" not in text and "packages: write" not in text, name
     jobs = load(DEPLOY)["jobs"]
