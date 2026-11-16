@@ -26,8 +26,9 @@ const keyOf = (item: Material) => String(item.id);
  * in the YouTube app or browser; a PDF opens in the phone's viewer. */
 export default function MaterialsScreen() {
   const { t } = useTranslation();
-  const { exam = "" } = useLocalSearchParams<{ exam?: string }>(); // an exam slug: only its materials
-  const [kind, setKind] = useState<MaterialKind>("all");
+  // `exam` (a slug): only that exam's materials. `kind`: the tab to open on (from Home's study section).
+  const { exam = "", kind: opened } = useLocalSearchParams<{ exam?: string; kind?: string }>();
+  const [kind, setKind] = useState<MaterialKind>(opened === "video" || opened === "pdf" ? opened : "all");
   const load = useCallback((page: number) => fetchMaterials(kind, page, exam), [kind, exam]);
   const list = usePages<Material, Page<Material>>(load, `${kind}|${exam}`, keyOf);
 

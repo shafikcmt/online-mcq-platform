@@ -1,10 +1,12 @@
 """Public category list (``GET /api/v1/public/categories/``, no login): active
 categories with their active subjects, localized, in admin-defined order, plus how many
 exams a student can see in each (``exam_count``: published, in an active subject or none —
-the same rule as the public exam list)."""
+the same rule as the public exam list) and how many scheduled exams are running in it right
+now (``live_count``: the routine's rule, so "any time" exams never count as live)."""
 
 from django.db.models import Count, OuterRef, Prefetch, Subquery
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from rest_framework import generics, serializers
 
 from apps.core.public_api import LocalizedSerializer, PublicAPIMixin
@@ -27,13 +29,24 @@ class PublicSubjectSerializer(LocalizedSerializer):
 class PublicCategorySerializer(PublicSubjectSerializer):
     subjects = PublicSubjectSerializer(source="active_subjects", many=True)
     exam_count = serializers.IntegerField()
+    live_count = serializers.IntegerField()
 
 
 class PublicCategoryListView(PublicAPIMixin, generics.ListAPIView):
     serializer_class = PublicCategorySerializer
 
     def get_queryset(self):
-        from apps.exams.selectors import listable_exams
+        from apps.exams.selectors import listable_exams, routine_exams
+
+        now = timezone.now()
+        live = (
+            routine_exams(now)
+            .filter(start_at__lte=now, category=OuterRef("pk"))
+            .order_by()
+            .values("category")
+            .annotate(n=Count("pk"))
+            .values("n")
+        )
 
         subjects = Subject.objects.filter(is_active=True).order_by("sort_order", "id")
         exams = (
@@ -46,7 +59,9 @@ class PublicCategoryListView(PublicAPIMixin, generics.ListAPIView):
         )
         return (
             Category.objects.filter(is_active=True)
-            .annotate(exam_count=Coalesce(Subquery(exams), 0))
+            .annotate(
+                exam_count=Coalesce(Subquery(exams), 0), live_count=Coalesce(Subquery(live), 0)
+            )
             .prefetch_related(Prefetch("subjects", queryset=subjects, to_attr="active_subjects"))
             .order_by("sort_order", "id")
         )

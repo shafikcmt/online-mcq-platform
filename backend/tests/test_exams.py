@@ -1034,7 +1034,14 @@ class TestPublic:
         assert response.status_code == 200
         rows = response.json()["results"]
         assert [r["slug"] for r in rows] == ["maths", "science"]
-        assert set(rows[1]) == {"slug", "name", "description", "subjects", "exam_count"}
+        assert set(rows[1]) == {
+            "slug",
+            "name",
+            "description",
+            "subjects",
+            "exam_count",
+            "live_count",
+        }
         # The same visibility rule as the public exam list.
         assert [r["exam_count"] for r in rows] == [0, 1]
         listed = APIClient().get(PUBLIC + "?category=science").json()["count"]

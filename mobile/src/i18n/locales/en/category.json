@@ -1,0 +1,17 @@
+{
+  "count_one": "{{n}} exam",
+  "count_other": "{{n}} exams",
+  "empty": "No exams in this category yet. Check back soon.",
+  "seeAll": "See all exams",
+  "mark": {
+    "live": "Live",
+    "upcoming": "Upcoming",
+    "archived": "Archived"
+  },
+  "archive": "Archive",
+  "results": "Results",
+  "routine": "Routine",
+  "materials": "Study",
+  "merit": "Merit list",
+  "syllabus": "Syllabus"
+}
