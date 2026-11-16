@@ -174,9 +174,16 @@
       "details": "View details"
     },
     "categories": {
-      "title": "Exam categories",
+      "title": "Exam section",
       "body": "Pick your goal and start practising.",
-      "exams": "{{n}} exams"
+      "exams": "{{n}} {{n|exam|exams}}",
+      "live": "live now"
+    },
+    "study": {
+      "title": "Study section",
+      "video": "Video lessons",
+      "pdf": "PDF notes",
+      "soon": "Coming soon"
     }
   },
   "exam": {
@@ -284,7 +291,9 @@
     "materialsLink": "{{n}} study {{n|material|materials}} for this exam",
     "participants": "Participants",
     "participantsReal": "{{n}} {{n|student|students}}",
-    "participantsMixed": "{{total}}: {{real}} {{real|student|students}} + {{sample}} sample {{sample|participant|participants}}"
+    "participantsMixed": "{{total}}: {{real}} {{real|student|students}} + {{sample}} sample {{sample|participant|participants}}",
+    "liveTitle": "This live exam is running now",
+    "liveUntil": "You can take it in the app any time until {{date}}."
   },
   "packagesPage": {
     "title": "Packages",
@@ -490,12 +499,20 @@
     "title": "Exam routine",
     "body": "Every upcoming and live exam by date and time. Times are Bangladesh time.",
     "download": "Download routine PDF",
-    "live": "Live now",
+    "live": "Live",
     "upcoming": "Upcoming",
     "empty": "No exams are scheduled right now. Check back soon.",
     "unavailable": "The routine can't be loaded right now. Please try again in a moment.",
     "viewRoutine": "Exam routine",
-    "details": "{{minutes}} min · {{questions}} questions · {{marks}} marks"
+    "marks": "{{n}} marks",
+    "minutes": "{{n}} min",
+    "questions": "{{n}} {{n|question|questions}}",
+    "topics": "Topics",
+    "more": "Show more",
+    "materials": "Study materials ({{n}})",
+    "view": "View details",
+    "all": "All categories",
+    "filter": "Category"
   },
   "materials": {
     "title": "Study materials",
@@ -519,5 +536,24 @@
     "pdfLabel": "PDF",
     "forExam": "Showing the study materials for one exam.",
     "showAll": "Show all materials"
+  },
+  "category": {
+    "back": "All categories",
+    "count": "{{n}} {{n|exam|exams}}",
+    "metaDescription": "Live exams, model tests and practice sets in {{name}}.",
+    "empty": "No exams in this category yet. Check back soon.",
+    "unavailable": "The exams can't be loaded right now. Please try again in a moment.",
+    "seeAll": "See all exams",
+    "shortcuts": "Shortcuts",
+    "mark": {
+      "live": "Live",
+      "upcoming": "Upcoming",
+      "archived": "Archived"
+    },
+    "archive": "Archive",
+    "merit": "Merit list",
+    "routine": "Routine",
+    "materials": "Study",
+    "allExams": "All exams"
   }
 }

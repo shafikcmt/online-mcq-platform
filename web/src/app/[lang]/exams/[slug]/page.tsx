@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy, Users } from "lucide-react";
+import { Archive, ArrowRight, CalendarClock, CalendarDays, ChevronLeft, Clock3, FileQuestion, Languages, MinusCircle, Target, Trophy, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -130,6 +130,34 @@ export default async function ExamPage({ params }: Props) {
             {[exam.category.name, exam.subject?.name].filter(Boolean).join(" · ")}
             {exam.description ? <span className="mt-3 block whitespace-pre-line text-ink">{exam.description}</span> : null}
           </p>
+
+          {state === "open" && exam.start_at ? (
+            <div className="rounded-card bg-brand-100 p-4 text-center">
+              <p className="flex items-center justify-center gap-2 font-bold text-brand-950">
+                <span className="size-2.5 rounded-full bg-danger-700" aria-hidden />
+                {t("examDetail.liveTitle")}
+              </p>
+              {exam.end_at ? <p className="mt-1 text-sm text-brand-800">{t("examDetail.liveUntil", { date: dateTime(exam.end_at, lang) })}</p> : null}
+            </div>
+          ) : null}
+
+          <nav aria-label={t("category.shortcuts")}>
+            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: t("category.routine"), href: `/${lang}/routine?category=${exam.category.slug}`, Icon: CalendarDays },
+                { label: t("category.archive"), href: pageHref(lang, { when: "ended", category: exam.category.slug }), Icon: Archive },
+                { label: t("category.merit"), href: merit?.length ? `/${lang}/exams/${exam.slug}/leaderboard` : `/${lang}/leaderboard`, Icon: Trophy },
+                { label: t("category.allExams"), href: `/${lang}/category/${exam.category.slug}`, Icon: FileQuestion },
+              ].map(({ label, href, Icon }) => (
+                <li key={label}>
+                  <Link href={href} className="flex min-h-12 items-center gap-2.5 rounded-card border border-line-strong bg-surface px-4 text-sm font-semibold text-ink transition hover:border-brand-600 hover:bg-brand-50">
+                    <Icon className="size-5 shrink-0 text-brand-700" aria-hidden />
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           <section aria-labelledby="facts">
             <h2 id="facts" className="text-lg font-semibold text-ink">
