@@ -80,7 +80,26 @@ describe("RoutineSchedule", () => {
   });
 
   it("marks an exam that has started as live", () => {
-    expect(html([exam()], "en", Date.parse("2026-11-14T13:00:00Z"))).toContain("Live now");
+    const out = html([exam()], "en", Date.parse("2026-11-14T13:00:00Z"));
+    expect(out).toContain(">Live<");
+    expect(out).not.toContain("Upcoming");
+  });
+
+  it("shows marks, time and questions, the topics (two, the rest behind Show more) and the study materials", () => {
+    const syllabus = ["Motion", "Force", "Energy"].map((topic) => ({ subject: "Physics", chapter: "", topic }));
+    const out = html([exam({ syllabus, material_count: 2 })]);
+    for (const fact of ["25 marks", "30 min", "25 questions"]) expect(out).toContain(fact);
+    expect(out).toContain("1. Physics: Motion");
+    expect(out.indexOf("<details")).toBeLessThan(out.indexOf("3. Physics: Energy")); // the third line is inside "Show more"
+    expect(out.indexOf("<details")).toBeGreaterThan(out.indexOf("2. Physics: Force"));
+    expect(out).toContain("Study materials (2)");
+    expect(out).toContain('href="/en/materials?exam=physics-1"');
+  });
+
+  it("an exam with no topics and no materials shows neither block", () => {
+    const out = html([exam()]);
+    expect(out).not.toContain("Topics");
+    expect(out).not.toContain("Study materials");
   });
 
   it("is readable in Bangla", () => {

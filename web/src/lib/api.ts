@@ -91,7 +91,8 @@ export type PackageAccess = {
   categories: { slug: string; name: string; exam_count: number }[];
 };
 
-export type Category = { slug: string; name: string; description: string; exam_count: number; subjects: { slug: string; name: string; description: string }[] };
+/** `live_count`: scheduled exams running right now (absent from an older server: treated as 0). */
+export type Category = { slug: string; name: string; description: string; exam_count: number; live_count?: number; subjects: { slug: string; name: string; description: string }[] };
 
 export type Notice = { id: number; pdf: { available: boolean; name: string; size_bytes: number }; title: string; body: string; is_pinned: boolean; published_at: string; expires_at: string | null };
 

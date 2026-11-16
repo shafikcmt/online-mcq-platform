@@ -15,7 +15,16 @@ export type RoutineExam = {
   total_marks: string;
   exam_type: "practice" | "regular" | "live";
   access_type: "free" | "paid";
+  /** The exam's syllabus lines and how many study materials it has (absent from an older server). */
+  syllabus?: { subject: string; chapter: string; topic: string }[];
+  material_count?: number;
 };
+
+/** "Math: Algebra, Linear equations": one syllabus line as plain text. */
+export function syllabusText(line: { subject: string; chapter: string; topic: string }): string {
+  const detail = [line.chapter, line.topic].filter(Boolean).join(", ");
+  return line.subject && detail ? `${line.subject}: ${detail}` : line.subject || detail;
+}
 
 export type RoutineResponse = {
   pdf: { available: boolean; size_bytes: number; updated_at: string | null };
