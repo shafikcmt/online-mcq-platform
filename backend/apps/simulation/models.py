@@ -23,6 +23,7 @@ from apps.exams.models import Exam
 
 NAME_MAX_LENGTH = 120
 MAX_ENTRIES_PER_EXAM = 500
+MAX_NAMES_PER_BATCH = 200
 NAME_REQUIRED_MESSAGE = _("Enter a name.")
 
 

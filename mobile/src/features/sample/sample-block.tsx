@@ -30,11 +30,18 @@ export function SampleBlock({ data }: { data: SampleList }) {
         const marks = t("home:result.marks", { obtained: formatDecimal(row.marks, language), total: formatDecimal(data.total_marks, language) });
         return (
           <View key={`${row.name}-${index}`} style={styles.row} accessible accessibilityLabel={t("results:sample.row", { name: row.name, marks })}>
-            <View style={styles.name}>
-              <AppText weight="semibold" numberOfLines={1} style={styles.nameText}>
-                {row.name}
-              </AppText>
-              <Badge label={t("results:sample.label")} tone="neutral" />
+            <View style={styles.who}>
+              <View style={styles.name}>
+                <AppText weight="semibold" numberOfLines={1} style={styles.nameText}>
+                  {row.name}
+                </AppText>
+                <Badge label={t("results:sample.label")} tone="neutral" />
+              </View>
+              {row.position_by_marks ? (
+                <AppText variant="caption" color={colors.inkMuted}>
+                  {t("results:sample.position", { n: localizeDigits(row.position_by_marks, language) })}
+                </AppText>
+              ) : null}
             </View>
             <AppText weight="semibold">{marks}</AppText>
           </View>
@@ -48,6 +55,7 @@ const styles = StyleSheet.create({
   block: { gap: space.sm, marginTop: space.xl },
   heading: { flexDirection: "row", alignItems: "center", gap: space.sm },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: 1, borderStyle: "dashed", borderColor: colors.line, backgroundColor: colors.surface },
-  name: { flex: 1, flexDirection: "row", alignItems: "center", gap: space.sm },
+  who: { flex: 1, gap: 2 },
+  name: { flexDirection: "row", alignItems: "center", gap: space.sm },
   nameText: { flexShrink: 1 },
 });

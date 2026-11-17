@@ -7,9 +7,9 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
 
 | # | Requirement | Status | Where / notes |
 |---|---|---|---|
-| 1 | Simulated examinee profiles (admin) | Built (as clearly labelled **sample participants**) | `SAMPLE_PARTICIPANTS.md` |
+| 1 | Simulated examinee profiles (admin) | Built (as clearly labelled **sample participants**) | `SAMPLE_PARTICIPANTS.md` Many names can be added at once. |
 | 2 | Simulated examinee count per exam | Built | Per exam, shown apart: "120 students + 30 sample participants". |
-| 3 | Simulated leaderboard entries | Built, labelled, unranked, separate block | Real merit list and positions are never touched. |
+| 3 | Simulated leaderboard entries | Built, labelled, unranked, separate block | Real merit list and positions are never touched. A sample row can say in words where its marks would stand ("by marks, this would be position N"); it is never placed in the real list. |
 | 4 | Live exam routine (website, app, PDF, admin) | Built | `EXAM_ROUTINE.md` |
 | 5 | YouTube videos, per teacher/category, embedded | Built | `STUDY_MATERIALS.md`. Public/Unlisted videos only (a Private video cannot be shown to anyone but its owner). Teacher is a plain name. |
 | 6 | Package/plan cards by category with price, exam count, validity, benefits | Built | `PACKAGE_DISPLAY.md` |

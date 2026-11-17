@@ -28,6 +28,14 @@ describe("SampleBlock", () => {
     expect(out).toContain("25 / 30");
   });
 
+  it("may say in words where the marks would stand, and nothing when that is unknown", () => {
+    const rows = data().results;
+    const out = html(data({ results: [{ ...rows[0], position_by_marks: 2 }, { ...rows[1], position_by_marks: null }] }));
+    expect(out.match(/By marks, this would be position/g)).toHaveLength(1);
+    expect(out).toContain("By marks, this would be position 2 in the merit list");
+    expect(html(data({ results: [{ ...rows[0], position_by_marks: 2 }] }), "bn")).toContain("অবস্থান হতো ২");
+  });
+
   it("shows nothing when there are none", () => {
     expect(html(data({ count: 0, results: [] }))).toBe("");
   });

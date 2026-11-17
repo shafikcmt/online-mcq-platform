@@ -357,7 +357,8 @@
     "sampleTitle": "Sample participants",
     "sampleNote": "These are sample entries, not real students. They have no rank and do not change the merit list above.",
     "sampleLabel": "Sample",
-    "sampleCount": "{{n}} sample {{n|participant|participants}}"
+    "sampleCount": "{{n}} sample {{n|participant|participants}}",
+    "samplePosition": "By marks, this would be position {{n}} in the merit list"
   },
   "about": {
     "title": "About Live Model Test",

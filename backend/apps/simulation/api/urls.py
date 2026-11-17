@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     ExamEntriesView,
     ParticipationView,
+    PersonBulkCreateView,
     PersonDetailView,
     PersonListCreateView,
     PublicSampleListView,
@@ -10,6 +11,7 @@ from .views import (
 
 admin_urlpatterns = [
     path("sample-participants/", PersonListCreateView.as_view(), name="sample-person-list"),
+    path("sample-participants/bulk/", PersonBulkCreateView.as_view(), name="sample-person-bulk"),
     path("sample-participants/<int:pk>/", PersonDetailView.as_view(), name="sample-person-detail"),
     path(
         "exams/<int:pk>/sample-participants/", ExamEntriesView.as_view(), name="exam-sample-entries"

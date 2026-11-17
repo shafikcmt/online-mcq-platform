@@ -1,6 +1,7 @@
 """Sample participants API.
 
 Admin (admin session + CSRF + admin role; every write audited):
+- ``POST sample-participants/bulk/`` — many names at once
 - ``GET/POST sample-participants/``, ``sample-participants/{id}/`` get, update, delete
   (409 while the participant is in an exam)
 - ``GET/PUT exams/{id}/sample-participants/`` — the exam's complete list with marks
@@ -39,6 +40,8 @@ from apps.results.selectors import results_visible
 from .. import selectors, services
 from ..models import SampleEntry, SamplePerson
 from .serializers import (
+    BulkNamesResultSerializer,
+    BulkNamesSerializer,
     EntryListOutSerializer,
     EntryListSerializer,
     ParticipationSerializer,
@@ -86,6 +89,27 @@ class PersonListCreateView(AdminAPIMixin, generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         person = _write(request, services.create_person, SamplePerson(**serializer.validated_data))
         return Response(self.get_serializer(person).data, status=status.HTTP_201_CREATED)
+
+
+class PersonBulkCreateView(AdminAPIMixin, APIView):
+    """Add many sample participants at once from a list of names (all or none)."""
+
+    http_method_names = ["post", "options"]
+
+    @extend_schema(
+        operation_id="admin_sample_participants_bulk",
+        request=BulkNamesSerializer,
+        responses={201: BulkNamesResultSerializer},
+    )
+    def post(self, request):
+        serializer = BulkNamesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        created, skipped = _write(
+            request, services.create_people, serializer.validated_data["names"]
+        )
+        return Response(
+            {"created": len(created), "skipped": skipped}, status=status.HTTP_201_CREATED
+        )
 
 
 class PersonDetailView(AdminAPIMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -187,14 +211,17 @@ class PublicSampleListView(PublicAPIMixin, APIView):
         exam = generics.get_object_or_404(with_question_totals(public_exams()), slug=slug)
         if not exam.merit_enabled or not results_visible(exam, timezone.now()):
             raise Http404
+        entries = list(selectors.sample_entries(exam))
+        positions = selectors.positions_by_marks(exam, [entry.marks for entry in entries])
         rows = [
             {
                 "name": entry.person.name,
                 "marks": entry.marks,
                 "percentage": selectors.percentage(entry.marks, exam.total_marks),
                 "is_sample": True,
+                "position_by_marks": position,
             }
-            for entry in selectors.sample_entries(exam)
+            for entry, position in zip(entries, positions, strict=True)
         ]
         payload = {"count": len(rows), "total_marks": exam.total_marks, "results": rows}
         return Response(PublicSampleListSerializer(payload).data)

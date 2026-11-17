@@ -159,13 +159,15 @@ test("leaderboard: sample participants are a separate, labelled block with no po
       "GET /exams/physics/leaderboard/": page(rows, { my_position: 1 }),
       "GET /public/exams/physics/sample-participants/": {
         status: 200,
-        body: { count: 2, total_marks: "3.00", results: [{ name: "Zafar", marks: "2.50", percentage: "83.33", is_sample: true }, { name: "Mina", marks: "1.00", percentage: "33.33", is_sample: true }] },
+        body: { count: 2, total_marks: "3.00", results: [{ name: "Zafar", marks: "2.50", percentage: "83.33", is_sample: true, position_by_marks: 2 }, { name: "Mina", marks: "1.00", percentage: "33.33", is_sample: true, position_by_marks: null }] },
       },
     },
     "/leaderboard/physics",
   );
   expect(await screen.findByText("Sample participants")).toBeOnTheScreen();
   expect(screen.getByText(/2 sample participants\. These are not real students/)).toBeOnTheScreen();
+  expect(screen.getAllByText(/By marks, this would be position/)).toHaveLength(1); // a comparison in words; none when unknown
+  expect(screen.getByText("By marks, this would be position 2")).toBeOnTheScreen();
   expect(screen.getAllByText("Sample")).toHaveLength(2);
   expect(screen.getByText("Zafar")).toBeOnTheScreen();
   // the real list is unchanged: one ranked student

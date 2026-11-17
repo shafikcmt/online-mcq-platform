@@ -13,5 +13,7 @@ export type SamplePerson = {
 export type SampleEntry = { person: number; name: string; is_active: boolean; marks: string };
 export type SampleEntriesResponse = { total_marks: string; entries: SampleEntry[] };
 
+/** At most this many names in one "add many" request (the server's limit). */
+export const SAMPLE_BATCH_MAX = 200;
 export const SAMPLE_NAME_MAX = 120;
 export const SAMPLE_MAX_PER_EXAM = 500;

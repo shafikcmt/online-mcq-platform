@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { ListPlus, Plus } from "lucide-react";
 import { useCallback, useId, useRef, useState, type FormEvent } from "react";
 
 import { ActiveBadge, RowActions, statusFilterOptions } from "@/components/content/catalog-cells";
@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTable, useDeleteFocus, type Column } from "@/components/ui/data-table";
 import { FilterBar, FilterSelect, SearchInput } from "@/components/ui/filter-bar";
-import { Field, FormErrors, Input, Switch } from "@/components/ui/form";
+import { Field, FormErrors, Input, Switch, Textarea } from "@/components/ui/form";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
@@ -28,7 +28,7 @@ import { activeFilterCount, type ListState } from "@/lib/list-params";
 import { useListData } from "@/lib/use-list-data";
 import { useListUrl } from "@/lib/use-list-url";
 import type { Paginated } from "@/types/content";
-import { SAMPLE_NAME_MAX, type SamplePerson } from "@/types/sample";
+import { SAMPLE_BATCH_MAX, SAMPLE_NAME_MAX, type SamplePerson } from "@/types/sample";
 
 const rowId = (row: { id: number }) => row.id;
 const NO_ERRORS: MappedErrors = { fields: {}, form: [] };
@@ -53,6 +53,7 @@ export function SamplePeopleView({ data, state: serverState }: { data: Paginated
   const rememberDeleted = useDeleteFocus(rows, rowId, createRef);
   const [editing, setEditing] = useState<SamplePerson | "new" | null>(null);
   const [deleting, setDeleting] = useState<SamplePerson | null>(null);
+  const [adding, setAdding] = useState(false); // the "add many names" dialog
   const filtered = Boolean(state.search) || activeFilterCount(state) > 0;
 
   const columns: Column<SamplePerson>[] = [
@@ -78,7 +79,19 @@ export function SamplePeopleView({ data, state: serverState }: { data: Paginated
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("sp.title")} subtitle={t("sp.subtitle")} actions={createButton(createRef)} />
+      <PageHeader
+        title={t("sp.title")}
+        subtitle={t("sp.subtitle")}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setAdding(true)}>
+              <ListPlus aria-hidden />
+              {t("sp.bulk")}
+            </Button>
+            {createButton(createRef)}
+          </>
+        }
+      />
       <Alert tone="info">{t("sp.notice")}</Alert>
       <Card {...identity}>
         <FilterBar
@@ -126,6 +139,16 @@ export function SamplePeopleView({ data, state: serverState }: { data: Paginated
           onSaved={(created) => {
             setEditing(null);
             notify(t(created ? "sp.created" : "sp.saved"));
+            void reload();
+          }}
+        />
+      )}
+      {adding && (
+        <BulkDialog
+          onClose={() => setAdding(false)}
+          onSaved={(created, skipped) => {
+            setAdding(false);
+            notify(t(skipped ? "sp.bulkDoneSkipped" : "sp.bulkDone", { created: formatNumber(created, locale), skipped: formatNumber(skipped, locale) }));
             void reload();
           }}
         />
@@ -195,6 +218,62 @@ function PersonDialog({ person, onClose, onSaved }: { person: SamplePerson | nul
         </Field>
         <Switch id={`${formId}-active`} label={t("field.active")} checked={active} onChange={setActive} disabled={pending} />
         {errors.fields.is_active && <p className="text-[13px] text-danger-700">{errors.fields.is_active}</p>}
+      </form>
+    </Modal>
+  );
+}
+
+/** Many names at once: one per line. Blank lines are ignored and names already in the list are
+ * skipped by the server, which answers how many were added. */
+function BulkDialog({ onClose, onSaved }: { onClose: () => void; onSaved: (created: number, skipped: number) => void }) {
+  const { locale, t } = useI18n();
+  const formId = useId();
+  const [text, setText] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
+  const [pending, setPending] = useState(false);
+  const names = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const tooMany = names.length > SAMPLE_BATCH_MAX;
+  const tooLong = names.some((name) => name.length > SAMPLE_NAME_MAX);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (pending || !names.length || tooMany || tooLong) return;
+    setPending(true);
+    setErrors([]);
+    try {
+      const result = await apiFetch<{ created: number; skipped: number }>("/admin/sample-participants/bulk/", { method: "POST", body: { names } });
+      onSaved(result.created, result.skipped);
+    } catch (error) {
+      setErrors([describeError(error, t)]);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const problem = tooMany ? t("sp.bulkTooMany", { max: formatNumber(SAMPLE_BATCH_MAX, locale) }) : tooLong ? t("sp.bulkTooLong", { max: formatNumber(SAMPLE_NAME_MAX, locale) }) : undefined;
+  return (
+    <Modal
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={t("sp.bulkTitle")}
+      description={t("sp.bulkHint")}
+      closeDisabled={pending}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={pending}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit" form={formId} disabled={pending || !names.length || tooMany || tooLong} aria-busy={pending || undefined}>
+            {pending ? t("common.saving") : t("sp.bulkAdd", { n: formatNumber(names.length, locale) })}
+          </Button>
+        </>
+      }
+    >
+      <form id={formId} noValidate onSubmit={submit} className="space-y-5">
+        <FormErrors messages={errors} />
+        <Field id={`${formId}-names`} label={t("sp.bulkNames")} required hint={t("sp.bulkCount", { n: formatNumber(names.length, locale), max: formatNumber(SAMPLE_BATCH_MAX, locale) })} error={problem}>
+          <Textarea rows={10} value={text} onChange={(event) => setText(event.target.value)} disabled={pending} autoComplete="off" spellCheck={false} />
+        </Field>
       </form>
     </Modal>
   );
