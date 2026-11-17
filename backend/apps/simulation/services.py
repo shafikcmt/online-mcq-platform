@@ -10,6 +10,7 @@ from django.http import Http404
 
 from apps.audit import services as audit
 from apps.audit.services import AuditContext
+from apps.cms.models import normalize_line
 from apps.exams.models import Exam
 from apps.exams.selectors import with_question_totals
 
@@ -48,6 +49,25 @@ def create_person(person: SamplePerson, *, ctx: AuditContext) -> SamplePerson:
     person.save()
     _person_audit(ctx, "create", person, person.pk, {"values": _values(person)})
     return person
+
+
+@transaction.atomic
+def create_people(names: list[str], *, ctx: AuditContext) -> tuple[list[SamplePerson], int]:
+    """Add many names at once (all or none). Blank lines are ignored; a name that is already in
+    the list, or repeated in the batch, is skipped (compared without regard to case). Returns the
+    people created and how many names were skipped."""
+    existing = {name.casefold() for name in SamplePerson.objects.values_list("name", flat=True)}
+    created, skipped = [], 0
+    for raw in names:
+        name = normalize_line(raw)
+        if not name:
+            continue
+        if name.casefold() in existing:
+            skipped += 1
+            continue
+        existing.add(name.casefold())
+        created.append(create_person(SamplePerson(name=name), ctx=ctx))  # validates the name
+    return created, skipped
 
 
 @transaction.atomic

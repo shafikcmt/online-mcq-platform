@@ -35,6 +35,21 @@ def sample_entries(exam):
     )
 
 
+def positions_by_marks(exam, marks_list) -> list[int | None]:
+    """For each of ``marks_list``: the place those marks would take in the exam's generated merit
+    list (1 + the number of ranked real students with more marks). ``None`` for all when no merit
+    list has been generated. It is a comparison only: nothing is ranked or stored, and the real
+    list is untouched."""
+    from bisect import bisect_right
+
+    from apps.results.selectors import ranked_results
+
+    ranked = sorted(ranked_results(exam).order_by().values_list("obtained_marks", flat=True))
+    if not ranked:
+        return [None for _ in marks_list]
+    return [len(ranked) - bisect_right(ranked, marks) + 1 for marks in marks_list]
+
+
 def percentage(marks: Decimal, total_marks: Decimal) -> str:
     """``marks`` as a percentage of the exam total, two decimals (``"0.00"`` for a total of 0)."""
     if not total_marks:

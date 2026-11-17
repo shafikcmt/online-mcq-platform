@@ -41,6 +41,36 @@ describe("Sample participants library", () => {
     expect(within(rows[1]).getByText("Inactive")).toBeInTheDocument();
   });
 
+  it("adds many names at once: one per line, blanks dropped, and says how many were skipped", async () => {
+    const { calls } = mockApi((call) => (call.method === "POST" ? json(201, { created: 2, skipped: 1 }) : json(200, page([person()]))));
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "Add many names" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add many sample participants" });
+    const add = () => within(dialog).getByRole("button", { name: /^Add \d+ names$/ });
+    expect(add()).toBeDisabled(); // nothing written yet
+    fireEvent.change(within(dialog).getByLabelText(/Names/), { target: { value: "Rahim\n\n  Karim  \nSalma" } });
+    expect(within(dialog).getByText("3 of 200 names")).toBeInTheDocument();
+    fireEvent.click(add());
+    await waitFor(() => expect(calls.some((call) => call.method === "POST")).toBe(true));
+    const post = calls.find((call) => call.method === "POST");
+    expect(post?.url).toMatch(/\/admin\/sample-participants\/bulk\/$/);
+    expect(post?.body).toEqual({ names: ["Rahim", "Karim", "Salma"] });
+    expect(await screen.findByText("2 added; 1 were already in the list.")).toBeInTheDocument();
+  });
+
+  it("refuses more than 200 names or an over-long name before sending anything", async () => {
+    const { calls } = mockApi(() => json(200, page([person()])));
+    view();
+    fireEvent.click(screen.getByRole("button", { name: "Add many names" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add many sample participants" });
+    fireEvent.change(within(dialog).getByLabelText(/Names/), { target: { value: Array.from({ length: 201 }, (_, i) => `Name ${i}`).join("\n") } });
+    expect(within(dialog).getByText(/At most 200 names at a time/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /^Add 201 names$/ })).toBeDisabled();
+    fireEvent.change(within(dialog).getByLabelText(/Names/), { target: { value: "x".repeat(121) } });
+    expect(within(dialog).getByText(/at most 120 characters/)).toBeInTheDocument();
+    expect(calls.some((call) => call.method === "POST")).toBe(false);
+  });
+
   it("creates one (name only: no account or phone)", async () => {
     const { calls } = mockApi((call) => (call.method === "POST" ? json(201, person({ id: 9 })) : json(200, page([person()]))));
     view();

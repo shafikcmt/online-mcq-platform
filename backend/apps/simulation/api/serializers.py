@@ -3,7 +3,7 @@ true on every row) and carries no ids, ranks or account data."""
 
 from rest_framework import serializers
 
-from ..models import MAX_ENTRIES_PER_EXAM, NAME_MAX_LENGTH, SamplePerson
+from ..models import MAX_ENTRIES_PER_EXAM, MAX_NAMES_PER_BATCH, NAME_MAX_LENGTH, SamplePerson
 
 
 class SamplePersonSerializer(serializers.ModelSerializer):
@@ -15,6 +15,23 @@ class SamplePersonSerializer(serializers.ModelSerializer):
         model = SamplePerson
         fields = ("id", "name", "is_active", "exam_count", "created_at", "updated_at")
         read_only_fields = ("id", "created_at", "updated_at")
+
+
+class BulkNamesSerializer(serializers.Serializer):
+    """``POST``: many names at once (one per line in the admin form)."""
+
+    names = serializers.ListField(
+        child=serializers.CharField(
+            max_length=NAME_MAX_LENGTH, allow_blank=True, trim_whitespace=False
+        ),
+        min_length=1,
+        max_length=MAX_NAMES_PER_BATCH,
+    )
+
+
+class BulkNamesResultSerializer(serializers.Serializer):
+    created = serializers.IntegerField()
+    skipped = serializers.IntegerField(help_text="Names already in the list (or repeated).")
 
 
 class EntryInSerializer(serializers.Serializer):
@@ -45,6 +62,11 @@ class PublicSampleRowSerializer(serializers.Serializer):
     marks = serializers.DecimalField(max_digits=8, decimal_places=2)
     percentage = serializers.CharField()
     is_sample = serializers.BooleanField(help_text="Always true: these are not real students.")
+    position_by_marks = serializers.IntegerField(
+        allow_null=True,
+        help_text="Where these marks would stand in the real merit list (a comparison only; "
+        "the sample participant is not in that list). Null until a merit list exists.",
+    )
 
 
 class PublicSampleListSerializer(serializers.Serializer):

@@ -7,7 +7,8 @@ import type { SampleList } from "@/lib/sample";
 import { Chip } from "./cards";
 
 /** The sample participants of an exam, under the real merit list: a heading and a note that say they
- * are not real students, a "Sample" label on every row, and no position column. */
+ * are not real students, a "Sample" label on every row, and no position column. A small line may
+ * say where the marks would stand in the real list: a comparison in words, never a rank. */
 export function SampleBlock({ data, lang, t }: { data: SampleList; lang: Lang; t: T }) {
   if (data.count === 0) return null;
   return (
@@ -36,6 +37,7 @@ export function SampleBlock({ data, lang, t }: { data: SampleList; lang: Lang; t
                 <th scope="row" className="px-4 py-3 text-left font-medium text-ink">
                   <span className="mr-2">{row.name}</span>
                   <Chip tone="neutral">{t("merit.sampleLabel")}</Chip>
+                  {row.position_by_marks ? <span className="mt-0.5 block text-xs font-normal text-ink-muted">{t("merit.samplePosition", { n: digits(row.position_by_marks, lang) })}</span> : null}
                 </th>
                 <td className="px-4 py-3 text-right tabular-nums text-ink">
                   {decimal(row.marks, lang)} / {decimal(data.total_marks, lang)}

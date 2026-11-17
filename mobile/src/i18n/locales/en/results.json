@@ -81,6 +81,7 @@
     "note_one": "{{n}} sample participant. These are not real students: they have no rank and do not change the merit list.",
     "note_other": "{{n}} sample participants. These are not real students: they have no rank and do not change the merit list.",
     "label": "Sample",
-    "row": "Sample participant {{name}}, {{marks}}"
+    "row": "Sample participant {{name}}, {{marks}}",
+    "position": "By marks, this would be position {{n}}"
   }
 }

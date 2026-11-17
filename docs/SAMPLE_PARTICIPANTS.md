@@ -57,3 +57,17 @@ as real, and they can never change anything real.
   students would mislead students and could breach consumer-protection and app-store rules.
 - Not built: per-entry control of a *position* independent of marks (position follows marks), bulk import of names,
   random generation of names/marks, photos.
+
+## Added later
+
+**Many names at once.** People → Sample participants → "Add many names": write or paste one name per line (up
+to 200 at a time). Blank lines are ignored; a name already in the list, or repeated in the batch, is skipped
+(compared without regard to capital letters) and the message says how many were skipped. All or none: one
+over-long name stops the whole batch. API: `POST /api/v1/admin/sample-participants/bulk/` `{names: [...]}` →
+`{created, skipped}`.
+
+**Where the marks would stand.** Once the exam has a generated merit list, each sample row can carry a small
+line: "By marks, this would be position N in the merit list". It is a comparison in words (1 + the number of
+ranked real students with more marks), computed when the page is read. The sample participant is still not in
+the merit list, has no rank, and no real position changes. API: `position_by_marks` on
+`GET /api/v1/public/exams/{slug}/sample-participants/` (null until a merit list exists).

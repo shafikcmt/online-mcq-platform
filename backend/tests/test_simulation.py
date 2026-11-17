@@ -219,8 +219,53 @@ def test_the_sample_list_is_labelled_unranked_and_free_of_ids(subject):
     assert body["count"] == 2 and body["total_marks"] == "3.00"
     assert [row["name"] for row in body["results"]] == ["Zafar", "Mina"]  # best marks first
     row = body["results"][0]
-    assert row == {"name": "Zafar", "marks": "2.50", "percentage": "83.33", "is_sample": True}
-    assert "id" not in str(body) and "position" not in str(body)
+    assert row == {
+        "name": "Zafar",
+        "marks": "2.50",
+        "percentage": "83.33",
+        "is_sample": True,
+        # Real marks are 3, 2 and 1: 2.5 would stand second, 1 would share third.
+        "position_by_marks": 2,
+    }
+    assert body["results"][1]["position_by_marks"] == 3
+    assert "id" not in str(body) and "merit_position" not in str(body)
+
+
+def test_no_position_is_given_before_a_merit_list_exists(subject):
+    exam = published(subject)  # results visible, merit never generated
+    p = person()
+    services.set_exam_entries(exam.pk, [{"person": p.pk, "marks": 1}], ctx=CTX)
+    rows = (
+        APIClient().get(f"/api/v1/public/exams/{exam.slug}/sample-participants/").json()["results"]
+    )
+    assert rows[0]["position_by_marks"] is None
+
+
+def test_many_names_are_added_at_once_skipping_blanks_and_repeats(admin_client):
+    person("Karim")
+    response = admin_client.post(
+        "/api/v1/admin/sample-participants/bulk/",
+        {"names": ["Rahim", "  ", "karim", "Salma  Begum", "rahim", ""]},
+        format="json",
+    )
+    assert response.status_code == 201, response.content
+    assert response.json() == {"created": 2, "skipped": 2}
+    assert sorted(SamplePerson.objects.values_list("name", flat=True)) == [
+        "Karim",
+        "Rahim",
+        "Salma Begum",
+    ]
+    assert AuditLog.objects.filter(action="sample_person.create").count() == 3
+
+
+def test_a_batch_is_all_or_none_and_bounded(admin_client):
+    url = "/api/v1/admin/sample-participants/bulk/"
+    too_long = admin_client.post(url, {"names": ["Fine", "x" * 121]}, format="json")
+    assert too_long.status_code == 400
+    assert not SamplePerson.objects.exists()
+    assert admin_client.post(url, {"names": []}, format="json").status_code == 400
+    assert admin_client.post(url, {"names": ["n"] * 201}, format="json").status_code == 400
+    assert APIClient().post(url, {"names": ["A"]}, format="json").status_code in (401, 403)
 
 
 def test_the_sample_list_is_hidden_while_the_merit_list_is_hidden(subject):
