@@ -1,13 +1,12 @@
 import { router } from "expo-router";
 import { FileText, PlayCircle, type LucideIcon } from "lucide-react-native";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/app-text";
-import { Badge } from "@/components/badge";
 import { fetchMaterials } from "@/features/materials/api";
 import { useRemote } from "@/lib/use-remote";
-import { colors } from "@/theme";
+import { colors, space } from "@/theme";
 
 import { Panel, panelStyles } from "./panel";
 
@@ -23,8 +22,9 @@ async function fetchCounts(): Promise<Record<"video" | "pdf", number>> {
   return { video, pdf };
 }
 
-/** The study section of Home: video lessons and PDF notes. A part with nothing published yet says
- * "Coming soon" and cannot be opened; it opens by itself as soon as the admin publishes something. */
+/** The study section of Home: video lessons and PDF notes. Each tile stacks its icon, name and a
+ * "Coming soon" note (one line, never broken in two) so it reads well on narrow phones. A part with
+ * nothing published yet cannot be opened; it opens by itself as soon as the admin publishes something. */
 export function StudySection() {
   const { t } = useTranslation();
   const { data } = useRemote(fetchCounts);
@@ -42,15 +42,19 @@ export function StudySection() {
               accessibilityState={{ disabled: !ready }}
               disabled={!ready}
               onPress={() => router.push({ pathname: "/materials", params: { kind } })}
-              style={({ pressed }) => [panelStyles.tile, pressed && panelStyles.pressed]}
+              style={({ pressed }) => [panelStyles.tile, styles.tile, !ready && styles.idle, pressed && panelStyles.pressed]}
             >
-              <Icon size={22} color={ready ? colors.brand700 : colors.inkSubtle} />
-              <View style={panelStyles.tileText}>
-                <AppText variant="small" weight="semibold" color={ready ? colors.ink : colors.inkMuted} numberOfLines={2}>
-                  {name}
-                </AppText>
-                {ready ? null : <Badge label={t("home:study.soon")} tone="warning" />}
+              <View style={[panelStyles.icon, !ready && styles.iconIdle]}>
+                <Icon size={22} color={ready ? colors.brand700 : colors.inkSubtle} />
               </View>
+              <AppText variant="small" weight="semibold" color={ready ? colors.ink : colors.inkMuted} numberOfLines={1}>
+                {name}
+              </AppText>
+              {ready ? null : (
+                <AppText variant="caption" weight="semibold" color={colors.warning700} numberOfLines={1}>
+                  {t("home:study.soon")}
+                </AppText>
+              )}
             </Pressable>
           );
         })}
@@ -58,3 +62,9 @@ export function StudySection() {
     </Panel>
   );
 }
+
+const styles = StyleSheet.create({
+  tile: { flexDirection: "column", alignItems: "flex-start", gap: space.xs, minHeight: 0 },
+  idle: { backgroundColor: colors.canvas },
+  iconIdle: { backgroundColor: colors.line },
+});

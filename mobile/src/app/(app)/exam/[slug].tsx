@@ -26,7 +26,7 @@ import { statusOf } from "@/features/exams/exam-card";
 import { relativeOrDate, shortGap } from "@/features/exams/time";
 import type { StudentExamDetail } from "@/features/exams/types";
 import { formatDateTime, formatDecimal } from "@/lib/format";
-import { localizeDigits } from "@/lib/text";
+import { localizeDigits, tidyName } from "@/lib/text";
 import { useRemote } from "@/lib/use-remote";
 import { useServerNow } from "@/lib/use-server-now";
 import { colors, radius, space } from "@/theme";
@@ -85,7 +85,7 @@ export default function ExamDetailScreen() {
       }
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[colors.brand600]} tintColor={colors.brand600} />}
     >
-      <PageHeader title={data?.title ?? t("exams:title")} eyebrow={data ? [data.category.name, data.subject?.name].filter(Boolean).join(" · ") : undefined} />
+      <PageHeader title={data?.title ?? t("exams:title")} eyebrow={data ? [tidyName(data.category.name), data.subject?.name].filter(Boolean).join(" · ") : undefined} />
       {loading ? (
         <View style={styles.skeleton} accessible accessibilityLabel={t("loading")} accessibilityState={{ busy: true }}>
           {[48, 180, 120].map((height, index) => (

@@ -3,8 +3,9 @@ import { StyleSheet, View } from "react-native";
 import { AppText } from "@/components/app-text";
 import { colors, radius, space } from "@/theme";
 
-/** A titled block on Home: a brand-coloured band with the section name, then its tiles on a
- * white card. Used for the exam section and the study section so both read as one family. */
+/** A titled block on Home: a brand-coloured band with the section name, then its tiles on a soft
+ * tinted ground, so the white tiles stand out from it. Used for the exam section and the study
+ * section so both read as one family. */
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.panel}>
@@ -25,21 +26,21 @@ export const panelStyles = StyleSheet.create({
     flexGrow: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: space.sm,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
-    minHeight: 56,
+    gap: space.md,
+    padding: space.md,
+    minHeight: 68,
     borderRadius: radius.card,
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.lineStrong,
+    borderColor: colors.line,
   },
-  tileText: { flex: 1 },
+  icon: { width: 40, height: 40, borderRadius: radius.card, backgroundColor: colors.brand50, alignItems: "center", justifyContent: "center" },
+  tileText: { flex: 1, gap: 2 },
   pressed: { backgroundColor: colors.brand50, borderColor: colors.brand600 },
 });
 
 const styles = StyleSheet.create({
-  panel: { borderRadius: radius.sheet, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, overflow: "hidden" },
-  band: { backgroundColor: colors.brand600, paddingVertical: space.sm, paddingHorizontal: space.lg },
-  body: { padding: space.md },
+  panel: { borderRadius: radius.sheet, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.brand100, overflow: "hidden" },
+  band: { backgroundColor: colors.brand600, paddingVertical: space.md, paddingHorizontal: space.lg },
+  body: { padding: space.md, backgroundColor: colors.brand50 },
 });

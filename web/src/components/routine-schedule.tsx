@@ -2,7 +2,7 @@ import { ArrowRight, BookOpen, CalendarClock, Clock3, FileQuestion, Trophy } fro
 import Link from "next/link";
 
 import { Chip } from "@/components/cards";
-import { decimal, digits } from "@/lib/format";
+import { decimal, digits, tidyName } from "@/lib/format";
 import type { Lang, T } from "@/lib/i18n";
 import { materialsHref } from "@/lib/materials";
 import { dayLabel, groupByDay, routineState, syllabusText, timeRange, type RoutineExam } from "@/lib/routine";
@@ -68,7 +68,7 @@ function RoutineCard({ exam, lang, t, live }: { exam: RoutineExam; lang: Lang; t
       </div>
       <div>
         <h3 className="text-lg font-bold break-words text-ink">{exam.title}</h3>
-        <p className="mt-0.5 text-sm text-ink-muted">{[exam.category.name, exam.subject?.name].filter(Boolean).join(" · ")}</p>
+        <p className="mt-0.5 text-sm text-ink-muted">{[tidyName(exam.category.name), exam.subject?.name].filter(Boolean).join(" · ")}</p>
       </div>
       <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm font-semibold text-ink">
         {facts.map(({ Icon, text }) => (

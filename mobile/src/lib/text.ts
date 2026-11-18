@@ -21,3 +21,9 @@ export function toBanglaDigits(value: string | number): string {
 export function localizeDigits(value: string | number, language: string): string {
   return language === "bn" ? toBanglaDigits(value) : String(value);
 }
+
+/** An admin-typed name with the usual stray spaces removed: runs of spaces become one, and no space
+ * is left just inside brackets ("University ( A Unit)" → "University (A Unit)"). Display only. */
+export function tidyName(value: string): string {
+  return value.replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
+}

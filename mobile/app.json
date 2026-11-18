@@ -2,7 +2,7 @@
   "expo": {
     "name": "Live Model Test",
     "slug": "live-model-test",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "livemodeltest",
@@ -40,6 +40,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "f38db9bb-802e-4de2-9d09-0010d871c55f"
+      }
     }
   }
 }
