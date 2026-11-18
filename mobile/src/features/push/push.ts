@@ -64,6 +64,11 @@ export async function disablePush(): Promise<void> {
   if (token) await api("/me/push-devices/", { method: "DELETE", body: { token } }).catch(() => undefined);
 }
 
+/** The account is gone on the server (and its devices with it): only forget the settings kept on this phone. */
+export async function forgetPush(): Promise<void> {
+  await AsyncStorage.multiRemove([PREF_KEY, TOKEN_KEY]);
+}
+
 /** After sign-in: a phone that had notifications on registers again (the token can change). Never asks. */
 export async function refreshPush(): Promise<void> {
   if (!pushSupported() || (await AsyncStorage.getItem(PREF_KEY)) !== "1") return;

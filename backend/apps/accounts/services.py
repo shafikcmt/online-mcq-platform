@@ -166,6 +166,102 @@ def update_profile(user: User, data: dict) -> User:
     return locked
 
 
+DELETED_NAME = "Deleted user"
+
+
+def deleted_mobile_number(pk: int) -> str:
+    """A placeholder number for a deleted account.
+
+    Valid E.164 (so the database check passes), unique per user (it carries the user id) and in the
+    unassigned ``+990`` range, so it can never clash with a real person who registers later."""
+    return f"+990{pk:011d}"
+
+
+def delete_account(user: User, *, current_password: str, ctx: AuditContext) -> None:
+    """A student deletes their own account (the person can always erase their data).
+
+    The account is anonymised, not removed: the name, mobile number, e-mail and nickname are
+    replaced, the password becomes unusable, every session ends, and push devices and pending
+    verification codes for the old number are deleted.
+
+    What stays, with no personal detail attached: exam attempts, results and merit positions
+    (other students' ranks must not change), payments and subscriptions (accounting records).
+    The old mobile number is free to register again.
+
+    Only a student can do this, and only with the current password; admins are never deleted this
+    way. Raises ``InvalidCurrentPassword`` or ``NotAStudent``."""
+    with transaction.atomic():
+        locked = User.objects.select_for_update().get(pk=user.pk)
+        if locked.role != Role.STUDENT:
+            raise NotAStudent()
+        if not locked.check_password(current_password):
+            raise InvalidCurrentPassword(field="current_password")
+        _erase_personal_data(locked)
+        audit.record(
+            ctx,
+            action="user.delete_account",
+            entity_type="accounts.user",
+            entity_id=locked.pk,
+            summary="student deleted their own account",
+            metadata={},
+            allowed_fields=(),
+        )
+    logger.info("Student deleted their account user_id=%s", user.pk)
+
+
+def anonymise_student(user_id: int, *, ctx: AuditContext) -> User:
+    """An admin erases a student's personal data on the student's request.
+
+    For a person who cannot use the app. Exactly what ``delete_account`` does, without the
+    password: the admin has checked the request. A student account only (``NotAStudent`` for
+    staff). An account that is already erased is returned unchanged."""
+    with transaction.atomic():
+        locked = User.objects.select_for_update().filter(pk=user_id).first()
+        if locked is None:
+            raise Http404
+        if locked.role != Role.STUDENT:
+            raise NotAStudent()
+        if locked.full_name == DELETED_NAME and locked.mobile_number == deleted_mobile_number(
+            locked.pk
+        ):
+            return locked
+        _erase_personal_data(locked)
+        audit.record(
+            ctx,
+            action="user.anonymise",
+            entity_type="accounts.user",
+            entity_id=locked.pk,
+            summary="student's personal data erased by an admin",
+            metadata={},
+            allowed_fields=(),
+        )
+    logger.info("Admin erased a student's personal data user_id=%s", user_id)
+    return locked
+
+
+def _erase_personal_data(locked: User) -> None:
+    """Replace the person's details, end every session and delete what only exists to reach them."""
+    from apps.notifications.models import PushDevice
+    from apps.verification.models import OtpCode
+
+    old_number = locked.mobile_number
+    locked.full_name = DELETED_NAME
+    locked.mobile_number = deleted_mobile_number(locked.pk)
+    locked.email = None
+    locked.is_active = False
+    locked.is_mobile_verified = False
+    locked.set_unusable_password()
+    locked.auth_version = F("auth_version") + 1
+    locked.save()
+    locked.refresh_from_db(fields=["auth_version"])
+    tokens.revoke_all_refresh_tokens(locked)
+    StudentProfile.objects.filter(user=locked).update(display_name="")
+    PushDevice.objects.filter(user=locked).delete()
+    OtpCode.objects.filter(
+        mobile_number=old_number
+    ).delete()  # also removes its verification tokens
+
+
 def set_student_active(user_id: int, active: bool, *, ctx: AuditContext) -> User:
     """Activate or deactivate a **student** account (Admin Panel → Users).
 

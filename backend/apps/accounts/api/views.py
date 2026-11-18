@@ -16,6 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.audit.services import AuditContext
 from apps.core.exceptions import ApiError
 from apps.core.net import get_client_ip
 from apps.core.phone import mask_mobile, try_normalize_bd_mobile
@@ -251,6 +252,30 @@ class PasswordChangeView(APIView):
             )
         except DjangoValidationError as exc:
             raise _password_errors("new_password", exc) from exc
+        except AccountError as exc:
+            raise from_account_error(exc) from exc
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AccountDeleteView(APIView):
+    """``POST``: the signed-in student deletes (anonymises) their own account.
+
+    Needs the current password. Irreversible; ends every session. Answers 204."""
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [PasswordChangeThrottle]
+    http_method_names = ["post", "options"]
+
+    @extend_schema(request=s.AccountDeleteSerializer, responses={204: None}, tags=["me"])
+    def post(self, request):
+        data = s.AccountDeleteSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        try:
+            services.delete_account(
+                request.user,
+                current_password=data.validated_data["current_password"],
+                ctx=AuditContext.from_request(request),
+            )
         except AccountError as exc:
             raise from_account_error(exc) from exc
         return Response(status=status.HTTP_204_NO_CONTENT)

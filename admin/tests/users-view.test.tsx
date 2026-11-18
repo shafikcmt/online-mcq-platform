@@ -151,8 +151,8 @@ describe("UserDetail", () => {
     expect(value(account, "Mobile verification")).toHaveTextContent("Verified");
     expect(screen.getByText("Mobile numbers and emails are partly hidden to protect privacy.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to users" })).toHaveAttribute("href", "/users");
-    // Read-only except one action: deactivating the student account.
-    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Deactivate account"]);
+    // Read-only except two account actions: deactivating, and erasing personal data on request.
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Deactivate account", "Erase personal data"]);
   });
 
   it("count cards link to their filtered lists: results, attempts, subscriptions and payments", () => {
@@ -207,6 +207,29 @@ describe("UserStatusActions (activate / deactivate a student)", () => {
     const dialog = await screen.findByRole("alertdialog", { name: "এই শিক্ষার্থীকে আবার সক্রিয় করবেন?" });
     fireEvent.click(within(dialog).getByRole("button", { name: "সক্রিয় করুন" }));
     await waitFor(() => expect(calls[0]?.url).toMatch(/\/admin\/users\/40\/activate\/$/));
+  });
+
+  it("erases a student's personal data only after a clear warning, then reloads", async () => {
+    const { calls } = mockApi(() => json(200, detail({ is_active: false, full_name: "Deleted user" })));
+    renderPanel(<UserDetail user={detail()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Erase personal data" }));
+    const dialog = await screen.findByRole("alertdialog", { name: "Erase this student's personal data?" });
+    expect(dialog).toHaveTextContent("cannot be undone");
+    expect(dialog).toHaveTextContent("Ayesha Siddika");
+    expect(calls).toHaveLength(0); // nothing before confirming
+    fireEvent.click(within(dialog).getByRole("button", { name: "Erase for good" }));
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0].url).toMatch(/\/admin\/users\/40\/anonymise\/$/);
+    expect(calls[0].body).toEqual({ confirm: true });
+    expect(calls[0].headers["X-CSRFToken"]).toBe("test-token");
+    expect(await findToast()).toHaveTextContent("The student's personal data has been erased.");
+    expect(router.refresh).toHaveBeenCalled();
+  });
+
+  it("an erased account offers no actions; a staff account never does", () => {
+    renderPanel(<UserDetail user={detail({ is_active: false, full_name: "Deleted user" })} />);
+    expect(screen.queryByRole("button", { name: "Erase personal data" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Activate account" })).toBeNull();
   });
 
   it("cancel sends nothing", async () => {

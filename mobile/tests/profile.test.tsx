@@ -124,3 +124,38 @@ test("signed-in screens cannot be opened without a session", async () => {
   expect(await screen.findByRole("button", { name: "Sign in" })).toBeOnTheScreen();
   expect(screen.queryByText("Rahim Uddin")).not.toBeOnTheScreen();
 });
+
+test("delete account: says what goes and what stays, needs the password and a second confirmation, then signs out", async () => {
+  await AsyncStorage.multiSet([["mcq.push.enabled", "1"], ["mcq.push.token", "ExponentPushToken[abcdefghij0000000001]"]]);
+  const { backend, user } = await openProfile({
+    "POST /auth/account/delete/": [
+      apiError(400, "invalid_current_password", "Your current password is incorrect.", { field_errors: { current_password: ["Your current password is incorrect."] } }),
+      { status: 204 },
+    ],
+  });
+  await user.press(screen.getByRole("button", { name: "Delete account" }));
+  expect(await screen.findByText(/This cannot be undone\. Your account is deleted for good/)).toBeOnTheScreen();
+  expect(screen.getByText(/kept without your name/)).toBeOnTheScreen();
+
+  // An empty password is refused on the phone; nothing is sent.
+  await user.press(screen.getByRole("button", { name: "Delete my account" }));
+  expect(screen.queryByText("Delete your account for good?")).toBeNull();
+  expect(backend.find("POST", "/auth/account/delete/")).toHaveLength(0);
+
+  // A wrong password: the server's message stays under the field, the account is still there.
+  await user.type(screen.getByLabelText("Current password"), "nope");
+  await user.press(screen.getByRole("button", { name: "Delete my account" }));
+  await user.press(await screen.findByRole("button", { name: "Yes, delete" }));
+  expect(await screen.findByText("Your current password is incorrect.")).toBeOnTheScreen();
+
+  // The right one: a second question, then the phone forgets the account and shows the sign-in screen.
+  await user.clear(screen.getByLabelText("Current password"));
+  await user.type(screen.getByLabelText("Current password"), "right-pass-2026");
+  await user.press(screen.getByRole("button", { name: "Delete my account" }));
+  await user.press(await screen.findByRole("button", { name: "Yes, delete" }));
+  expect(await screen.findByText("Your account has been deleted.")).toBeOnTheScreen();
+  expect(backend.find("POST", "/auth/account/delete/").at(-1)?.body).toEqual({ current_password: "right-pass-2026" });
+  expect(await AsyncStorage.getItem("mcq.push.enabled")).toBeNull();
+  expect(await AsyncStorage.getItem("mcq.push.token")).toBeNull();
+  expect(secureStore.has("mcq.refresh_token")).toBe(false);
+});

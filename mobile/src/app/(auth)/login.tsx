@@ -31,11 +31,13 @@ export default function LoginScreen() {
   const info =
     params.reset === "1"
       ? t("auth:forgot.done")
-      : notice === "passwordChanged"
-        ? t("profile:password.done")
-        : notice === "sessionExpired"
-          ? t("errors.sessionExpired")
-          : null;
+      : notice === "accountDeleted"
+        ? t("profile:delete.done")
+        : notice === "passwordChanged"
+          ? t("profile:password.done")
+          : notice === "sessionExpired"
+            ? t("errors.sessionExpired")
+            : null;
 
   async function submit() {
     if (busy) return;

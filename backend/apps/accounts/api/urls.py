@@ -11,6 +11,7 @@ auth_urlpatterns = [
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path("password/reset/", views.PasswordResetView.as_view(), name="password-reset"),
     path("password/change/", views.PasswordChangeView.as_view(), name="password-change"),
+    path("account/delete/", views.AccountDeleteView.as_view(), name="account-delete"),
 ]
 
 # Admin Panel sign-in (session + CSRF), mounted under /admin/auth/.
@@ -29,6 +30,11 @@ admin_users_urlpatterns = [
         "users/<int:pk>/activate/",
         admin_users.AdminUserActivateView.as_view(),
         name="user-activate",
+    ),
+    path(
+        "users/<int:pk>/anonymise/",
+        admin_users.AdminUserAnonymiseView.as_view(),
+        name="user-anonymise",
     ),
     path(
         "users/<int:pk>/deactivate/",

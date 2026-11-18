@@ -93,6 +93,12 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(max_length=128, trim_whitespace=False)
 
 
+class AccountDeleteSerializer(serializers.Serializer):
+    """The current password confirms that the account's owner is the one deleting it."""
+
+    current_password = serializers.CharField(max_length=128, trim_whitespace=False)
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     """Student-facing account data. Never includes password, flags or auth_version."""
 

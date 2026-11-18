@@ -197,6 +197,33 @@ class _SetActiveView(AdminAPIMixin, APIView):
         return Response(AdminUserDetailSerializer(user, context={"request": request}).data)
 
 
+class AnonymiseConfirmSerializer(serializers.Serializer):
+    confirm = serializers.BooleanField()
+
+    def validate_confirm(self, value):
+        if value is not True:
+            raise serializers.ValidationError(_("Confirm that this cannot be undone."))
+        return value
+
+
+class AdminUserAnonymiseView(AdminAPIMixin, APIView):
+    """Erase a student's personal data on the student's request (they cannot use the app).
+
+    Irreversible. The admin must send ``{"confirm": true}``; staff accounts are refused."""
+
+    http_method_names = ["post", "options"]
+
+    @extend_schema(request=AnonymiseConfirmSerializer, responses=AdminUserDetailSerializer)
+    def post(self, request, pk):
+        AnonymiseConfirmSerializer(data=request.data).is_valid(raise_exception=True)
+        try:
+            services.anonymise_student(pk, ctx=AuditContext.from_request(request))
+        except AccountError as exc:
+            raise from_account_error(exc) from exc
+        user = _with_counts(generics.get_object_or_404(_admin_users(), pk=pk))
+        return Response(AdminUserDetailSerializer(user, context={"request": request}).data)
+
+
 class AdminUserActivateView(_SetActiveView):
     active = True
 
