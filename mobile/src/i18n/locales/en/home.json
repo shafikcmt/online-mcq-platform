@@ -64,7 +64,8 @@
     "title": "Exam section",
     "exams_one": "{{n}} exam",
     "exams_other": "{{n}} exams",
-    "live": "live now"
+    "live": "live now",
+    "liveShort": "Live"
   },
   "quick": {
     "title": "Quick access",

@@ -8,7 +8,7 @@ import { AppText } from "@/components/app-text";
 import { Badge } from "@/components/badge";
 import { Button } from "@/components/button";
 import { formatDecimal } from "@/lib/format";
-import { localizeDigits } from "@/lib/text";
+import { localizeDigits, tidyName } from "@/lib/text";
 import { colors, radius, space } from "@/theme";
 
 import { timeRange } from "./group";
@@ -60,7 +60,7 @@ export function RoutineCard({ exam, live }: { exam: RoutineExam; live: boolean }
         {exam.title}
       </AppText>
       <AppText variant="small" color={colors.inkMuted}>
-        {[exam.category.name, exam.subject?.name].filter(Boolean).join(" · ")}
+        {[tidyName(exam.category.name), exam.subject?.name].filter(Boolean).join(" · ")}
       </AppText>
       <View style={styles.facts}>
         {facts.map(({ Icon, text }) => (

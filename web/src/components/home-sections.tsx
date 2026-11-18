@@ -2,7 +2,7 @@ import { BookOpenCheck, Briefcase, Building2, FileText, GraduationCap, Landmark,
 import Link from "next/link";
 
 import type { Category } from "@/lib/api";
-import { digits } from "@/lib/format";
+import { digits, tidyName } from "@/lib/format";
 import type { Lang, T } from "@/lib/i18n";
 import { materialsHref } from "@/lib/materials";
 
@@ -10,23 +10,25 @@ import { materialsHref } from "@/lib/materials";
 const CATEGORY_ICONS: LucideIcon[] = [GraduationCap, Stethoscope, BookOpenCheck, Landmark, Building2, Briefcase];
 
 const TILE =
-  "relative flex min-h-14 items-center gap-3 rounded-card border border-line-strong bg-surface px-4 py-3 text-sm font-semibold text-ink transition hover:border-brand-600 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-brand-600";
+  "flex min-h-[4.25rem] items-center gap-3 rounded-card border border-line bg-surface p-3 text-sm font-semibold text-ink transition hover:border-brand-600 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-brand-600";
+const ICON = "flex size-10 shrink-0 items-center justify-center rounded-card bg-brand-50 text-brand-700";
 
 /** A titled block of the home page: a brand-coloured band with the section name, then its tiles.
  * The exam section and the study section share it, so both read as one family (as in the app). */
 function Panel({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={id} className="overflow-hidden rounded-[1rem] border border-line bg-surface shadow-sm">
-      <h2 id={id} className="bg-brand-600 px-4 py-2.5 text-center text-lg font-bold text-white">
+    <section aria-labelledby={id} className="overflow-hidden rounded-[1rem] border border-brand-100 bg-surface shadow-sm">
+      <h2 id={id} className="bg-brand-600 px-4 py-3 text-center text-lg font-bold text-white">
         {title}
       </h2>
-      <div className="p-3 sm:p-4">{children}</div>
+      <div className="bg-brand-50 p-3 sm:p-4">{children}</div>
     </section>
   );
 }
 
-/** Every category that has exams. A red dot (with the words "live now" for screen readers) marks a
- * category with a scheduled exam running right now. Each opens the category's own page. */
+/** Every category that has exams: icon, name and a quiet line with the exam count. A category with a
+ * scheduled exam running right now adds a red dot and the word "Live" on that line (never on top of
+ * the name, and never colour alone). Each opens the category's own page. */
 export function ExamSection({ categories, lang, t }: { categories: Category[]; lang: Lang; t: T }) {
   return (
     <Panel id="categories" title={t("home.categories.title")}>
@@ -37,17 +39,21 @@ export function ExamSection({ categories, lang, t }: { categories: Category[]; l
           return (
             <li key={category.slug}>
               <Link href={`/${lang}/category/${category.slug}`} className={TILE}>
-                <Icon className="size-6 shrink-0 text-brand-700" aria-hidden />
-                <span className="min-w-0 flex-1">
-                  <span className="block break-words">{category.name}</span>
-                  <span className="block text-xs font-normal text-ink-muted">{t("home.categories.exams", { n: digits(category.exam_count, lang) })}</span>
+                <span className={ICON}>
+                  <Icon className="size-6" aria-hidden />
                 </span>
-                {live ? (
-                  <span className="absolute top-2 right-2 flex items-center">
-                    <span className="size-2.5 rounded-full bg-danger-700" aria-hidden />
-                    <span className="sr-only">{t("home.categories.live")}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block break-words">{tidyName(category.name)}</span>
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs font-normal text-ink-muted">
+                    {t("home.categories.exams", { n: digits(category.exam_count, lang) })}
+                    {live ? (
+                      <span className="flex items-center gap-1 font-bold text-danger-700">
+                        <span className="size-1.5 rounded-full bg-danger-700" aria-hidden />
+                        {t("home.categories.liveShort")}
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
+                </span>
               </Link>
             </li>
           );
@@ -71,10 +77,12 @@ export function StudySection({ counts, lang, t }: { counts: { video: number; pdf
           const ready = counts[kind] > 0;
           const inner = (
             <>
-              <Icon className={`size-6 shrink-0 ${ready ? "text-brand-700" : "text-ink-subtle"}`} aria-hidden />
+              <span className={`${ICON} ${ready ? "" : "!bg-line !text-ink-subtle"}`}>
+                <Icon className="size-6" aria-hidden />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className={`block ${ready ? "" : "text-ink-muted"}`}>{t(`home.study.${kind}`)}</span>
-                {ready ? null : <span className="mt-0.5 inline-block rounded-full bg-accent-50 px-2 py-0.5 text-xs font-semibold text-warning-700">{t("home.study.soon")}</span>}
+                {ready ? null : <span className="mt-0.5 block text-xs font-semibold whitespace-nowrap text-warning-700">{t("home.study.soon")}</span>}
               </span>
             </>
           );
@@ -85,7 +93,7 @@ export function StudySection({ counts, lang, t }: { counts: { video: number; pdf
                   {inner}
                 </Link>
               ) : (
-                <div className="flex min-h-14 items-center gap-3 rounded-card border border-line bg-neutral-50 px-4 py-3 text-sm font-semibold">{inner}</div>
+                <div className="flex min-h-[4.25rem] items-center gap-3 rounded-card border border-line bg-canvas p-3 text-sm font-semibold">{inner}</div>
               )}
             </li>
           );

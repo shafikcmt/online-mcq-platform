@@ -18,16 +18,20 @@ describe("ExamSection", () => {
     expect(out).toContain("1 exam<");
   });
 
-  it("marks only a category with an exam running now, in words too", () => {
+  it("marks only a category with an exam running now, with the word Live beside the count", () => {
     const out = html([category({ live_count: 2 }), category({ slug: "bank", name: "Bank jobs" })]);
-    expect(out.match(/live now/g)).toHaveLength(1);
-    expect(html([category({ live_count: undefined })])).not.toContain("live now"); // an older server
+    expect(out.match(/>Live</g)).toHaveLength(1);
+    expect(html([category({ live_count: undefined })])).not.toContain(">Live<"); // an older server
+  });
+
+  it("tidies stray spaces in an admin-typed name", () => {
+    expect(html([category({ name: "University ( A  Unit )" })])).toContain("University (A Unit)");
   });
 
   it("is in Bangla", () => {
     const out = html([category({ live_count: 1 })], "bn");
     expect(out).toContain("পরীক্ষা বিভাগ");
-    expect(out).toContain("এখন লাইভ");
+    expect(out).toContain("লাইভ");
   });
 });
 

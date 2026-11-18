@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
 import { publicGet, type Category, type Exam, type Page } from "@/lib/api";
 import { apiPath, pageHref, type When } from "@/lib/exam-filters";
-import { dateTime, digits } from "@/lib/format";
+import { dateTime, digits, tidyName } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
 import { materialsHref } from "@/lib/materials";
 import { alternates } from "@/lib/site";
@@ -81,7 +81,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <>
-      <PageIntro title={category.name} body={category.description || t("category.count", { n: digits(total, lang) })}>
+      <PageIntro title={tidyName(category.name)} body={category.description || t("category.count", { n: digits(total, lang) })}>
         {back}
       </PageIntro>
       <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pb-16 sm:px-6">

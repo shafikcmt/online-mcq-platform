@@ -15,7 +15,7 @@ import { EmptyNote } from "@/features/dashboard/section";
 import { fetchExams } from "@/features/exams/api";
 import { relativeOrDate } from "@/features/exams/time";
 import type { ExamWhen, StudentExam } from "@/features/exams/types";
-import { localizeDigits } from "@/lib/text";
+import { localizeDigits, tidyName } from "@/lib/text";
 import { useRemote } from "@/lib/use-remote";
 import { useServerNow } from "@/lib/use-server-now";
 import { colors, radius, space } from "@/theme";
@@ -41,7 +41,7 @@ export default function CategoryScreen() {
 
   const rows: Row[] = data ? (["open", "upcoming", "ended"] as const).flatMap((when) => data[when].results.map((exam) => ({ exam, when }))) : [];
   const total = data ? data.open.count + data.upcoming.count + data.ended.count : 0;
-  const name = params.name || rows[0]?.exam.category.name || t("exams:title");
+  const name = tidyName(params.name || rows[0]?.exam.category.name || "") || t("exams:title");
 
   return (
     <Screen

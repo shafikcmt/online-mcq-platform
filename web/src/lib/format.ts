@@ -65,3 +65,9 @@ export function clock(seconds: number, lang: Lang): string {
   const s = String(total % 60).padStart(2, "0");
   return digits(h ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`, lang);
 }
+
+/** An admin-typed name with the usual stray spaces removed: runs of spaces become one, and no space
+ * is left just inside brackets ("University ( A Unit)" -> "University (A Unit)"). Display only. */
+export function tidyName(value: string): string {
+  return value.replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
+}
