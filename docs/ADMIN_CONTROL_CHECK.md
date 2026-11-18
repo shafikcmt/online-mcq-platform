@@ -46,3 +46,9 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
    in `PUSH_NOTIFICATIONS.md`; secrets go only on the server, never in chat. Nothing has been sent to a real phone yet.
 3. **App size** needs new EAS builds (see `APP_SIZE.md`: a `preview-small` profile is ready).
 4. **Paid study materials** (everything is public today) and a separate teacher entity are not built.
+
+## Google Play readiness
+
+Privacy policy, terms and "delete your account" pages are on the website, the app can delete the student's own
+account, and an admin can erase a student's personal data on request: see `PLAY_STORE_READINESS.md` (also what the
+owner still has to do in the Play Console, and the payments-policy risk).

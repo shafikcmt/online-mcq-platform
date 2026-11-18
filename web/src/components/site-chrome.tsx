@@ -25,6 +25,9 @@ export function navItems(lang: Lang) {
     { href: `/${lang}/about`, label: t("nav.about"), main: false },
     { href: `/${lang}/faq`, label: t("nav.faq"), main: false },
     { href: `/${lang}/contact`, label: t("nav.contact"), main: false },
+    { href: `/${lang}/privacy`, label: t("nav.privacy"), main: false },
+    { href: `/${lang}/terms`, label: t("nav.terms"), main: false },
+    { href: `/${lang}/delete-account`, label: t("nav.deleteAccount"), main: false },
   ];
 }
 

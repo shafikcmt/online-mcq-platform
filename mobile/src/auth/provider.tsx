@@ -4,7 +4,7 @@ import { api, refreshTokens, setSessionExpiredHandler } from "@/api/client";
 import { isApiError } from "@/api/errors";
 import { isLanguage } from "@/i18n";
 import { useLanguage } from "@/i18n/provider";
-import { disablePush } from "@/features/push/push";
+import { disablePush, forgetPush } from "@/features/push/push";
 
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./token-store";
 import type { AuthResponse, ProfileUpdate, RegisterInput, User } from "./types";
@@ -18,7 +18,7 @@ type AuthState = {
   status: AuthStatus;
   user: User | null;
   /** Why the student was signed out without asking (shown once on the sign-in screen). */
-  notice: "sessionExpired" | "passwordChanged" | null;
+  notice: "sessionExpired" | "passwordChanged" | "accountDeleted" | null;
   clearNotice: () => void;
   retry: () => void;
   signIn: (mobileNumber: string, password: string) => Promise<void>;
@@ -26,6 +26,8 @@ type AuthState = {
   signOut: () => Promise<void>;
   updateProfile: (changes: ProfileUpdate) => Promise<User>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  /** Deletes (anonymises) this account on the server, then ends the session here. Irreversible. */
+  deleteAccount: (currentPassword: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -154,6 +156,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [endSession],
   );
 
+  // The server anonymises the account and ends every session; this phone forgets it and stops push.
+  const deleteAccount = useCallback(
+    async (currentPassword: string) => {
+      await api("/auth/account/delete/", { method: "POST", body: { current_password: currentPassword } });
+      await forgetPush().catch(() => undefined);
+      await clearTokens();
+      endSession("accountDeleted");
+    },
+    [endSession],
+  );
+
   const value = useMemo<AuthState>(
     () => ({
       status,
@@ -169,8 +182,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       updateProfile,
       changePassword,
+      deleteAccount,
     }),
-    [status, user, notice, signIn, register, signOut, updateProfile, changePassword],
+    [status, user, notice, signIn, register, signOut, updateProfile, changePassword, deleteAccount],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

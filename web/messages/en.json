@@ -17,7 +17,10 @@
     "faq": "FAQ",
     "contact": "Contact",
     "routine": "Routine",
-    "materials": "Study materials"
+    "materials": "Study materials",
+    "privacy": "Privacy policy",
+    "terms": "Terms",
+    "deleteAccount": "Delete account"
   },
   "lang": {
     "label": "Language",
@@ -55,7 +58,13 @@
     "routineTitle": "Exam routine",
     "routineDescription": "The Live Model Test exam routine: every upcoming and live exam by date and time, with a downloadable routine PDF.",
     "materialsTitle": "Study materials",
-    "materialsDescription": "Free study videos and PDF handouts from Live Model Test, by category, subject and teacher."
+    "materialsDescription": "Free study videos and PDF handouts from Live Model Test, by category, subject and teacher.",
+    "privacyTitle": "Privacy policy",
+    "privacyDescription": "What personal information Live Model Test collects, why, who receives it and how you can delete it.",
+    "termsTitle": "Terms of use",
+    "termsDescription": "The terms for using the Live Model Test app and website.",
+    "deleteAccountTitle": "Delete your account",
+    "deleteAccountDescription": "How to delete your Live Model Test account and personal information, and what is kept."
   },
   "home": {
     "hero": {
@@ -559,5 +568,104 @@
     "routine": "Routine",
     "materials": "Study",
     "allExams": "All exams"
+  },
+  "legal": {
+    "updated": "Last updated: 18 November 2026",
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "Live Model Test is an online exam and preparation platform: the Android app, this website and the tools our team uses to run them. This policy explains which personal information we handle and why.",
+      "sections": [
+        {
+          "title": "Information we collect",
+          "body": "• Account: your name, mobile number, an optional e-mail address and nickname, and your language choice. Your password is stored only as a secure hash; we cannot read it.\n• Exam activity: the exams you take, your answers, marks, time used and merit position.\n• Purchases: the package you buy, the amount, the payment status and the provider's transaction reference. You pay on the payment provider's own page; we never see or store your card number, wallet PIN or one-time code.\n• Notifications: if you turn notifications on, a device token that lets us send exam reminders.\n• Messages: what you write in the Contact form (name, phone, e-mail and text).\n• Technical: your IP address and device or browser details in security logs (for example to stop repeated wrong sign-ins). The website keeps a sign-in cookie and your language choice."
+        },
+        {
+          "title": "How we use it",
+          "body": "To run exams and show results and merit lists; to check your mobile number with an SMS code; to activate your package after a verified payment; to send the exam reminders and notices you asked for; to answer your messages; and to keep the service secure and fair. We do not sell your information and we show no advertising."
+        },
+        {
+          "title": "Who else receives it",
+          "body": "• Our SMS provider receives your mobile number to deliver verification codes.\n• Payment providers (for example bKash or SSLCommerz) receive the payment details when you pay.\n• If notifications are on, the Expo push service receives your device token to deliver them.\n• If you press play on a video on our website, YouTube (in its privacy-enhanced mode) provides the video.\n• Our hosting provider stores the data on our behalf.\nWe may also share information when the law requires it."
+        },
+        {
+          "title": "What other people can see",
+          "body": "Merit lists show a shortened form of your name by default (for example “Rah*** H.”), as chosen in the platform settings, and never your phone number or e-mail. Your own results are visible only to you."
+        },
+        {
+          "title": "How long we keep it",
+          "body": "We keep your account information while your account exists. If you delete your account, your name, mobile number, e-mail address and nickname are erased. Your exam results and payment records are kept without your name, so that other students' merit positions and our accounting records stay correct. Security logs are kept only as long as needed to protect the service."
+        },
+        {
+          "title": "Your choices",
+          "body": "• Edit your name, e-mail, nickname and language in Profile.\n• Turn notifications off at any time.\n• Delete your account in the app (Profile → Delete account) or follow the steps on the Delete account page.\n• Contact us to ask what we hold about you or to have it corrected."
+        },
+        {
+          "title": "Security",
+          "body": "Connections use HTTPS and passwords are stored as hashes. Exam timing, scoring and payment checks run on our server. No system is perfectly secure, but we limit access to personal information to the people who need it."
+        },
+        {
+          "title": "Changes to this policy",
+          "body": "We may update this policy. The date above shows the latest version; important changes are announced on the website or in the app."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of use",
+      "intro": "These terms apply when you create an account or use the Live Model Test app or website. Please read them; by using the service you agree to them.",
+      "sections": [
+        {
+          "title": "Using Live Model Test",
+          "body": "Use the service only for your own exam preparation."
+        },
+        {
+          "title": "Your account",
+          "body": "Give correct information and keep your password private. You are responsible for what happens under your account. Tell us if you think someone else is using it."
+        },
+        {
+          "title": "Exams and results",
+          "body": "Exam time limits, scoring and results are decided by our server, and its record is final. A result is shown only after the exam's results are published. We may correct an exam or a result if we find a mistake."
+        },
+        {
+          "title": "Packages and payments",
+          "body": "Prices and what each package unlocks are shown before you pay. A package is activated after the payment provider confirms the payment to our server. If you paid but did not get access, contact us with the payment reference and we will check it."
+        },
+        {
+          "title": "Fair use",
+          "body": "Do not cheat, share or copy exam questions or answers, use automated tools to take exams or collect content, try to break or overload the service, or use another person's account."
+        },
+        {
+          "title": "Our content",
+          "body": "The questions, explanations, videos, notes and design are ours or used with permission. You may use them for your own study; you may not republish or sell them."
+        },
+        {
+          "title": "Availability",
+          "body": "We work to keep the service running but cannot promise it will always be available or free of errors. We may change or stop features, and may suspend an account that breaks these terms."
+        },
+        {
+          "title": "Ending your account",
+          "body": "You can delete your account at any time (Profile → Delete account). What happens to your information is explained in the Privacy policy."
+        },
+        {
+          "title": "Questions and changes",
+          "body": "Questions: use the Contact page. We may update these terms; if you keep using the service after a change, you accept the new version."
+        }
+      ]
+    },
+    "deleteAccount": {
+      "title": "Delete your account",
+      "intro": "You can delete your Live Model Test account and your personal information yourself, at any time.",
+      "appTitle": "In the app",
+      "appSteps": "1. Open the app and sign in.\n2. Go to Profile and tap “Delete account”.\n3. Enter your current password and confirm.\nYour account is deleted at once and you are signed out on every phone.",
+      "forgotTitle": "Forgot your password?",
+      "forgot": "Use “Forgot password” on the sign-in screen to set a new one with an SMS code, then delete the account as above.",
+      "erasedTitle": "What is deleted",
+      "erased": "• Your name, mobile number, e-mail address and nickname.\n• Your ability to sign in, and the notification devices of your account.\n• Pending verification codes for your number.",
+      "keptTitle": "What is kept",
+      "kept": "• Your exam results and merit positions, without your name, so that other students' positions do not change.\n• Payment and package records, without your name, for our accounting.",
+      "noAppTitle": "Cannot use the app?",
+      "noApp": "Send a request on the Contact page, from the phone number or e-mail you registered with, and write “Delete my account”. We will check that it is you and delete the account.",
+      "contact": "Contact us",
+      "privacy": "Read the Privacy policy"
+    }
   }
 }

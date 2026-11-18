@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { BadgeCheck, ChevronRight, KeyRound, LogOut, PencilLine } from "lucide-react-native";
+import { BadgeCheck, ChevronRight, KeyRound, LogOut, PencilLine, Trash2 } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -102,6 +102,7 @@ export default function ProfileScreen() {
         <Row icon={<PencilLine size={20} color={colors.brand700} />} label={t("profile:editProfile")} onPress={() => router.push("/edit-profile")} />
         <Row icon={<KeyRound size={20} color={colors.brand700} />} label={t("profile:changePassword")} onPress={() => router.push("/change-password")} />
         <Row icon={<LogOut size={20} color={colors.danger700} />} label={t("profile:signOut")} danger onPress={() => setConfirming(true)} />
+        <Row icon={<Trash2 size={20} color={colors.danger700} />} label={t("profile:delete.title")} danger onPress={() => router.push("/delete-account")} />
       </Section>
 
       <ConfirmDialog

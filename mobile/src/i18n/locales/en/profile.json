@@ -29,5 +29,22 @@
   "pushHint": "Get a reminder before an exam starts and important notices from us.",
   "pushDenied": "Notifications are blocked for this app. Turn them on in your phone's settings.",
   "pushSettings": "Open phone settings",
-  "pushError": "Could not turn on notifications. Check your internet and try again."
+  "pushError": "Could not turn on notifications. Check your internet and try again.",
+  "delete": {
+    "title": "Delete account",
+    "warning": "This cannot be undone. Your account is deleted for good and you are signed out on every phone.",
+    "points": {
+      "erased": "Your name, mobile number, e-mail and nickname are erased.",
+      "signedOut": "You are signed out everywhere and cannot sign in again with this account.",
+      "kept": "Your exam results and payment records are kept without your name, so other students' merit positions and our accounting records stay correct.",
+      "again": "You can register again later with the same number as a new account; nothing from this one comes back."
+    },
+    "password": "Current password",
+    "passwordHint": "Enter your password to confirm it is you.",
+    "submit": "Delete my account",
+    "confirmTitle": "Delete your account for good?",
+    "confirmBody": "Your account and personal details will be deleted now. This cannot be undone.",
+    "confirm": "Yes, delete",
+    "done": "Your account has been deleted."
+  }
 }
