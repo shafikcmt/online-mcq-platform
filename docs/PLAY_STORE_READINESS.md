@@ -80,3 +80,19 @@ applies), and the account's identity, trader and phone checks.
 5. **Push:** if the Play build shows the "notifications" card, FCM must be set up first (`PUSH_NOTIFICATIONS.md`).
 6. Fill the Data safety form from the table above, add the privacy and delete-account URLs, set the app's package
    name as it is (`com.livemodeltest.app`: it cannot be changed after the first upload).
+
+## Store graphics (ready)
+
+`docs/play-store/app-icon-512.png` (512×512) and `docs/play-store/feature-graphic-1024x500.png`, made from the
+brand files in `docs/brand`. Phone screenshots are not included: take 4–6 from a real phone with the build
+(Home, Exam, Result, Merit list), 16:9 or 9:16, at least 320 px on the short side.
+
+## Order of work (Personal account)
+
+1. Finish the Console's list (store listing, category and contact details).
+2. Build the bundle: `npx eas-cli@latest build --platform android --profile production` (app version 0.2.1; the
+   Android versionCode is raised by EAS itself).
+3. Internal testing first (your own Gmail), then a **Closed test** release.
+4. Closed test needs **12 testers opted in for 14 days** (the Dashboard shows the live count). Collect 15–20 Gmail
+   addresses, create a tester list or Google Group, and send each person the opt-in link.
+5. After 14 days: *Apply for production* and answer Google's questions about the test.
