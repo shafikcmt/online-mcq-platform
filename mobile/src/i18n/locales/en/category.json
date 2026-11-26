@@ -22,5 +22,21 @@
   "groupsTitle": "Browse",
   "examsHeading": "Exams",
   "groupEmpty": "No exams in this group yet. Check back soon.",
-  "inGroup": "In {{name}}"
+  "inGroup": "In {{name}}",
+  "card": {
+    "subject": "Subject: {{name}}",
+    "syllabus": "Syllabus",
+    "more": "Show more",
+    "less": "Show less",
+    "anyTime": "Any time",
+    "startLive": "Start live exam",
+    "start": "Start exam",
+    "resume": "Resume exam",
+    "unlock": "Unlock to take this exam",
+    "view": "View details",
+    "free": "Free",
+    "paid": "Paid"
+  },
+  "liveToday": "A live exam is running now.",
+  "liveTodayBody": "You can take it any time until it ends."
 }

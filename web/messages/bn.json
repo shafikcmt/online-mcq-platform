@@ -574,7 +574,18 @@
     "examsHeading": "পরীক্ষা",
     "groupEmpty": "এই গ্রুপে এখনো কোনো পরীক্ষা নেই। একটু পরে আবার দেখুন।",
     "groupMeta": "{{name}}-এর পরীক্ষা।",
-    "groupBack": "{{name}}-এ ফিরে যান"
+    "groupBack": "{{name}}-এ ফিরে যান",
+    "cardAnyTime": "যেকোনো সময়",
+    "cardSubject": "বিষয়: {{name}}",
+    "cardSyllabus": "সিলেবাস",
+    "cardMore": "আরও দেখুন",
+    "cardFree": "ফ্রি",
+    "cardPaid": "পেইড",
+    "startLive": "লাইভ পরীক্ষা শুরু করুন",
+    "startsOn": "শুরু {{date}}",
+    "viewDetails": "বিস্তারিত দেখুন",
+    "takeExam": "পরীক্ষা দিন",
+    "liveToday": "এখন একটি লাইভ পরীক্ষা চলছে। শেষ হওয়ার আগে যেকোনো সময় পরীক্ষা দিতে পারবেন।"
   },
   "legal": {
     "updated": "সর্বশেষ হালনাগাদ: ১৮ নভেম্বর ২০২৬",

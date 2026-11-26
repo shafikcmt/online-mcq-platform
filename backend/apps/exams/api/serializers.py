@@ -237,6 +237,16 @@ class SyllabusMixin(serializers.Serializer):
         ]
 
 
+class MaterialCountMixin(serializers.Serializer):
+    """How many published study materials an exam has (the list views put the counts of the
+    page in the serializer context: one query for the whole page)."""
+
+    material_count = serializers.SerializerMethodField()
+
+    def get_material_count(self, obj) -> int:
+        return self.context.get("material_counts", {}).get(obj.pk, 0)
+
+
 class PublicExamSerializer(LocalizedSerializer):
     slug = serializers.CharField()
     title = serializers.SerializerMethodField()
@@ -280,6 +290,11 @@ class PublicExamSerializer(LocalizedSerializer):
     @extend_schema_field(PublicRefSerializer(allow_null=True))
     def get_group(self, obj):
         return self._ref(obj.group)
+
+
+class PublicExamListSerializer(SyllabusMixin, MaterialCountMixin, PublicExamSerializer):
+    """A row of the public exam list: the exam fields plus its syllabus and study-material count
+    (the list view prefetches both for the page)."""
 
 
 class PublicRoutineExamSerializer(SyllabusMixin, PublicExamSerializer):

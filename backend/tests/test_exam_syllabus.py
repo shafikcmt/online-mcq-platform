@@ -101,14 +101,15 @@ def test_it_is_editable_on_a_published_exam(api, subject):
     assert published.status == "published"
 
 
-def test_the_syllabus_is_on_the_public_exam_page_but_not_in_lists(api, subject):
+def test_the_syllabus_is_on_the_public_exam_page_and_in_list_rows(api, subject):
     published = make_exam(subject, publish=True)
     put(api, published, [{"subject": "Physics", "chapter": "Motion", "topic": "Speed"}])
     anonymous = APIClient()
     detail = anonymous.get(f"{PUBLIC}{published.slug}/").json()
     assert detail["syllabus"] == [{"subject": "Physics", "chapter": "Motion", "topic": "Speed"}]
-    # Lists stay light: no syllabus per exam.
-    assert "syllabus" not in anonymous.get(PUBLIC).json()["results"][0]
+    # List rows carry it too (the exam card shows it); it is prefetched, so the cost does not grow per exam.
+    row = anonymous.get(PUBLIC).json()["results"][0]
+    assert row["syllabus"] == [{"subject": "Physics", "chapter": "Motion", "topic": "Speed"}]
 
 
 def test_listing_exams_costs_the_same_however_many_have_a_syllabus(
@@ -124,7 +125,7 @@ def test_listing_exams_costs_the_same_however_many_have_a_syllabus(
     assert len(body["results"]) == 5
 
 
-def test_a_student_sees_the_syllabus_on_the_exam_detail_not_in_the_list(api, subject):
+def test_a_student_sees_the_syllabus_on_the_exam_detail_and_in_the_list(api, subject):
     from tests.test_subscriptions import jwt_client, make_student
 
     published = make_exam(subject, publish=True)
@@ -134,7 +135,7 @@ def test_a_student_sees_the_syllabus_on_the_exam_detail_not_in_the_list(api, sub
     detail = client.get(f"/api/v1/exams/{published.slug}/").json()
     assert detail["syllabus"] == [{"subject": "", "chapter": "Waves", "topic": "Sound"}]
     listed = client.get("/api/v1/exams/").json()["results"][0]
-    assert "syllabus" not in listed
+    assert listed["syllabus"] == [{"subject": "", "chapter": "Waves", "topic": "Sound"}]
 
 
 def test_an_unpublished_exams_syllabus_is_not_public(api, exam):

@@ -49,6 +49,7 @@ from ..selectors import (
     ROUTINE_MAX_EXAMS,
     filter_by_group,
     listable_exams,
+    material_counts,
     open_window,
     routine_exams,
     with_question_totals,
@@ -59,7 +60,7 @@ from .serializers import (
     ExamQuestionAdminSerializer,
     ExamQuestionListSerializer,
     PublicExamDetailSerializer,
-    PublicExamSerializer,
+    PublicExamListSerializer,
     PublicRoutineExamSerializer,
     SyllabusListSerializer,
 )
@@ -313,11 +314,22 @@ def public_exams():
     )
 )
 class PublicExamListView(PublicAPIMixin, generics.ListAPIView):
-    serializer_class = PublicExamSerializer
+    serializer_class = PublicExamListSerializer
+
+    def paginate_queryset(self, queryset):
+        page = super().paginate_queryset(queryset)
+        self.material_counts = material_counts(page or [])
+        return page
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "material_counts": getattr(self, "material_counts", {}),
+        }
 
     def get_queryset(self):
         request = self.request
-        queryset = public_exams()
+        queryset = public_exams().prefetch_related("syllabus_items")
         exam_type = query_choice(request, "type", ExamType.values)
         if exam_type:
             queryset = queryset.filter(exam_type=exam_type)

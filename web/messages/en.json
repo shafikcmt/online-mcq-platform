@@ -574,7 +574,18 @@
     "examsHeading": "Exams",
     "groupEmpty": "No exams in this group yet. Check back soon.",
     "groupMeta": "Exams in {{name}}.",
-    "groupBack": "Back to {{name}}"
+    "groupBack": "Back to {{name}}",
+    "cardAnyTime": "Any time",
+    "cardSubject": "Subject: {{name}}",
+    "cardSyllabus": "Syllabus",
+    "cardMore": "Show more",
+    "cardFree": "Free",
+    "cardPaid": "Paid",
+    "startLive": "Start live exam",
+    "startsOn": "Starts {{date}}",
+    "viewDetails": "View details",
+    "takeExam": "Take the exam",
+    "liveToday": "A live exam is running now. You can take it any time until it ends."
   },
   "legal": {
     "updated": "Last updated: 18 November 2026",
