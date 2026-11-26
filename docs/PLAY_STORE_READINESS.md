@@ -96,3 +96,15 @@ brand files in `docs/brand`. Phone screenshots are not included: take 4–6 from
 4. Closed test needs **12 testers opted in for 14 days** (the Dashboard shows the live count). Collect 15–20 Gmail
    addresses, create a tester list or Google Group, and send each person the opt-in link.
 5. After 14 days: *Apply for production* and answer Google's questions about the test.
+
+## Releasing an update (every new build)
+
+1. `git pull origin develop`, then in `mobile`: `npx eas-cli@latest build --platform android --profile production`
+   (EAS raises the Android versionCode by itself; the app version in `app.json` is what students see, now 0.2.2).
+2. Download the `.aab` from the Expo build page.
+3. Play Console → **Test and release → Testing → Closed testing → Alpha → Releases → Create new release** → upload the
+   `.aab`, set the release name to the version, write release notes, **Next → Save and publish**.
+   (Do the same on **Internal testing** if you also test there.)
+4. Publishing overview → **Send changes for review** if it asks. Testers get the update through the Play Store by themselves.
+5. For students on the APK (not Play): upload the new APK, then raise **Latest version** in Admin → Site settings.
+
