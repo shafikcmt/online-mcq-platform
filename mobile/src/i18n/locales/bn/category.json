@@ -13,5 +13,14 @@
   "routine": "রুটিন",
   "materials": "স্টাডি",
   "merit": "মেধা তালিকা",
-  "syllabus": "সিলেবাস"
+  "syllabus": "সিলেবাস",
+  "groupExams_one": "{{n}}টি পরীক্ষা",
+  "groupExams_other": "{{n}}টি পরীক্ষা",
+  "subGroups_one": "{{n}}টি উপগ্রুপ",
+  "subGroups_other": "{{n}}টি উপগ্রুপ",
+  "live": "লাইভ",
+  "groupsTitle": "বিভাগ",
+  "examsHeading": "পরীক্ষা",
+  "groupEmpty": "এই গ্রুপে এখনো কোনো পরীক্ষা নেই। একটু পরে আবার দেখুন।",
+  "inGroup": "{{name}}-এর ভেতরে"
 }

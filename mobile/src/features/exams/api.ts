@@ -6,8 +6,15 @@ import type { ExamPage, ExamPaper, ExamWhen, StudentExamDetail } from "./types";
 export const PAGE_SIZE = 20;
 
 /** One page of exams for a tab ("open now", "upcoming", "past"), optionally in one category. */
-export async function fetchExams(when: ExamWhen, page: number, category?: string): Promise<ExamPage> {
-  const filter = category ? `&category=${encodeURIComponent(category)}` : "";
+/** Which shelf of a category to list: `group` = the exams sitting directly in that group (slug),
+ * `ungrouped` = the exams not in any group (what a category lists under its group rows). */
+export type ExamShelf = { group?: string; ungrouped?: boolean };
+
+export async function fetchExams(when: ExamWhen, page: number, category?: string, shelf: ExamShelf = {}): Promise<ExamPage> {
+  const filter =
+    (category ? `&category=${encodeURIComponent(category)}` : "") +
+    (shelf.group ? `&group=${encodeURIComponent(shelf.group)}` : "") +
+    (shelf.ungrouped ? "&ungrouped=true" : "");
   const data = await api<ExamPage>(`/exams/?when=${when}${filter}&page=${page}&page_size=${PAGE_SIZE}`);
   syncServerClock(data.server_time);
   return data;

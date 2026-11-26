@@ -52,3 +52,8 @@ payment providers have never been run (see `PAYMENT_GATEWAY_READINESS.md`).
 Privacy policy, terms and "delete your account" pages are on the website, the app can delete the student's own
 account, and an admin can erase a student's personal data on request: see `PLAY_STORE_READINESS.md` (also what the
 owner still has to do in the Play Console, and the payments-policy risk).
+
+## Exam groups
+
+Admin Panel → **Exam groups** decides how exams are shelved inside a category in the app and on the website, and each
+exam's form picks its group. See `EXAM_GROUPS.md`.

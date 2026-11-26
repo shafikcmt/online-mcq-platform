@@ -47,6 +47,7 @@ from ..models import (
 )
 from ..selectors import (
     ROUTINE_MAX_EXAMS,
+    filter_by_group,
     listable_exams,
     open_window,
     routine_exams,
@@ -292,6 +293,10 @@ def public_exams():
             OpenApiParameter("type", OpenApiTypes.STR, enum=ExamType.values),
             OpenApiParameter("access", OpenApiTypes.STR, enum=AccessType.values),
             OpenApiParameter("category", OpenApiTypes.STR, description="Category slug."),
+            OpenApiParameter("group", OpenApiTypes.STR, description="Group slug (exams in it)."),
+            OpenApiParameter(
+                "ungrouped", OpenApiTypes.BOOL, description="true = exams with no active group."
+            ),
             OpenApiParameter(
                 "upcoming", OpenApiTypes.BOOL, description="true = starts in the future."
             ),
@@ -324,6 +329,12 @@ class PublicExamListView(PublicAPIMixin, generics.ListAPIView):
             raise serializers.ValidationError({"category": [INVALID_CHOICE_MESSAGE]})
         if category:
             queryset = queryset.filter(category__slug=category)
+        group = request.query_params.get("group", "").strip().lower()
+        if len(group) > SLUG_MAX_LENGTH:
+            raise serializers.ValidationError({"group": [INVALID_CHOICE_MESSAGE]})
+        queryset = filter_by_group(
+            queryset, group_slug=group, ungrouped=bool(query_bool(request, "ungrouped"))
+        )
         now = timezone.now()
         if query_bool(request, "upcoming"):
             queryset = queryset.filter(start_at__gt=now)

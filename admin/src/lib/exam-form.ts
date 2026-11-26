@@ -21,6 +21,7 @@ export type ExamDraft = {
   content_language: ContentLanguage;
   category: string;
   subject: string;
+  group: string;
   exam_type: ExamType;
   access_type: AccessType;
   duration_minutes: string;
@@ -82,6 +83,7 @@ export function draftFromExam(exam: Exam): ExamDraft {
     content_language: exam.content_language,
     category: String(exam.category),
     subject: exam.subject === null ? "" : String(exam.subject),
+    group: exam.group === null || exam.group === undefined ? "" : String(exam.group),
     exam_type: exam.exam_type,
     access_type: exam.access_type,
     duration_minutes: String(exam.duration_minutes),
@@ -116,6 +118,7 @@ export function newExamDraft(category = ""): ExamDraft {
     content_language: "bn",
     category,
     subject: "",
+    group: "",
     exam_type: "regular",
     access_type: "free",
     duration_minutes: "",
@@ -177,6 +180,7 @@ export function toExamPayload(draft: ExamDraft) {
     content_language: draft.content_language,
     category: draft.category ? Number(draft.category) : null,
     subject: draft.subject ? Number(draft.subject) : null,
+    group: draft.group ? Number(draft.group) : null,
     exam_type: draft.exam_type,
     access_type: draft.access_type,
     duration_minutes: toInt(draft.duration_minutes),
@@ -213,6 +217,7 @@ export const EXAM_FIELD_SECTIONS: Record<string, string> = {
   content_language: "basics",
   category: "basics",
   subject: "basics",
+  group: "basics",
   exam_type: "basics",
   access_type: "basics",
   is_featured: "basics",

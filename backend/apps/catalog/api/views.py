@@ -24,8 +24,8 @@ from apps.core.exceptions import ApiError
 
 from .. import services
 from ..exceptions import CatalogInUse
-from ..models import Category, Subject
-from .serializers import CategoryAdminSerializer, SubjectAdminSerializer
+from ..models import Category, ExamGroup, Subject
+from .serializers import CategoryAdminSerializer, GroupAdminSerializer, SubjectAdminSerializer
 
 ORDERING_FIELDS = ("id", "sort_order", "name_bn", "name_en", "created_at", "updated_at")
 DEFAULT_ORDERING = ("sort_order",)
@@ -154,4 +154,68 @@ class SubjectDetailView(AdminAPIMixin, CatalogDetailMixin, generics.RetrieveUpda
     def destroy(self, request, *args, **kwargs):
         subject = self.get_object()
         self.perform_write(services.delete_subject, subject.pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------------- exam groups
+def _group_queryset():
+    return ExamGroup.objects.annotate(
+        exam_total=Count("exams", distinct=True), child_total=Count("children", distinct=True)
+    )
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter("category", OpenApiTypes.INT, description="Category ID."),
+            OpenApiParameter("parent", OpenApiTypes.INT, description="Parent group ID."),
+            OpenApiParameter(
+                "top_level", OpenApiTypes.BOOL, description="true = top-level groups only."
+            ),
+            *COMMON_LIST_PARAMETERS,
+        ]
+    )
+)
+class GroupListCreateView(AdminAPIMixin, CatalogDetailMixin, generics.ListCreateAPIView):
+    serializer_class = GroupAdminSerializer
+    http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        queryset = _group_queryset()
+        category = query_int(self.request, "category")
+        if category is not None:
+            queryset = queryset.filter(category_id=category)
+        parent = query_int(self.request, "parent")
+        if parent is not None:
+            queryset = queryset.filter(parent_id=parent)
+        elif query_bool(self.request, "top_level"):
+            queryset = queryset.filter(parent__isnull=True)
+        return _filter_common(self.request, queryset)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        group = self.perform_write(services.create_group, ExamGroup(**serializer.validated_data))
+        return Response(
+            self.get_serializer(_group_queryset().get(pk=group.pk)).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class GroupDetailView(AdminAPIMixin, CatalogDetailMixin, generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = GroupAdminSerializer
+
+    def get_queryset(self):
+        return _group_queryset()
+
+    def update(self, request, *args, **kwargs):
+        group = self.get_object()
+        serializer = self.get_serializer(group, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_write(services.update_group, group.pk, serializer.validated_data)
+        return Response(self.get_serializer(self.get_object()).data)
+
+    def destroy(self, request, *args, **kwargs):
+        group = self.get_object()
+        self.perform_write(services.delete_group, group.pk)
         return Response(status=status.HTTP_204_NO_CONTENT)

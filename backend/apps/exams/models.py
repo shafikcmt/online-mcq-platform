@@ -19,7 +19,14 @@ from django.core.validators import MaxLengthValidator, MinValueValidator, RegexV
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.catalog.models import SLUG_INVALID_MESSAGE, SLUG_MAX_LENGTH, SLUG_REGEX, Category, Subject
+from apps.catalog.models import (
+    SLUG_INVALID_MESSAGE,
+    SLUG_MAX_LENGTH,
+    SLUG_REGEX,
+    Category,
+    ExamGroup,
+    Subject,
+)
 from apps.core.i18n import clean_multiline, clean_single_line, has_meaningful_text
 from apps.core.models import TimeStampedModel
 from apps.questions.models import Question
@@ -130,6 +137,15 @@ class Exam(TimeStampedModel):
         on_delete=models.PROTECT,
         related_name="exams",
     )
+    group = models.ForeignKey(
+        ExamGroup,
+        verbose_name=_("group"),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="exams",
+        help_text=_("The shelf students find this exam on inside its category (optional)."),
+    )
     exam_type = models.CharField(
         _("exam type"), max_length=10, choices=ExamType.choices, default=ExamType.REGULAR
     )
@@ -213,6 +229,7 @@ class Exam(TimeStampedModel):
         "has_schedule",
         "category_id",
         "subject_id",
+        "group_id",
         "source_exam_id",
         "results_published",
     )
@@ -227,6 +244,7 @@ class Exam(TimeStampedModel):
         "instructions_en",
         "category",
         "subject",
+        "group",
         "duration_minutes",
         "total_questions",
         "default_marks",

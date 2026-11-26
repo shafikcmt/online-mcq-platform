@@ -27,6 +27,12 @@ export const SUBJECT_LIST: ListSpec = {
   defaultOrdering: "sort_order",
 };
 
+export const GROUP_LIST: ListSpec = {
+  filters: { is_active: "bool", category: "id", parent: "id" },
+  orderings: CATALOG_ORDERINGS,
+  defaultOrdering: "sort_order",
+};
+
 export const QUESTION_LIST: ListSpec = {
   filters: {
     category: "id",

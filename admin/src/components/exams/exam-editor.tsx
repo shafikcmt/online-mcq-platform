@@ -31,7 +31,7 @@ import { useI18n } from "@/lib/i18n/provider";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { useUnsavedGuard } from "@/lib/use-unsaved-guard";
 import { cn } from "@/lib/utils";
-import type { Category, Subject } from "@/types/content";
+import type { Category, ExamGroup, Subject } from "@/types/content";
 import type { Exam, ExamQuestionRow } from "@/types/exams";
 import type { SyllabusLineData } from "@/types/syllabus";
 
@@ -98,6 +98,7 @@ export function ExamEditor({
   syllabus = [],
   categories,
   subjects,
+  groups = [],
   lookupTruncated,
   initialCategory,
 }: {
@@ -106,6 +107,7 @@ export function ExamEditor({
   syllabus?: SyllabusLineData[];
   categories: Category[];
   subjects: Subject[];
+  groups?: ExamGroup[];
   lookupTruncated: boolean;
   initialCategory?: number;
 }) {
@@ -421,6 +423,7 @@ export function ExamEditor({
           errors={errors.fields}
           categories={categories}
           subjects={subjects}
+          groups={groups}
           isNew={!exam}
           disabled={!editable || busy !== null}
         />

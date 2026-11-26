@@ -22,6 +22,8 @@ type CatalogEntry = {
 
 export type Category = CatalogEntry & { subject_count: number };
 export type Subject = CatalogEntry & { category: number };
+/** A shelf of exams inside a category; `parent` is set for a sub-group (two levels at most). */
+export type ExamGroup = CatalogEntry & { category: number; parent: number | null; exam_count: number; child_count: number };
 
 export type Difficulty = "easy" | "medium" | "hard";
 export const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];

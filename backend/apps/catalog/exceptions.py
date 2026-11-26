@@ -15,5 +15,9 @@ CATEGORY_IN_USE_MESSAGE = _(
 )
 SUBJECT_IN_USE_MESSAGE = _("This subject is still in use. Deactivate it instead of deleting it.")
 CATEGORY_REFERENCED_MESSAGE = _(
-    "This category is still used by exams or packages. Deactivate it instead of deleting it."
+    "This category is still used by exams, groups or packages. "
+    "Deactivate it instead of deleting it."
+)
+GROUP_IN_USE_MESSAGE = _(
+    "This group still has exams or sub-groups. Move them first, or deactivate the group."
 )

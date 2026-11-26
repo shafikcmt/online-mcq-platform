@@ -53,9 +53,12 @@ function params(filters: Partial<ExamFilters>, defaults: { when?: When }): URLSe
   return query;
 }
 
-/** The public API path for these filters. */
-export function apiPath(filters: ExamFilters): string {
+/** The public API path for these filters. `group` = the exams sitting directly in that group (slug);
+ * `ungrouped` = the exams in no group (what a category lists under its group rows). */
+export function apiPath(filters: ExamFilters, shelf: { group?: string; ungrouped?: boolean } = {}): string {
   const query = params(filters, {});
+  if (shelf.group) query.set("group", shelf.group);
+  if (shelf.ungrouped) query.set("ungrouped", "true");
   query.set("page_size", String(PAGE_SIZE));
   return `exams/?${query}`;
 }
