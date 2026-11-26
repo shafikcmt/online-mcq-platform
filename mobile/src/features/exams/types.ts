@@ -39,6 +39,9 @@ export type StudentExam = {
   attempts_allowed: number | null;
   /** Time a new attempt would get now (less than the duration when joining late). */
   seconds_if_started_now: number | null;
+  /** List rows only: the syllabus lines and how many study materials the exam has (absent from an older server). */
+  syllabus?: SyllabusLine[];
+  material_count?: number;
 };
 
 export type SyllabusLine = { subject: string; chapter: string; topic: string };

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
-import { ExamRows } from "@/components/exam-rows";
+import { ExamCards } from "@/components/exam-card";
 import { GroupRows } from "@/components/group-rows";
 import { publicGet, type Exam, type GroupDetail, type Page } from "@/lib/api";
 import { apiPath, pageHref, type When } from "@/lib/exam-filters";
@@ -81,7 +81,7 @@ export default async function GroupPage({ params }: Props) {
           <>
             {children.length ? <GroupRows groups={children} lang={lang} t={t} /> : null}
             {children.length && rows.length ? <h2 className="-mb-4 text-lg font-bold text-ink">{t("category.examsHeading")}</h2> : null}
-            {rows.length ? <ExamRows rows={rows} lang={lang} t={t} /> : null}
+            {rows.length ? <ExamCards rows={rows} lang={lang} t={t} /> : null}
           </>
         )}
         {total > rows.length ? (

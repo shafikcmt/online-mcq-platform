@@ -280,10 +280,16 @@ describe("Category screen and the exam's shortcuts", () => {
     await signedIn({ "GET /exams/": byWhen }, "/category/hsc?name=HSC");
     expect(await screen.findByRole("heading", { name: "HSC" })).toBeOnTheScreen();
     expect(screen.getByText("4 exams")).toBeOnTheScreen();
-    expect(screen.getByRole("link", { name: "Daily quiz, Live, Ends in 5 h" })).toBeOnTheScreen();
-    expect(screen.getByRole("link", { name: "Practice set" })).toBeOnTheScreen(); // no schedule: open, not "live"
-    expect(screen.getByRole("link", { name: "Weekly test, Upcoming, Starts in 3 h" })).toBeOnTheScreen();
-    expect(screen.getByRole("link", { name: "Old model test, Archived" })).toBeOnTheScreen();
+    // Each exam is a card whose one button says what the student can do, read from the server's flags.
+    expect(screen.getByRole("button", { name: "Start live exam: Daily quiz" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Start exam: Practice set" })).toBeOnTheScreen(); // no schedule: open, not "live"
+    const waiting = screen.getByRole("button", { name: "Starts in 3 h: Weekly test" });
+    expect(waiting).toBeOnTheScreen();
+    expect(waiting).toBeDisabled();
+    expect(screen.getByRole("button", { name: "View details: Old model test" })).toBeOnTheScreen();
+    expect(screen.getByText("Live")).toBeOnTheScreen(); // only the running scheduled exam
+    expect(screen.getByText("Archived")).toBeOnTheScreen();
+    expect(screen.getByText(/A live exam is running now\./)).toBeOnTheScreen();
     for (const name of ["Archive", "Results", "Routine", "Study"]) expect(screen.getByRole("link", { name })).toBeOnTheScreen();
   });
 
@@ -324,9 +330,38 @@ describe("Category screen and the exam's shortcuts", () => {
       );
       expect(await screen.findByRole("heading", { name: "52nd BCS preparation" })).toBeOnTheScreen();
       expect(screen.getByRole("link", { name: "Free weekly test, 2 exams" })).toBeOnTheScreen();
-      expect(screen.getByRole("link", { name: "Daily quiz, Live, Ends in 5 h" })).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Start live exam: Daily quiz" })).toBeOnTheScreen();
       expect(screen.getByRole("link", { name: "Archive" })).toBeOnTheScreen();
       expect(backend.find("GET", "/exams/").every((call) => call.query.group === "bcs-prep")).toBe(true);
+    });
+
+    test("a card shows the day, the subject, two syllabus lines (the rest behind Show more) and the study materials", async () => {
+      const rich = exam({
+        slug: "rich",
+        title: "Computer model test",
+        start_at: new Date(Date.now() - HOUR).toISOString(),
+        end_at: new Date(Date.now() + 5 * HOUR).toISOString(),
+        syllabus: [
+          { subject: "ICT", chapter: "Networks", topic: "" },
+          { subject: "Math", chapter: "Algebra", topic: "Equations" },
+          { subject: "English", chapter: "Grammar", topic: "Tense" },
+        ],
+        material_count: 2,
+      });
+      await signedIn(
+        {
+          "GET /public/groups/bcs-prep/": { status: 200, body: { ...groupRow(), category: { slug: "hsc", name: "HSC" }, parent: null, children: [] } },
+          "GET /exams/": (call) => (call.query.when === "open" ? page([rich]) : page([])),
+        },
+        "/group/bcs-prep?name=BCS",
+      );
+      expect(await screen.findByText("Subject: Physics")).toBeOnTheScreen();
+      expect(screen.getByText("1. ICT: Networks")).toBeOnTheScreen();
+      expect(screen.getByText("2. Math: Algebra, Equations")).toBeOnTheScreen();
+      expect(screen.queryByText("3. English: Grammar, Tense")).toBeNull();
+      await fireEvent.press(screen.getByRole("button", { name: "Show more" }));
+      expect(screen.getByText("3. English: Grammar, Tense")).toBeOnTheScreen();
+      expect(screen.getByRole("link", { name: /Study materials \(2\)/ })).toBeOnTheScreen();
     });
 
     test("an empty group says so, and a failed groups request leaves the category as it was", async () => {

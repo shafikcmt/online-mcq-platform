@@ -55,3 +55,19 @@ Only published exams count; no answers or marks data are exposed. The exam paylo
 ## Not part of this change
 
 "Favorite" and "Wrong & Unanswered" (seen in the reference video) are separate features and are not built yet.
+
+## The exam card
+
+On a category's and a group's pages (app and website) each exam is a card: the day it runs (or "Any time"), a mark
+(red "Live" for a scheduled exam running now, "Upcoming", "Archived"), Free/Paid, marks / minutes / questions, the subject,
+the syllabus (two lines, the rest behind "Show more"), its study materials (a link with the count), and one button that
+says what the student can do. In the app the button comes from the server's own flags: **Start live exam**, **Start exam**,
+**Resume exam**, a disabled **Starts in 3 h**, **Unlock to take this exam** (paid, no package) or **View details**. On the
+website the exam is taken in the app, so the button opens the exam's page ("Start live exam", "Take the exam", a disabled
+"Starts …" or "View details"). A notice at the top says when a live exam is running.
+
+The exam list rows (`GET /public/exams/`, `GET /exams/`) carry `syllabus` and `material_count` for this (two extra queries
+per page, not one per exam).
+
+The reference video also showed an "OMR" mark, a "Follow" button and an info icon on the page title: those need features
+that do not exist (OMR exams, following), so they are not built.

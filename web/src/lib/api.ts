@@ -65,8 +65,10 @@ export type Exam = {
   start_at: string | null;
   end_at: string | null;
   is_featured: boolean;
-  /** The syllabus lines; only the exam's own page (not the list) carries them. */
+  /** The syllabus lines: the exam's own page and the exam lists carry them (absent from an older server). */
   syllabus?: SyllabusLine[];
+  /** Published study materials of the exam (list rows; absent from an older server). */
+  material_count?: number;
 };
 
 export type SyllabusLine = { subject: string; chapter: string; topic: string };

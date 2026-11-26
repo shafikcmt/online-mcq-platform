@@ -28,13 +28,13 @@ from apps.core.exceptions import ApiError
 from apps.core.i18n import resolve_bilingual
 from apps.exams.api.views import public_exams
 from apps.exams.models import AccessType, ExamType
-from apps.exams.selectors import filter_by_group, open_window
+from apps.exams.selectors import filter_by_group, material_counts, open_window
 from apps.results.api.serializers import PaperSerializer
 from apps.results.selectors import paper_allowed, paper_payload
 from apps.subscriptions.selectors import active_grants
 
 from ..selectors import attempt_history, student_exam_status
-from .serializers import StudentExamDetailSerializer, StudentExamSerializer
+from .serializers import StudentExamDetailSerializer, StudentExamListSerializer
 
 WHEN = ("open", "upcoming", "ended")
 
@@ -75,12 +75,12 @@ def _attach_status(user, exams, now):
     )
 )
 class StudentExamListView(generics.ListAPIView):
-    serializer_class = StudentExamSerializer
+    serializer_class = StudentExamListSerializer
 
     def get_queryset(self):
         request = self.request
         self.now = timezone.now()
-        queryset = public_exams()
+        queryset = public_exams().prefetch_related("syllabus_items")
         exam_type = query_choice(request, "type", ExamType.values)
         if exam_type:
             queryset = queryset.filter(exam_type=exam_type)
@@ -114,9 +114,16 @@ class StudentExamListView(generics.ListAPIView):
             return queryset.filter(end_at__lte=self.now).order_by("-end_at", "-id")
         return queryset.order_by(F("start_at").asc(nulls_last=True), "id")
 
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "material_counts": getattr(self, "material_counts", {}),
+        }
+
     def list(self, request, *args, **kwargs):
         page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
         _attach_status(request.user, page, self.now)
+        self.material_counts = material_counts(page)
         response = self.get_paginated_response(self.get_serializer(page, many=True).data)
         response.data["server_time"] = serializers.DateTimeField().to_representation(self.now)
         return response

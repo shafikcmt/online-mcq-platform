@@ -51,6 +51,22 @@ def listable_exams():
     )
 
 
+def material_counts(exams) -> dict[int, int]:
+    """How many published study materials belong to each of these exams (one query)."""
+    from apps.materials.selectors import public_materials
+
+    ids = [exam.pk for exam in exams]
+    if not ids:
+        return {}
+    return dict(
+        public_materials()
+        .filter(exam__in=ids)
+        .order_by()
+        .values_list("exam")
+        .annotate(n=Count("pk"))
+    )
+
+
 def filter_by_group(queryset, *, group_slug: str, ungrouped: bool):
     """The group shelves of a category: ``group_slug`` = the exams sitting directly in that group;
     ``ungrouped`` = the exams with no group (or whose group the admin switched off, so they do not

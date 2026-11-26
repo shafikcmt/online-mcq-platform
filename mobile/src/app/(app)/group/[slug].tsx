@@ -10,7 +10,7 @@ import { Banner } from "@/components/banner";
 import { Button } from "@/components/button";
 import { PageHeader } from "@/components/page-header";
 import { Screen } from "@/components/screen";
-import { ExamRow, type ExamRowItem } from "@/features/category/exam-row";
+import { ExamCard, type ExamCardItem } from "@/features/category/exam-card";
 import { GroupRow } from "@/features/category/group-row";
 import { fetchGroup } from "@/features/category/groups";
 import { ShortcutBar } from "@/features/category/shortcuts";
@@ -40,7 +40,7 @@ export default function GroupScreen() {
   const { data, error, loading, refreshing, refresh, retry } = useRemote(load);
   const now = useServerNow(data?.server_time);
 
-  const rows: ExamRowItem[] = data ? (["open", "upcoming", "ended"] as const).flatMap((when) => data[when].results.map((exam) => ({ exam, when }))) : [];
+  const rows: ExamCardItem[] = data ? (["open", "upcoming", "ended"] as const).flatMap((when) => data[when].results.map((exam) => ({ exam, when }))) : [];
   const examTotal = data ? data.open.count + data.upcoming.count + data.ended.count : 0;
   const children = (data?.group.children ?? []).filter((child) => child.exam_count > 0);
   const name = tidyName(data?.group.name || params.name || "") || t("exams:title");
@@ -85,6 +85,7 @@ export default function GroupScreen() {
         </View>
       ) : null}
       {data && error ? <Banner tone="info" message={t("home:stale")} /> : null}
+      {rows.some(({ exam, when }) => when === "open" && exam.start_at !== null) ? <Banner tone="info" message={`${t("category:liveToday")} ${t("category:liveTodayBody")}`} /> : null}
       {data && children.length === 0 && rows.length === 0 ? <EmptyNote text={t("category:groupEmpty")} /> : null}
       {children.length ? (
         <View style={styles.list}>
@@ -101,7 +102,7 @@ export default function GroupScreen() {
       {rows.length ? (
         <View style={styles.list}>
           {rows.map(({ exam, when }) => (
-            <ExamRow key={exam.slug} exam={exam} when={when} now={now} />
+            <ExamCard key={exam.slug} exam={exam} when={when} now={now} />
           ))}
         </View>
       ) : null}

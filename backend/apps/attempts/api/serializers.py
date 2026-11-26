@@ -9,7 +9,12 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from apps.exams.api.serializers import AwareDateTimeField, PublicExamSerializer, SyllabusMixin
+from apps.exams.api.serializers import (
+    AwareDateTimeField,
+    MaterialCountMixin,
+    PublicExamSerializer,
+    SyllabusMixin,
+)
 from apps.results.api.serializers import ResultSummarySerializer
 
 from ..models import AttemptLanguage, AttemptStatus, SubmitSource
@@ -196,6 +201,11 @@ class StudentExamSerializer(PublicExamSerializer):
         allow_null=True,
         help_text="Time a new attempt would get (less than the duration when joining late).",
     )
+
+
+class StudentExamListSerializer(SyllabusMixin, MaterialCountMixin, StudentExamSerializer):
+    """A row of the student's exam list: the exam, this student's state, its syllabus and its
+    study-material count (the view prefetches both for the page)."""
 
 
 class StudentExamDetailSerializer(SyllabusMixin, StudentExamSerializer):

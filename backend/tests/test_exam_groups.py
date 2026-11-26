@@ -257,3 +257,48 @@ def test_an_empty_group_is_not_offered_and_sub_group_counts_skip_empty_ones(subj
     assert [child["slug"] for child in client.get(f"{PUBLIC}bcs/").json()["children"]] == [
         "bcs-full"
     ]
+
+
+# --------------------------------------------------------------------------------------
+# What an exam row carries (the card: syllabus and study materials)
+# --------------------------------------------------------------------------------------
+def test_exam_list_rows_carry_the_syllabus_and_the_study_material_count(subject):
+    from apps.exams import services as exam_services
+    from apps.materials import services as material_services
+    from apps.materials.models import StudyMaterial
+
+    exam = make_exam(subject, publish=True)
+    exam_services.set_syllabus(
+        exam.pk, [{"subject": "Math", "chapter": "Algebra", "topic": "Equations"}], ctx=CTX
+    )
+    for n in range(2):
+        material_services.create_material(
+            StudyMaterial(
+                kind="video",
+                title_en=f"Video {n}",
+                youtube_id="dQw4w9WgXcQ",
+                exam=exam,
+                published_at=timezone.now() - timedelta(minutes=1),
+            ),
+            ctx=CTX,
+        )
+    other = make_exam(subject, publish=True, title_en="No extras")
+    rows = {row["slug"]: row for row in APIClient().get(EXAMS).json()["results"]}
+    assert rows[exam.slug]["material_count"] == 2
+    assert rows[exam.slug]["syllabus"] == [
+        {"subject": "Math", "chapter": "Algebra", "topic": "Equations"}
+    ]
+    assert rows[other.slug]["material_count"] == 0 and rows[other.slug]["syllabus"] == []
+
+
+def test_the_student_exam_list_carries_them_too(subject):
+    from apps.exams import services as exam_services
+    from tests.test_subscriptions import jwt_client, make_student
+
+    exam = make_exam(subject, publish=True)
+    exam_services.set_syllabus(
+        exam.pk, [{"subject": "Physics", "chapter": "", "topic": ""}], ctx=CTX
+    )
+    client = jwt_client(make_student())
+    row = client.get("/api/v1/exams/").json()["results"][0]
+    assert row["syllabus"][0]["subject"] == "Physics" and row["material_count"] == 0
