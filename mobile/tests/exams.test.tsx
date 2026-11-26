@@ -296,6 +296,45 @@ describe("Category screen and the exam's shortcuts", () => {
     expect(await screen.findByText("No exams are scheduled in this category right now.")).toBeOnTheScreen();
   });
 
+  describe("with groups", () => {
+    const groupRow = (overrides = {}) => ({ slug: "bcs-prep", name: "52nd BCS preparation", description: "", exam_count: 3, live_count: 1, child_count: 2, ...overrides });
+    const list = (rows: unknown[]) => ({ status: 200, body: { count: rows.length, next: null, previous: null, results: rows } });
+
+    test("a category lists its groups first, then the exams that are in none, and asks only for those", async () => {
+      const backend = await signedIn(
+        { "GET /public/groups/": list([groupRow(), groupRow({ slug: "daily", name: "Daily quiz", exam_count: 5, live_count: 0, child_count: 0 })]), "GET /exams/": byWhen },
+        "/category/hsc?name=HSC",
+      );
+      expect(await screen.findByRole("link", { name: "52nd BCS preparation, 3 exams, 2 sub-groups, Live" })).toBeOnTheScreen();
+      expect(screen.getByRole("link", { name: "Daily quiz, 5 exams" })).toBeOnTheScreen();
+      expect(screen.getByRole("link", { name: "Practice set" })).toBeOnTheScreen(); // an ungrouped exam still lists
+      expect(screen.getByText("12 exams")).toBeOnTheScreen(); // 4 ungrouped + 3 + 5 in groups
+      expect(backend.find("GET", "/exams/").every((call) => call.query.ungrouped === "true")).toBe(true);
+      expect(backend.find("GET", "/public/groups/")[0].query).toMatchObject({ category: "hsc" });
+    });
+
+    test("a group opens with its sub-groups and its own exams, under the parent it sits in", async () => {
+      const kid = groupRow({ slug: "weekly", name: "Free weekly test", exam_count: 2, live_count: 0, child_count: 0 });
+      const backend = await signedIn(
+        {
+          "GET /public/groups/bcs-prep/": { status: 200, body: { ...groupRow(), category: { slug: "hsc", name: "HSC" }, parent: null, children: [kid] } },
+          "GET /exams/": (call) => (call.query.group === "bcs-prep" ? byWhen(call) : page([])),
+        },
+        "/group/bcs-prep?name=BCS",
+      );
+      expect(await screen.findByRole("heading", { name: "52nd BCS preparation" })).toBeOnTheScreen();
+      expect(screen.getByRole("link", { name: "Free weekly test, 2 exams" })).toBeOnTheScreen();
+      expect(screen.getByRole("link", { name: "Daily quiz, Live, Ends in 5 h" })).toBeOnTheScreen();
+      expect(screen.getByRole("link", { name: "Archive" })).toBeOnTheScreen();
+      expect(backend.find("GET", "/exams/").every((call) => call.query.group === "bcs-prep")).toBe(true);
+    });
+
+    test("an empty group says so, and a failed groups request leaves the category as it was", async () => {
+      await signedIn({ "GET /public/groups/empty/": { status: 200, body: { ...groupRow({ slug: "empty", exam_count: 0, live_count: 0, child_count: 0 }), category: { slug: "hsc", name: "HSC" }, parent: null, children: [] } }, "GET /exams/": page([]) }, "/group/empty?name=Empty");
+      expect(await screen.findByText("No exams in this group yet. Check back soon.")).toBeOnTheScreen();
+    });
+  });
+
   test("an empty category says so", async () => {
     await signedIn({ "GET /exams/": page([]) }, "/category/hsc?name=HSC");
     expect(await screen.findByText("No exams in this category yet. Check back soon.")).toBeOnTheScreen();

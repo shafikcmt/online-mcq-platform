@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.catalog.models import SLUG_MAX_LENGTH, Category, Subject
+from apps.catalog.models import SLUG_MAX_LENGTH, Category, ExamGroup, Subject
 from apps.core.public_api import LocalizedSerializer
 
 from ..models import (
@@ -63,6 +63,9 @@ class ExamAdminSerializer(serializers.ModelSerializer):
     subject = serializers.PrimaryKeyRelatedField(
         queryset=Subject.objects.all(), allow_null=True, required=False
     )
+    group = serializers.PrimaryKeyRelatedField(
+        queryset=ExamGroup.objects.all(), allow_null=True, required=False
+    )
     duration_minutes = serializers.IntegerField(min_value=1, max_value=24 * 60)
     total_questions = serializers.IntegerField(min_value=1, max_value=10_000)
     default_marks = _marks(min_value=Decimal("0.01"), required=False)
@@ -93,6 +96,7 @@ class ExamAdminSerializer(serializers.ModelSerializer):
             "content_language",
             "category",
             "subject",
+            "group",
             "exam_type",
             "access_type",
             "duration_minutes",
@@ -243,6 +247,7 @@ class PublicExamSerializer(LocalizedSerializer):
     content_language = serializers.CharField()
     category = serializers.SerializerMethodField()
     subject = serializers.SerializerMethodField()
+    group = serializers.SerializerMethodField()
     duration_minutes = serializers.IntegerField()
     total_questions = serializers.IntegerField(source="question_count")
     total_marks = _marks()
@@ -271,6 +276,10 @@ class PublicExamSerializer(LocalizedSerializer):
     @extend_schema_field(PublicRefSerializer(allow_null=True))
     def get_subject(self, obj):
         return self._ref(obj.subject)
+
+    @extend_schema_field(PublicRefSerializer(allow_null=True))
+    def get_group(self, obj):
+        return self._ref(obj.group)
 
 
 class PublicRoutineExamSerializer(SyllabusMixin, PublicExamSerializer):

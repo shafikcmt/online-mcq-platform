@@ -5,7 +5,7 @@ import { vi } from "vitest";
 import { ToastProvider } from "@/components/ui/toast";
 import { I18nProvider } from "@/lib/i18n/provider";
 import type { Locale } from "@/lib/i18n/messages";
-import type { Category, Paginated, Question, Subject } from "@/types/content";
+import type { Category, ExamGroup, Paginated, Question, Subject } from "@/types/content";
 import type { Exam, ExamQuestionRow } from "@/types/exams";
 import type { AdminResult } from "@/types/results";
 
@@ -69,6 +69,26 @@ export function category(overrides: Partial<Category> = {}): Category {
     sort_order: 0,
     is_active: true,
     subject_count: 2,
+    created_at: STAMP,
+    updated_at: STAMP,
+    ...overrides,
+  };
+}
+
+export function group(overrides: Partial<ExamGroup> = {}): ExamGroup {
+  return {
+    id: 30,
+    category: 1,
+    parent: null,
+    name_bn: "বিসিএস প্রস্তুতি",
+    name_en: "BCS prep",
+    slug: "bcs-prep",
+    description_bn: "",
+    description_en: "",
+    sort_order: 0,
+    is_active: true,
+    exam_count: 2,
+    child_count: 0,
     created_at: STAMP,
     updated_at: STAMP,
     ...overrides,
@@ -140,6 +160,7 @@ export function exam(overrides: Partial<Exam> = {}): Exam {
     content_language: "bn",
     category: 1,
     subject: 10,
+    group: null,
     exam_type: "regular",
     access_type: "free",
     duration_minutes: 30,

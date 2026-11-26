@@ -34,6 +34,16 @@ SLUG_INVALID_MESSAGE = _(
 )
 CATEGORY_SLUG_TAKEN_MESSAGE = _("A category with this slug already exists.")
 SUBJECT_SLUG_TAKEN_MESSAGE = _("This category already has a subject with this slug.")
+GROUP_SLUG_TAKEN_MESSAGE = _("A group with this slug already exists.")
+GROUP_PARENT_CATEGORY_MESSAGE = _("The parent group must be in the same category.")
+GROUP_DEPTH_MESSAGE = _(
+    "Groups go two levels deep: a group, and sub-groups inside it. "
+    "Choose a top-level group as the parent."
+)
+GROUP_PARENT_SELF_MESSAGE = _("A group cannot be its own parent.")
+GROUP_HAS_CHILDREN_MESSAGE = _(
+    "This group has sub-groups, so it cannot become a sub-group itself. Move them first."
+)
 
 slug_validator = RegexValidator(SLUG_REGEX, SLUG_INVALID_MESSAGE, code="invalid_slug")
 
@@ -200,3 +210,82 @@ class Subject(CatalogEntry):
                 fields=["category", "is_active", "sort_order"], name="catalog_subj_cat_active_idx"
             )
         ]
+
+
+class ExamGroup(CatalogEntry):
+    """A named shelf of exams inside a category, as students browse them: for example
+    "Subject-wise preparation" or "52nd BCS preparation", with sub-groups ("Free weekly model
+    test", "Daily quiz") one level down. Exams point at the group they sit in (or none: they
+    then list directly under the category). The slug is unique across all groups so a group
+    has one address."""
+
+    category = models.ForeignKey(
+        Category,
+        verbose_name=_("category"),
+        on_delete=models.PROTECT,
+        related_name="groups",
+    )
+    parent = models.ForeignKey(
+        "self",
+        verbose_name=_("parent group"),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="children",
+    )
+    slug = models.CharField(
+        _("slug"),
+        max_length=SLUG_MAX_LENGTH,
+        unique=True,
+        validators=[slug_validator],
+        error_messages={"unique": GROUP_SLUG_TAKEN_MESSAGE},
+        help_text=_("Used in web addresses. Generated from the English name if left empty."),
+    )
+
+    AUDIT_VALUE_FIELDS = (*CatalogEntry.AUDIT_VALUE_FIELDS, "category_id", "parent_id")
+
+    class Meta:
+        verbose_name = _("exam group")
+        verbose_name_plural = _("exam groups")
+        ordering = ("sort_order", "id")
+        constraints = [
+            models.CheckConstraint(
+                condition=_name_present(),
+                name="catalog_group_name_required",
+                violation_error_message=NAME_REQUIRED_MESSAGE,
+            ),
+            models.CheckConstraint(
+                condition=models.Q(slug__regex=SLUG_REGEX),
+                name="catalog_group_slug_format",
+                violation_error_message=SLUG_INVALID_MESSAGE,
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(parent=models.F("id")),
+                name="catalog_group_not_own_parent",
+                violation_error_message=GROUP_PARENT_SELF_MESSAGE,
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["category", "parent", "is_active", "sort_order"],
+                name="catalog_group_browse_idx",
+            )
+        ]
+
+    def clean(self):
+        super().clean()
+        errors = {}
+        if self.parent_id:
+            parent = self.parent
+            if self.pk and parent.pk == self.pk:
+                errors["parent"] = ValidationError(GROUP_PARENT_SELF_MESSAGE, code="parent_self")
+            elif parent.category_id != self.category_id:
+                errors["parent"] = ValidationError(
+                    GROUP_PARENT_CATEGORY_MESSAGE, code="parent_category"
+                )
+            elif parent.parent_id is not None:
+                errors["parent"] = ValidationError(GROUP_DEPTH_MESSAGE, code="parent_depth")
+            elif self.pk and ExamGroup.objects.filter(parent_id=self.pk).exists():
+                errors["parent"] = ValidationError(GROUP_HAS_CHILDREN_MESSAGE, code="has_children")
+        if errors:
+            raise ValidationError(errors)

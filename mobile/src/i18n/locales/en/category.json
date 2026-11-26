@@ -13,5 +13,14 @@
   "routine": "Routine",
   "materials": "Study",
   "merit": "Merit list",
-  "syllabus": "Syllabus"
+  "syllabus": "Syllabus",
+  "groupExams_one": "{{n}} exam",
+  "groupExams_other": "{{n}} exams",
+  "subGroups_one": "{{n}} sub-group",
+  "subGroups_other": "{{n}} sub-groups",
+  "live": "Live",
+  "groupsTitle": "Browse",
+  "examsHeading": "Exams",
+  "groupEmpty": "No exams in this group yet. Check back soon.",
+  "inGroup": "In {{name}}"
 }

@@ -66,6 +66,7 @@ SLUG_REQUIRED_MESSAGE = _(
     "Enter a slug (English letters, digits and hyphens), or an English title to generate it."
 )
 SUBJECT_CATEGORY_MESSAGE = _("The subject must belong to the selected category.")
+GROUP_CATEGORY_MESSAGE = _("The group must belong to the selected category.")
 SCHEDULE_ORDER_MESSAGE = _("The end time must be after the start time.")
 SCHEDULE_TOO_SHORT_MESSAGE = _("The exam window is shorter than the exam duration.")
 SCHEDULE_REQUIRED_MESSAGE = _("Live exams need a start and an end time.")
@@ -114,6 +115,7 @@ EXAM_FIELDS = (
     "content_language",
     "category",
     "subject",
+    "group",
     "exam_type",
     "access_type",
     "duration_minutes",
@@ -133,7 +135,7 @@ EXAM_FIELDS = (
     "allow_answer_review",
     "is_featured",
 )
-_COMPARED = tuple(f"{f}_id" if f in ("category", "subject") else f for f in EXAM_FIELDS)
+_COMPARED = tuple(f"{f}_id" if f in ("category", "subject", "group") else f for f in EXAM_FIELDS)
 # Reset on duplicate: identity, schedule, and is_featured (featuring is a publishing
 # decision for a specific exam, not part of its configuration).
 COPIED_FIELDS = tuple(
@@ -177,6 +179,8 @@ def normalize_rules(exam: Exam) -> None:
 
     if exam.subject_id and exam.subject.category_id != exam.category_id:
         raise _error("subject", SUBJECT_CATEGORY_MESSAGE, "subject_category_mismatch")
+    if exam.group_id and exam.group.category_id != exam.category_id:
+        raise _error("group", GROUP_CATEGORY_MESSAGE, "group_category_mismatch")
 
     if exam.start_at and exam.end_at:
         if exam.end_at <= exam.start_at:
@@ -255,6 +259,7 @@ class _State:
     has_schedule: bool
     category_id: int
     subject_id: int | None
+    group_id: int | None
 
     @classmethod
     def of(cls, exam: Exam, question_count: int | None = None) -> "_State":
@@ -274,6 +279,7 @@ class _State:
             bool(exam.start_at or exam.end_at),
             exam.category_id,
             exam.subject_id,
+            exam.group_id,
         )
 
     def values(self) -> dict:
@@ -301,7 +307,7 @@ def _changes(before: _State, after: _State) -> dict:
 
 
 def _field_name(compared: str) -> str:
-    return compared[:-3] if compared in ("category_id", "subject_id") else compared
+    return compared[:-3] if compared in ("category_id", "subject_id", "group_id") else compared
 
 
 # --------------------------------------------------------------------------------------

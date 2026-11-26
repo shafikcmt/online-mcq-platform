@@ -567,7 +567,14 @@
     "merit": "Merit list",
     "routine": "Routine",
     "materials": "Study",
-    "allExams": "All exams"
+    "allExams": "All exams",
+    "groupExams": "{{n}} {{n|exam|exams}}",
+    "subGroups": "{{n}} {{n|sub-group|sub-groups}}",
+    "live": "Live",
+    "examsHeading": "Exams",
+    "groupEmpty": "No exams in this group yet. Check back soon.",
+    "groupMeta": "Exams in {{name}}.",
+    "groupBack": "Back to {{name}}"
   },
   "legal": {
     "updated": "Last updated: 18 November 2026",

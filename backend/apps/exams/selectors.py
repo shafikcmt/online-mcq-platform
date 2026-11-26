@@ -47,8 +47,19 @@ def listable_exams():
     return (
         Exam.objects.filter(status=ExamStatus.PUBLISHED, category__is_active=True)
         .filter(Q(subject__isnull=True) | Q(subject__is_active=True))
-        .select_related("category", "subject")
+        .select_related("category", "subject", "group")
     )
+
+
+def filter_by_group(queryset, *, group_slug: str, ungrouped: bool):
+    """The group shelves of a category: ``group_slug`` = the exams sitting directly in that group;
+    ``ungrouped`` = the exams with no group (or whose group the admin switched off, so they do not
+    vanish from the category)."""
+    if group_slug:
+        return queryset.filter(group__slug=group_slug, group__is_active=True)
+    if ungrouped:
+        return queryset.filter(Q(group__isnull=True) | Q(group__is_active=False))
+    return queryset
 
 
 ROUTINE_MAX_EXAMS = 300

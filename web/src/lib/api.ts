@@ -92,6 +92,11 @@ export type PackageAccess = {
 };
 
 /** `live_count`: scheduled exams running right now (absent from an older server: treated as 0). */
+/** A shelf of exams inside a category (or a sub-group inside a group). `exam_count` includes the
+ * sub-groups' exams; `live_count` is scheduled exams running now. */
+export type Group = { slug: string; name: string; description: string; exam_count: number; live_count: number; child_count: number };
+export type GroupDetail = Group & { category: { slug: string; name: string }; parent: { slug: string; name: string } | null; children: Group[] };
+
 export type Category = { slug: string; name: string; description: string; exam_count: number; live_count?: number; subjects: { slug: string; name: string; description: string }[] };
 
 /** `exam`: the published exam a notice is about, or null for a general notice (absent from an older server). */

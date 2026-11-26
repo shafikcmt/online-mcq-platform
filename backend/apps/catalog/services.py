@@ -22,15 +22,18 @@ from apps.core.slugs import first_free_slug, slug_base
 from .exceptions import (
     CATEGORY_IN_USE_MESSAGE,
     CATEGORY_REFERENCED_MESSAGE,
+    GROUP_IN_USE_MESSAGE,
     SUBJECT_IN_USE_MESSAGE,
     CatalogInUse,
 )
 from .models import (
     CATEGORY_SLUG_TAKEN_MESSAGE,
+    GROUP_SLUG_TAKEN_MESSAGE,
     SLUG_MAX_LENGTH,
     SUBJECT_SLUG_TAKEN_MESSAGE,
     CatalogEntry,
     Category,
+    ExamGroup,
     Subject,
 )
 
@@ -246,3 +249,62 @@ def delete_subject(subject_id: int, *, ctx: AuditContext) -> None:
     except (ProtectedError, RestrictedError) as exc:
         raise CatalogInUse(SUBJECT_IN_USE_MESSAGE) from exc
     _audit(ctx, "subject.delete", subject, subject_id, summary, {"snapshot": snapshot})
+
+
+# --------------------------------------------------------------------------------------
+# Exam group
+# --------------------------------------------------------------------------------------
+@transaction.atomic
+def create_group(group: ExamGroup, *, ctx: AuditContext) -> ExamGroup:
+    group.category = _lock_category(group.category_id)
+    _ensure_slug(group, ExamGroup.objects.all())
+    group.full_clean(validate_constraints=False)
+    _save(group, GROUP_SLUG_TAKEN_MESSAGE)
+    _audit(ctx, "group.create", group, group.pk, _summary(group), _create_metadata(group))
+    return group
+
+
+@transaction.atomic
+def update_group(group_id: int, data: dict, *, ctx: AuditContext) -> ExamGroup:
+    group = ExamGroup.objects.select_for_update().filter(pk=group_id).first()
+    if group is None:
+        raise Http404
+    before = ExamGroup.objects.get(pk=group_id)
+    _apply(group, data)
+    group.category = _lock_category(group.category_id)
+    if group.category_id != before.category_id and (
+        group.exams.exists() or group.children.exists()
+    ):
+        # Exams and sub-groups are tied to the category: moving the group would strand them.
+        raise CatalogInUse(GROUP_IN_USE_MESSAGE)
+    _ensure_slug(group, ExamGroup.objects.exclude(pk=group_id))
+    group.full_clean(validate_constraints=False)
+    changed = _changed_fields(before, group)
+    if not changed:
+        return group
+    _save(group, GROUP_SLUG_TAKEN_MESSAGE)
+    _audit(
+        ctx,
+        "group.update",
+        group,
+        group.pk,
+        _summary(group),
+        _update_metadata(before, group, changed),
+    )
+    return group
+
+
+@transaction.atomic
+def delete_group(group_id: int, *, ctx: AuditContext) -> None:
+    group = ExamGroup.objects.select_for_update().filter(pk=group_id).first()
+    if group is None:
+        raise Http404
+    if group.children.exists():
+        raise CatalogInUse(GROUP_IN_USE_MESSAGE)
+    snapshot, summary = _values(group), _summary(group)
+    try:
+        with transaction.atomic():
+            group.delete()  # exams point here with PROTECT: they land in the except
+    except (ProtectedError, RestrictedError) as exc:
+        raise CatalogInUse(GROUP_IN_USE_MESSAGE) from exc
+    _audit(ctx, "group.delete", group, group_id, summary, {"snapshot": snapshot})

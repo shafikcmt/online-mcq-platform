@@ -10,7 +10,7 @@ import { EXAM_TEXT_MAX_LENGTH, EXAM_TITLE_MAX_LENGTH, SLUG_MAX_LENGTH } from "@/
 import { attemptRules, withPracticeDefaults, type ExamDraft } from "@/lib/exam-form";
 import { useI18n } from "@/lib/i18n/provider";
 import { localized } from "@/lib/localized";
-import { CONTENT_LANGUAGES, type Category, type Subject } from "@/types/content";
+import { CONTENT_LANGUAGES, type Category, type ExamGroup, type Subject } from "@/types/content";
 import { ACCESS_TYPES, EXAM_TYPES, MERIT_STRATEGIES, RESULT_VISIBILITIES } from "@/types/exams";
 
 export const SECTION_IDS = ["basics", "schedule", "scoring", "attempts", "merit", "review"] as const;
@@ -36,6 +36,7 @@ export function ExamSettings({
   errors,
   categories,
   subjects,
+  groups = [],
   isNew,
   disabled,
 }: {
@@ -44,6 +45,7 @@ export function ExamSettings({
   errors: Record<string, string>;
   categories: Category[];
   subjects: Subject[];
+  groups?: ExamGroup[];
   isNew: boolean;
   disabled: boolean;
 }) {
@@ -52,6 +54,13 @@ export function ExamSettings({
   const set = <K extends keyof ExamDraft>(key: K, value: ExamDraft[K]) => onChange({ ...draft, [key]: value });
   const categoryId = draft.category ? Number(draft.category) : null;
   const subjectChoices = categoryId ? subjects.filter((row) => row.category === categoryId) : [];
+  // Groups of the chosen category, a sub-group shown under its parent ("Parent › Child").
+  const groupChoices = categoryId ? groups.filter((row) => row.category === categoryId) : [];
+  const groupLabel = (row: ExamGroup) => {
+    const own = name(row);
+    const parent = row.parent ? groups.find((other) => other.id === row.parent) : undefined;
+    return { lang: own.lang, text: parent ? `${name(parent).text} › ${own.text}` : own.text };
+  };
   const name = (row: { name_bn: string; name_en: string }) => localized(locale, row.name_bn, row.name_en);
 
   function changeType(exam_type: ExamDraft["exam_type"]) {
@@ -108,7 +117,7 @@ export function ExamSettings({
               <Select
                 value={draft.category}
                 // A subject of another category is invalid: the choice is cleared.
-                onChange={(event) => onChange({ ...draft, category: event.target.value, subject: "" })}
+                onChange={(event) => onChange({ ...draft, category: event.target.value, subject: "", group: "" })}
                 disabled={disabled}
               >
                 <option value="">{t("subjects.chooseCategory")}</option>
@@ -127,6 +136,19 @@ export function ExamSettings({
                 <option value="">{draft.category ? t("exam.wholeCategory") : t("questions.chooseCategoryFirst")}</option>
                 {subjectChoices.map((row) => {
                   const label = name(row);
+                  return (
+                    <option key={row.id} value={row.id} lang={label.lang}>
+                      {label.text}
+                    </option>
+                  );
+                })}
+              </Select>
+            </Field>
+            <Field id="exam-group" label={t("exam.group")} optional hint={t("exam.groupHint")} error={errors.group}>
+              <Select value={draft.group} onChange={(event) => set("group", event.target.value)} disabled={disabled || !draft.category}>
+                <option value="">{draft.category ? t("exam.noGroup") : t("questions.chooseCategoryFirst")}</option>
+                {groupChoices.map((row) => {
+                  const label = groupLabel(row);
                   return (
                     <option key={row.id} value={row.id} lang={label.lang}>
                       {label.text}

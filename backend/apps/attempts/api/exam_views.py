@@ -23,12 +23,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.catalog.models import SLUG_MAX_LENGTH
-from apps.core.admin_api import INVALID_CHOICE_MESSAGE, query_choice, query_search
+from apps.core.admin_api import INVALID_CHOICE_MESSAGE, query_bool, query_choice, query_search
 from apps.core.exceptions import ApiError
 from apps.core.i18n import resolve_bilingual
 from apps.exams.api.views import public_exams
 from apps.exams.models import AccessType, ExamType
-from apps.exams.selectors import open_window
+from apps.exams.selectors import filter_by_group, open_window
 from apps.results.api.serializers import PaperSerializer
 from apps.results.selectors import paper_allowed, paper_payload
 from apps.subscriptions.selectors import active_grants
@@ -58,6 +58,10 @@ def _attach_status(user, exams, now):
             OpenApiParameter("type", OpenApiTypes.STR, enum=ExamType.values),
             OpenApiParameter("access", OpenApiTypes.STR, enum=AccessType.values),
             OpenApiParameter("category", OpenApiTypes.STR, description="Category slug."),
+            OpenApiParameter("group", OpenApiTypes.STR, description="Group slug (exams in it)."),
+            OpenApiParameter(
+                "ungrouped", OpenApiTypes.BOOL, description="true = exams with no active group."
+            ),
             OpenApiParameter(
                 "when",
                 OpenApiTypes.STR,
@@ -88,6 +92,12 @@ class StudentExamListView(generics.ListAPIView):
             raise serializers.ValidationError({"category": [INVALID_CHOICE_MESSAGE]})
         if category:
             queryset = queryset.filter(category__slug=category)
+        group = request.query_params.get("group", "").strip().lower()
+        if len(group) > SLUG_MAX_LENGTH:
+            raise serializers.ValidationError({"group": [INVALID_CHOICE_MESSAGE]})
+        queryset = filter_by_group(
+            queryset, group_slug=group, ungrouped=bool(query_bool(request, "ungrouped"))
+        )
         search = query_search(request)
         if search:
             queryset = queryset.filter(

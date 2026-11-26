@@ -29,6 +29,7 @@ export type Exam = {
   content_language: ContentLanguage;
   category: number;
   subject: number | null;
+  group: number | null;
   exam_type: ExamType;
   access_type: AccessType;
   duration_minutes: number;

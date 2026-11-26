@@ -2,7 +2,7 @@ import "server-only";
 
 import { notFound } from "next/navigation";
 
-import type { Category, Subject } from "@/types/content";
+import type { Category, ExamGroup, Subject } from "@/types/content";
 import type { SyllabusLineData, SyllabusResponse } from "@/types/syllabus";
 import type { Exam, ExamQuestionRow } from "@/types/exams";
 
@@ -12,14 +12,16 @@ import { ApiError, adminRead } from "./server";
 /** Categories and subjects for the exam editor (its own selects and the question
  * picker's filters), fetched in parallel on the server. */
 export async function examLookups() {
-  const [categories, subjects] = await Promise.all([
+  const [categories, subjects, groups] = await Promise.all([
     adminLookup<Category>("/admin/categories/"),
     adminLookup<Subject>("/admin/subjects/"),
+    adminLookup<ExamGroup>("/admin/groups/"),
   ]);
   return {
     categories: categories.rows,
     subjects: subjects.rows,
-    lookupTruncated: categories.truncated || subjects.truncated,
+    groups: groups.rows,
+    lookupTruncated: categories.truncated || subjects.truncated || groups.truncated,
   };
 }
 

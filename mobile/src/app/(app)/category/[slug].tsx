@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { Archive, CalendarDays, CloudOff, PlayCircle, Trophy } from "lucide-react-native";
 import { useCallback } from "react";
-import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { describeError } from "@/api/describe";
@@ -10,18 +10,18 @@ import { Banner } from "@/components/banner";
 import { Button } from "@/components/button";
 import { PageHeader } from "@/components/page-header";
 import { Screen } from "@/components/screen";
+import { ExamRow, type ExamRowItem } from "@/features/category/exam-row";
+import { GroupRow } from "@/features/category/group-row";
+import { fetchGroups, type Group } from "@/features/category/groups";
 import { ShortcutBar } from "@/features/category/shortcuts";
 import { EmptyNote } from "@/features/dashboard/section";
 import { fetchExams } from "@/features/exams/api";
-import { relativeOrDate } from "@/features/exams/time";
-import type { ExamWhen, StudentExam } from "@/features/exams/types";
 import { localizeDigits, tidyName } from "@/lib/text";
 import { useRemote } from "@/lib/use-remote";
 import { useServerNow } from "@/lib/use-server-now";
 import { colors, radius, space } from "@/theme";
 
 const SLUG = /^[a-z0-9-]{1,140}$/;
-type Row = { exam: StudentExam; when: ExamWhen };
 
 /** One category: its exams as a clear list, running ones first (a red "Live" mark on a scheduled
  * exam that is running now), then upcoming, then past ones marked "Archived". Under the list, the
@@ -33,14 +33,19 @@ export default function CategoryScreen() {
   const params = useLocalSearchParams<{ slug: string; name?: string }>();
   const slug = SLUG.test(params.slug ?? "") ? params.slug : "";
   const load = useCallback(async () => {
-    const [open, upcoming, ended] = await Promise.all((["open", "upcoming", "ended"] as const).map((when) => fetchExams(when, 1, slug)));
-    return { open, upcoming, ended, server_time: open.server_time };
+    // The exams that sit in no group are listed under the group rows; the groups themselves may fail to
+    // load (an older server): the category then simply lists every exam as before.
+    const groups = await fetchGroups(slug).catch(() => [] as Group[]);
+    const shelf = { ungrouped: groups.length > 0 };
+    const [open, upcoming, ended] = await Promise.all((["open", "upcoming", "ended"] as const).map((when) => fetchExams(when, 1, slug, shelf)));
+    return { open, upcoming, ended, groups, server_time: open.server_time };
   }, [slug]);
   const { data, error, loading, refreshing, refresh, retry } = useRemote(load);
   const now = useServerNow(data?.server_time);
 
-  const rows: Row[] = data ? (["open", "upcoming", "ended"] as const).flatMap((when) => data[when].results.map((exam) => ({ exam, when }))) : [];
-  const total = data ? data.open.count + data.upcoming.count + data.ended.count : 0;
+  const rows: ExamRowItem[] = data ? (["open", "upcoming", "ended"] as const).flatMap((when) => data[when].results.map((exam) => ({ exam, when }))) : [];
+  const groups = data?.groups ?? [];
+  const total = data ? data.open.count + data.upcoming.count + data.ended.count + groups.reduce((sum, group) => sum + group.exam_count, 0) : 0;
   const name = tidyName(params.name || rows[0]?.exam.category.name || "") || t("exams:title");
 
   return (
@@ -75,7 +80,19 @@ export default function CategoryScreen() {
         </View>
       ) : null}
       {data && error ? <Banner tone="info" message={t("home:stale")} /> : null}
-      {data && rows.length === 0 ? <EmptyNote text={t("category:empty")} /> : null}
+      {data && rows.length === 0 && groups.length === 0 ? <EmptyNote text={t("category:empty")} /> : null}
+      {groups.length ? (
+        <View style={styles.list}>
+          {groups.map((group) => (
+            <GroupRow key={group.slug} group={group} />
+          ))}
+        </View>
+      ) : null}
+      {groups.length && rows.length ? (
+        <AppText weight="bold" role="heading">
+          {t("category:examsHeading")}
+        </AppText>
+      ) : null}
       {rows.length ? (
         <View style={styles.list}>
           {rows.map(({ exam, when }) => (
@@ -90,62 +107,9 @@ export default function CategoryScreen() {
   );
 }
 
-function ExamRow({ exam, when, now }: Row & { now: number }) {
-  const { t, i18n } = useTranslation();
-  // "Live" is a scheduled exam that is running now; an exam with no schedule is simply open.
-  const live = when === "open" && exam.start_at !== null;
-  const mark = live ? "live" : when === "upcoming" ? "upcoming" : when === "ended" ? "archived" : null;
-  let time: string | null = null;
-  if (when === "upcoming" && exam.start_at) time = relativeOrDate("starts", exam.start_at, now, t, i18n.language);
-  else if (when === "open" && exam.end_at) time = relativeOrDate("ends", exam.end_at, now, t, i18n.language);
-  return (
-    <Pressable
-      accessibilityRole="link"
-      accessibilityLabel={[exam.title, mark ? t(`category:mark.${mark}`) : null, time].filter(Boolean).join(", ")}
-      onPress={() => router.push({ pathname: "/exam/[slug]", params: { slug: exam.slug } })}
-      style={({ pressed }) => [styles.row, when === "ended" && styles.rowPast, pressed && styles.pressed]}
-    >
-      <View style={styles.rowText}>
-        <AppText weight="semibold" numberOfLines={2} color={when === "ended" ? colors.inkMuted : colors.ink}>
-          {exam.title}
-        </AppText>
-        {time ? (
-          <AppText variant="caption" color={colors.inkMuted}>
-            {time}
-          </AppText>
-        ) : null}
-      </View>
-      {mark ? (
-        <View style={styles.mark}>
-          {live ? <View style={styles.dot} /> : null}
-          <AppText variant="caption" weight="bold" color={live ? colors.danger700 : mark === "upcoming" ? colors.info700 : colors.inkSubtle}>
-            {t(`category:mark.${mark}`)}
-          </AppText>
-        </View>
-      ) : null}
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   list: { gap: space.md },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space.md,
-    minHeight: 56,
-    paddingHorizontal: space.xl,
-    paddingVertical: space.md,
-    borderRadius: radius.sheet,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-  },
-  rowPast: { backgroundColor: colors.canvas, borderColor: colors.line },
-  rowText: { flex: 1, gap: 2 },
-  mark: { flexDirection: "row", alignItems: "center", gap: space.xs },
-  dot: { width: 8, height: 8, borderRadius: radius.full, backgroundColor: colors.danger700 },
-  pressed: { backgroundColor: colors.brand50, borderColor: colors.brand600 },
+  section: { gap: space.md },
   block: { borderRadius: radius.sheet, backgroundColor: colors.line },
   failed: { alignItems: "center", gap: space.md, marginTop: space.huge },
 });

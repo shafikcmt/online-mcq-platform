@@ -17,6 +17,7 @@ import {
   Mail,
   ListChecks,
   Library,
+  Layers,
   Smartphone,
   Landmark,
   CalendarDays,
@@ -54,6 +55,7 @@ export const NAV: NavGroup[] = [
     items: [
       { key: "nav.categories", href: "/categories", icon: FolderTree, ready: true },
       { key: "nav.subjects", href: "/subjects", icon: Library, ready: true },
+      { key: "nav.groups", href: "/groups", icon: Layers, ready: true },
       { key: "nav.questions", href: "/questions", icon: ListChecks, ready: true },
       { key: "nav.exams", href: "/exams", icon: BookOpenCheck, ready: true },
       { key: "nav.routine", href: "/routine", icon: CalendarDays, ready: true },

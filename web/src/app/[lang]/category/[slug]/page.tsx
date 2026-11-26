@@ -1,12 +1,14 @@
-import { Archive, CalendarDays, ChevronLeft, ChevronRight, PlayCircle, Trophy } from "lucide-react";
+import { Archive, CalendarDays, ChevronLeft, PlayCircle, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EmptyNote, PageIntro, UnavailableNote } from "@/components/cards";
-import { publicGet, type Category, type Exam, type Page } from "@/lib/api";
+import { ExamRows } from "@/components/exam-rows";
+import { GroupRows } from "@/components/group-rows";
+import { publicGet, type Category, type Exam, type Group, type Page } from "@/lib/api";
 import { apiPath, pageHref, type When } from "@/lib/exam-filters";
-import { dateTime, digits, tidyName } from "@/lib/format";
+import { digits, tidyName } from "@/lib/format";
 import { isLang, translator, type Lang } from "@/lib/i18n";
 import { materialsHref } from "@/lib/materials";
 import { alternates } from "@/lib/site";
@@ -69,9 +71,14 @@ export default async function CategoryPage({ params }: Props) {
   }
 
   const { category } = found;
-  const pages = await Promise.all(WHENS.map((when) => publicGet<Page<Exam>>(apiPath({ when, category: slug, page: 1 }), lang)));
+  // The groups of the category come first; the exams that sit in no group list under them. An older server
+  // without groups answers nothing: the category then lists every exam as before.
+  const groupPage = await publicGet<Page<Group>>(`groups/?category=${slug}&page_size=50`, lang);
+  const groups = (groupPage?.results ?? []).filter((group) => group.exam_count > 0);
+  const shelf = { ungrouped: groups.length > 0 };
+  const pages = await Promise.all(WHENS.map((when) => publicGet<Page<Exam>>(apiPath({ when, category: slug, page: 1 }, shelf), lang)));
   const rows = WHENS.flatMap((when, index) => (pages[index]?.results ?? []).map((exam) => ({ exam, when })));
-  const total = pages.reduce((sum, page) => sum + (page?.count ?? 0), 0);
+  const total = pages.reduce((sum, page) => sum + (page?.count ?? 0), 0) + groups.reduce((sum, group) => sum + group.exam_count, 0);
   const shortcuts = [
     { label: t("category.archive"), href: pageHref(lang, { when: "ended", category: slug }), Icon: Archive },
     { label: t("category.merit"), href: `/${lang}/leaderboard`, Icon: Trophy },
@@ -87,44 +94,16 @@ export default async function CategoryPage({ params }: Props) {
       <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pb-16 sm:px-6">
         {pages.every((page) => page === null) ? (
           <UnavailableNote text={t("category.unavailable")} />
-        ) : rows.length === 0 ? (
+        ) : rows.length === 0 && groups.length === 0 ? (
           <EmptyNote text={t("category.empty")} />
         ) : (
-          <ul className="flex flex-col gap-3">
-            {rows.map(({ exam, when }) => {
-              // "Live" is a scheduled exam that is running now; an exam with no schedule is simply open.
-              const live = when === "open" && exam.start_at !== null;
-              const mark = live ? "live" : when === "upcoming" ? "upcoming" : when === "ended" ? "archived" : null;
-              const time =
-                when === "upcoming" && exam.start_at
-                  ? t("exam.starts", { date: dateTime(exam.start_at, lang) })
-                  : when === "open" && exam.end_at
-                    ? t("exam.ends", { date: dateTime(exam.end_at, lang) })
-                    : null;
-              return (
-                <li key={exam.slug}>
-                  <Link
-                    href={`/${lang}/exams/${exam.slug}`}
-                    className={`flex min-h-14 items-center gap-3 rounded-[1rem] border px-5 py-3 shadow-sm transition hover:border-brand-600 hover:bg-brand-50 ${when === "ended" ? "border-line bg-canvas" : "border-line-strong bg-surface"}`}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className={`block font-semibold break-words ${when === "ended" ? "text-ink-muted" : "text-ink"}`}>{exam.title}</span>
-                      {time ? <span className="block text-xs text-ink-muted">{time}</span> : null}
-                    </span>
-                    {mark ? (
-                      <span className={`flex shrink-0 items-center gap-1.5 text-xs font-bold ${live ? "text-danger-700" : mark === "upcoming" ? "text-info-700" : "text-ink-subtle"}`}>
-                        {live ? <span className="size-2 rounded-full bg-danger-700" aria-hidden /> : null}
-                        {t(`category.mark.${mark}`)}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4 shrink-0 text-ink-subtle" aria-hidden />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            {groups.length ? <GroupRows groups={groups} lang={lang} t={t} /> : null}
+            {groups.length && rows.length ? <h2 className="-mb-4 text-lg font-bold text-ink">{t("category.examsHeading")}</h2> : null}
+            {rows.length ? <ExamRows rows={rows} lang={lang} t={t} /> : null}
+          </>
         )}
-        {total > rows.length ? (
+        {total > rows.length && groups.length === 0 ? (
           <Link href={pageHref(lang, { category: slug })} className="self-start font-semibold text-brand-700 hover:underline">
             {t("category.seeAll")}
           </Link>

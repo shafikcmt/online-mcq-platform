@@ -7,7 +7,7 @@ API follow exactly the same rules.
 
 from rest_framework import serializers
 
-from ..models import NAME_MAX_LENGTH, SLUG_MAX_LENGTH, Category, Subject
+from ..models import NAME_MAX_LENGTH, SLUG_MAX_LENGTH, Category, ExamGroup, Subject
 
 MAX_SORT_ORDER = 2_147_483_647
 
@@ -62,3 +62,33 @@ class SubjectAdminSerializer(CatalogEntrySerializer):
         fields = ("id", "category", *CatalogEntrySerializer.COMMON_FIELDS[1:])
         read_only_fields = ("id", "created_at", "updated_at")
         validators = []  # (category, slug) uniqueness is checked by the service
+
+
+class GroupAdminSerializer(CatalogEntrySerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=ExamGroup.objects.all(), allow_null=True, required=False
+    )
+    exam_count = serializers.SerializerMethodField()
+    child_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExamGroup
+        fields = (
+            "id",
+            "category",
+            "parent",
+            *CatalogEntrySerializer.COMMON_FIELDS[1:],
+            "exam_count",
+            "child_count",
+        )
+        read_only_fields = ("id", "created_at", "updated_at")
+        validators = []
+
+    def get_exam_count(self, obj) -> int:
+        count = getattr(obj, "exam_total", None)
+        return obj.exams.count() if count is None else count
+
+    def get_child_count(self, obj) -> int:
+        count = getattr(obj, "child_total", None)
+        return obj.children.count() if count is None else count

@@ -880,6 +880,7 @@ class TestPublic:
         "content_language",
         "category",
         "subject",
+        "group",
         "duration_minutes",
         "total_questions",
         "total_marks",
