@@ -107,7 +107,7 @@ def test_the_syllabus_is_on_the_public_exam_page_and_in_list_rows(api, subject):
     anonymous = APIClient()
     detail = anonymous.get(f"{PUBLIC}{published.slug}/").json()
     assert detail["syllabus"] == [{"subject": "Physics", "chapter": "Motion", "topic": "Speed"}]
-    # List rows carry it too (the exam card shows it); it is prefetched, so the cost does not grow per exam.
+    # List rows carry it too (the exam card shows it); it is prefetched, so cost stays flat.
     row = anonymous.get(PUBLIC).json()["results"][0]
     assert row["syllabus"] == [{"subject": "Physics", "chapter": "Motion", "topic": "Speed"}]
 
